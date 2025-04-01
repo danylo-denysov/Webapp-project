@@ -1,5 +1,6 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { TaskStatus } from './task-status.enum';
+import { TaskGroup } from 'src/task-groups/task-group.entity';
 
 @Entity()
 export class Task {
@@ -14,4 +15,15 @@ export class Task {
 
   @Column()
   status: TaskStatus;
+
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' }) // Add default value
+  created_at: Date;
+
+  @Column({ nullable: true }) // Allow null for order if not provided, for test cases
+  order: number;
+
+  @ManyToOne(() => TaskGroup, (taskGroup) => taskGroup.tasks, {
+    onDelete: 'CASCADE',
+  })
+  taskGroup: TaskGroup;
 }
