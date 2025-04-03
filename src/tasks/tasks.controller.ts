@@ -30,7 +30,6 @@ export class TasksController {
     return this.tasksService.delete_task_by_id(id);
   }
 
-
   @Patch('/:id/status') // property to update is status
   updateTaskStatus(
     @Param('id') id: string,

@@ -10,8 +10,8 @@ export class TaskGroup {
   @Column()
   name: string;
 
-  @Column()
-  createdAt: Date;
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' }) // Add default value
+  created_at: Date;
 
   @Column()
   order: number;

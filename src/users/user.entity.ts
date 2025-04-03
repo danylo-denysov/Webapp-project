@@ -15,7 +15,7 @@ export class User {
   @Column()
   password: string;
 
-  @Column()
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' }) // Add default value
   created_at: Date;
 
   @OneToMany(() => Board, (board) => board.owner, { cascade: true })
