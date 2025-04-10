@@ -24,7 +24,7 @@ export class UsersController {
   }
 
   @Post('/verify')
-  async verifyUser(@Body() verifyUserDto: VerifyUserDto): Promise<string> {
+  async verifyUser(@Body() verifyUserDto: VerifyUserDto): Promise<{ accessToken: string }> {
     return this.usersService.verify_user(verifyUserDto);
   }
 }
