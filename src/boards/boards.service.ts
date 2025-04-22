@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Board } from './board.entity';
@@ -67,10 +67,24 @@ export class BoardsService {
     return board;
   }
 
-  async add_user_to_board(boardId: string, userId: string, updateBoardUserRoleDto: UpdateBoardUserRoleDto): Promise<BoardUser> {
-    const board = await this.boardsRepository.findOne({ where: { id: boardId } });
+  async add_user_to_board(
+    boardId: string,
+    userId: string,
+    updateBoardUserRoleDto: UpdateBoardUserRoleDto,
+    ownerId: string, // Pass the authenticated user's ID
+  ): Promise<BoardUser> {
+    const board = await this.boardsRepository.findOne({
+      where: { id: boardId },
+      relations: ['owner'],
+    });
+
     if (!board) {
       throw new NotFoundException(`Board with ID "${boardId}" not found`);
+    }
+
+    // Check if the authenticated user is the owner of the board
+    if (board.owner.id !== ownerId) {
+      throw new UnauthorizedException('Only the owner of the board can add users');
     }
 
     const user = await this.usersRepository.findOne({ where: { id: userId } });
@@ -86,19 +100,31 @@ export class BoardsService {
       throw new BadRequestException(`User with ID "${userId}" is already assigned to the board`);
     }
 
-    const { role } = updateBoardUserRoleDto;
-
     const boardUser = this.boardUsersRepository.create({
       board,
       user,
-      role,
+      role: updateBoardUserRoleDto.role,
     });
 
     await this.boardUsersRepository.save(boardUser);
     return boardUser;
   }
 
-  async remove_user_from_board(boardId: string, userId: string): Promise<void> {
+  async remove_user_from_board(boardId: string, userId: string, ownerId: string): Promise<void> {
+    const board = await this.boardsRepository.findOne({
+      where: { id: boardId },
+      relations: ['owner'],
+    });
+
+    if (!board) {
+      throw new NotFoundException(`Board with ID "${boardId}" not found`);
+    }
+
+    // Check if the authenticated user is the owner of the board
+    if (board.owner.id !== ownerId) {
+      throw new UnauthorizedException('Only the owner of the board can remove users');
+    }
+
     const result = await this.boardUsersRepository.delete({
       board: { id: boardId },
       user: { id: userId },

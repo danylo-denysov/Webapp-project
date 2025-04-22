@@ -6,39 +6,42 @@ import { BoardUserRole } from './board-user-role.enum';
 import { BoardUser } from './board-user.entity';
 import { UpdateBoardUserRoleDto } from './dto/update-board-user-role.dto';
 import { AuthGuard } from '@nestjs/passport';
+import { User } from 'src/users/user.entity';
+import { GetUser } from 'src/users/get-user.decorator';
 
 @Controller('boards')
 @UseGuards(AuthGuard())
 export class BoardsController {
   constructor(private boardsService: BoardsService) {}
 
-  @Get('/user/:userId')
-  async getUserBoards(@Param('userId') userId: string): Promise<Board[]> {
+  @Get('/user')
+  async getUserBoards(@GetUser() user: User): Promise<Board[]> {
+    const userId = user.id;
     return this.boardsService.get_user_boards(userId);
   }
 
-  @Post('/user/:userId')
+  @Post('/user')
   async createBoard(
-    @Param('userId') userId: string,
+    @GetUser() user: User,
     @Body() createBoardDto: CreateBoardDto,
   ): Promise<Board> {
-    return this.boardsService.create_board(createBoardDto, userId);
+    return this.boardsService.create_board(createBoardDto, user.id);
   }
 
-  @Delete('/:boardId/user/:userId')
+  @Delete('/:boardId/user')
   async deleteBoard(
     @Param('boardId') boardId: string,
-    @Param('userId') userId: string,
+    @GetUser() user: User,
   ): Promise<void> {
-    return this.boardsService.delete_board(boardId, userId);
+    return this.boardsService.delete_board(boardId, user.id);
   }
 
-  @Get('/:boardId/user/:userId')
+  @Get('/:boardId/user')
   async getBoardById(
     @Param('boardId') boardId: string,
-    @Param('userId') userId: string,
+    @GetUser() user: User,
   ): Promise<Board> {
-    return this.boardsService.get_board_by_id(boardId, userId);
+    return this.boardsService.get_board_by_id(boardId, user.id);
   }
 
   @Post('/:boardId/users/:userId')
@@ -46,16 +49,18 @@ export class BoardsController {
     @Param('boardId') boardId: string,
     @Param('userId') userId: string,
     @Body() updateBoardUserRoleDto: UpdateBoardUserRoleDto,
+    @GetUser() user: User,
   ): Promise<BoardUser> {
-    return this.boardsService.add_user_to_board(boardId, userId, updateBoardUserRoleDto);
+    return this.boardsService.add_user_to_board(boardId, userId, updateBoardUserRoleDto, user.id);
   }
 
   @Delete('/:boardId/users/:userId')
   async removeUserFromBoard(
     @Param('boardId') boardId: string,
     @Param('userId') userId: string,
+    @GetUser() user: User,
   ): Promise<void> {
-    return this.boardsService.remove_user_from_board(boardId, userId);
+    return this.boardsService.remove_user_from_board(boardId, userId, user.id);
   }
 
   @Get('/:boardId/users')
