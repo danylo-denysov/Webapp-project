@@ -1,0 +1,18 @@
+.form-input label {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: var(--color-text);
+}
+.form-input input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid var(--color-input-border);
+  border-radius: 8px;
+  font-size: 1rem;
+  background: var(--color-button-bg);
+  outline: none;
+}
+.form-input input:focus {
+  outline: none;
+  box-shadow: none;
+}
