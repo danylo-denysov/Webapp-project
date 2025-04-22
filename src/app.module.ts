@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { TaskGroupsModule } from './task-groups/task-groups.module';
 import { BoardsModule } from './boards/boards.module';
 import { UsersModule } from './users/users.module';
+import { HealthController } from './health-check';
 
 @Module({
   imports: [
@@ -22,5 +23,6 @@ import { UsersModule } from './users/users.module';
       synchronize: true,
     }),
   ],
+  controllers: [HealthController],
 })
 export class AppModule {}
