@@ -1,8 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import '../../index.css';
+import '../index.css';
 
-export default function HomePage() {
+export default function StartPage() {
   const navigate = useNavigate();
   return (
     <div className="main-container">

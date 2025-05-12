@@ -1,7 +1,7 @@
 :root {
   --color-gradient-start: #4B56D2;
   --color-gradient-end:   #472183;
-  --color-button-bg:      #C2D9FF;
+  --color-cards:          #C2D9FF;
   --color-input-border:   #A0B2D4;
   --color-confirm-text:   #C2D9FF;
   --color-text:           #0B192C;
@@ -51,7 +51,7 @@ html, body, #root {
 
 .start-button {
   width: var(--button-width);
-  background-color: var(--color-button-bg);
+  background-color: var(--color-cards);
   color: var(--color-text);
   text-align: center;
   border: none;
@@ -78,3 +78,4 @@ html, body, #root {
       var(--button-hover-blur)
       var(--button-hover-color);
 }
+

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { ChangeEvent } from 'react';
 import './FormInput.css';
 
 interface FormInputProps {
@@ -6,18 +6,23 @@ interface FormInputProps {
   id: string;
   type?: string;
   placeholder?: string;
+  value: string;
+  onChange: (e: ChangeEvent<HTMLInputElement>) => void;
 }
 
-export default function FormInput({
-  label,
-  id,
-  type = 'text',
-  placeholder,
-}: FormInputProps) {
+const FormInput: React.FC<FormInputProps> = ({ label, id, type = 'text', placeholder, value, onChange }) => {
   return (
     <div className="form-input">
       <label htmlFor={id}>{label}</label>
-      <input id={id} type={type} placeholder={placeholder} />
+      <input
+        id={id}
+        type={type}
+        placeholder={placeholder}
+        value={value}
+        onChange={onChange} // Handle input changes
+      />
     </div>
   );
-}
+};
+
+export default FormInput;

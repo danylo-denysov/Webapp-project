@@ -1,0 +1,84 @@
+.board-card {
+  display: flex;
+  align-items: center;
+  gap: 3rem;
+  background: var(--color-cards);
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+
+  width: 100%;
+}
+
+.board-card + .board-card {
+  margin-top: 1rem;
+}
+
+.board-card-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.board-color {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 4px;
+}
+
+.board-name {
+  font-size: 1.5rem;
+  color: var(--color-text);
+
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  position: relative;
+}
+
+.board-name::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 3rem;   /* how wide the fade strip is */
+  height: 100%;
+  pointer-events: none;
+  background: linear-gradient(
+    to right,
+    rgba(255,255,255,0) 0%,
+    /* pick your background color here */
+    var(--color-cards) 100%
+  );
+}
+
+.board-owner,
+.board-date {
+  font-size: 1.25rem;
+  color: var(--color-text);
+  margin: 0;
+  width : 7rem;
+
+  overflow: hidden;
+  white-space: nowrap;
+  position: relative;
+}
+
+.board-owner::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 4rem;   /* how wide the fade strip is */
+  height: 100%;
+  pointer-events: none;
+  background: linear-gradient(
+    to right,
+    rgba(255,255,255,0) 0%,
+    /* pick your background color here */
+    var(--color-cards) 100%
+  );
+}

@@ -1,0 +1,26 @@
+.search-bar {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--color-text);
+  padding-bottom: 0.25rem;
+}
+
+.search-bar img {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-right: 0.5rem;
+}
+
+.search-bar input {
+  background: transparent;
+  border: none;
+  padding: 0;
+  color: var(--color-text);
+  font-size: 1rem;
+  width: 200px;
+}
+
+.search-bar input:focus {
+  outline: none;
+  border-bottom-color: var(--color-text);
+}

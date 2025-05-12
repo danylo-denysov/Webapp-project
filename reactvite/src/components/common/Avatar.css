@@ -1,0 +1,15 @@
+.avatar {
+  background-color: var(--color-cards);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  margin-right: 3rem;
+}
+
+.avatar img {
+  /* scale the SVG down a bit so it has breathing room */
+  width: 60%;
+  height: 60%;
+}

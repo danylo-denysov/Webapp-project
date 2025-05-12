@@ -28,7 +28,7 @@ export class UsersService {
     const user = this.usersRepository.create({
       username,
       email,
-      password: hashedPassword, // In a real-world app, hash the password before saving
+      password: hashedPassword,
     });
 
     try {

@@ -9,7 +9,7 @@
   border: 2px solid var(--color-input-border);
   border-radius: 8px;
   font-size: 1rem;
-  background: var(--color-button-bg);
+  background: var(--color-cards);
   outline: none;
 }
 .form-input input:focus {
