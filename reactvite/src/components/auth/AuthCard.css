@@ -47,10 +47,5 @@ transition:
   box-shadow 0.2s ease;
 }
 .auth-card .submit-btn:hover {
-  transform: translateY(calc(-1 * var(--button-lift-dist)));
-
-  box-shadow:
-    0 var(--button-hover-y)
-      var(--button-hover-blur)
-      var(--button-hover-color);
+  transform: scale(1.03);
 }

@@ -15,8 +15,6 @@
   --button-hover-y:       8px;
   --button-hover-blur:    20px;
   --button-hover-color:   rgba(0, 0, 0, 0.25);
-
-  --button-lift-dist:     3px;
 }
 
 * {
@@ -71,11 +69,5 @@ html, body, #root {
 }
 
 .start-button:hover {
-  transform: translateY(calc(-1 * var(--button-lift-dist)));
-
-  box-shadow:
-    0 var(--button-hover-y)
-      var(--button-hover-blur)
-      var(--button-hover-color);
+  transform: scale(1.05);
 }
-

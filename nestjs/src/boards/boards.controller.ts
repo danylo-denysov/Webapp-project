@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Delete, Param, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Param, Body, UseGuards, Patch } from '@nestjs/common';
 import { BoardsService } from './boards.service';
 import { Board } from './board.entity';
 import { CreateBoardDto } from './dto/create-board.dto';
@@ -8,6 +8,7 @@ import { UpdateBoardUserRoleDto } from './dto/update-board-user-role.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { User } from 'src/users/user.entity';
 import { GetUser } from 'src/users/get-user.decorator';
+import { RenameBoardDto } from './dto/rename-board.dto';
 
 @Controller('boards')
 @UseGuards(AuthGuard())
@@ -42,6 +43,15 @@ export class BoardsController {
     @GetUser() user: User,
   ): Promise<Board> {
     return this.boardsService.get_board_by_id(boardId, user.id);
+  }
+
+  @Patch('/:boardId/user')
+  async renameBoard(
+    @Param('boardId') boardId: string,
+    @Body() updateBoardDto: RenameBoardDto,
+    @GetUser() user: User,
+  ): Promise<Board> {
+    return this.boardsService.rename_board(boardId, updateBoardDto.name, user.id);
   }
 
   @Post('/:boardId/users/:userId')

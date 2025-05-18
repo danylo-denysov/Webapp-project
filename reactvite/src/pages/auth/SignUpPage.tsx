@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { toast, ToastContainer } from 'react-toastify';
+import { Slide, toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import AuthCard from '../../components/auth/AuthCard';
 import FormInput from '../../components/auth/FormInput';
@@ -42,14 +42,20 @@ export default function SignUpPage() {
         throw new Error(errorData.message[0] || 'Failed to sign up');
       }
 
-      toast.success('Account created', {
+      toast.success(
+        <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <span style={{ fontSize: '1.25rem' }}>✅</span>
+        Account created 
+      </span>,
+      {
         position: 'top-center',
         autoClose: 3000,
-        hideProgressBar: true,
+        hideProgressBar: false,
         closeOnClick: true,
         pauseOnHover: true,
         draggable: true,
-        icon: '✅',
+        icon: false,
+        transition: Slide,
         style: {
           backgroundColor: 'var(--color-cards)',
           color: 'var(--color-text)',
@@ -61,14 +67,20 @@ export default function SignUpPage() {
         navigate('/login');
       }, 3000);
     } catch (error: any) {
-      toast.error(error.message || 'An error occurred. Please try again.', {
+      toast.error(
+      <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <span style={{ fontSize: '1.25rem' }}>❌</span>
+        {error.message || 'An error occurred. Please try again.'}
+      </span>,
+        {
         position: 'top-center',
         autoClose: 3000,
-        hideProgressBar: true,
+        hideProgressBar: false,
         closeOnClick: true,
         pauseOnHover: true,
         draggable: true,
-        icon: '❌',
+        icon: false,
+        transition: Slide,
         style: {
           backgroundColor: 'var(--color-cards)',
           color: 'var(--color-text)',

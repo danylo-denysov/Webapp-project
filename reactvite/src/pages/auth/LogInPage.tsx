@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { toast, ToastContainer } from 'react-toastify';
+import { Slide, toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import AuthCard from '../../components/auth/AuthCard';
 import FormInput from '../../components/auth/FormInput';
@@ -38,14 +38,20 @@ export default function LoginPage() {
       // Save to localStorage so BoardsPage can read it:
       localStorage.setItem('token', accessToken);
 
-      toast.success('Login successful', {
+      toast.success(
+      <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <span style={{ fontSize: '1.25rem' }}>✅</span>
+        Login successful
+      </span>,
+      {
         position: 'top-center',
         autoClose: 2000,
-        hideProgressBar: true,
+        hideProgressBar: false,
         closeOnClick: true,
         pauseOnHover: true,
         draggable: true,
-        icon: '✅',
+        icon: false,
+        transition: Slide,
         style: {
           backgroundColor: 'var(--color-cards)',
           color: 'var(--color-text)',
@@ -55,16 +61,22 @@ export default function LoginPage() {
       // Redirect to /boards
       setTimeout(() => {
         navigate('/boards', { replace: true });
-      }, 2000);
+      }, 2500);
     } catch (error: any) {
-      toast.error(error.message || 'An error occurred. Please try again.', {
+      toast.error(
+      <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <span style={{ fontSize: '1.25rem' }}>❌</span>
+        {error.message || 'An error occurred. Please try again.'}
+      </span>,
+        {
         position: 'top-center',
-        autoClose: 3000,
-        hideProgressBar: true,
+        autoClose: 2000,
+        hideProgressBar: false,
         closeOnClick: true,
         pauseOnHover: true,
         draggable: true,
-        icon: '❌',
+        icon: false,
+        transition: Slide,
         style: {
           backgroundColor: 'var(--color-cards)',
           color: 'var(--color-text)',

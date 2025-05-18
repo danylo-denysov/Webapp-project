@@ -13,9 +13,10 @@ export interface Board {
 
 interface BoardCardProps {
   board: Board
+  refresh: () => Promise<void>
 }
 
-/** helper to get a random hex color */
+// helper to get a random hex color
 function getRandomColor() {
   return '#' + Math.floor(Math.random() * 0xFFFFFF)
     .toString(16)
@@ -24,7 +25,7 @@ function getRandomColor() {
 
 // for now creates a random color for each card square
 // note: add avatar to the board in the future
-export default function BoardCard({ board }: BoardCardProps) {
+export default function BoardCard({ board, refresh }: BoardCardProps) {
   // useMemo so it only picks once per card instance
   const randomColor = useMemo(() => getRandomColor(), [])
 
@@ -49,7 +50,11 @@ export default function BoardCard({ board }: BoardCardProps) {
       <span className="board-owner">{board.owner.username}</span>
       <span className="board-date">{formatDate(board.created_at)}</span>
 
-      <BoardMenu />
+      <BoardMenu
+        boardId={board.id}
+        initialName={board.name}
+        refresh={refresh}
+      />
     </div>
   )
 }

@@ -1,0 +1,29 @@
+.create-board-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--color-cards);
+  color: var(--color-text);
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  cursor: pointer;
+  box-shadow:
+    0 var(--button-shadow-y)
+      var(--button-shadow-blur)
+      var(--button-shadow-color);
+
+  transition:
+    transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+    box-shadow 0.2s ease;
+}
+
+.create-board-btn img {
+  width: 1rem;
+  height: 1rem;
+}
+
+.create-board-btn:hover {
+  transform: scale(1.05);
+}

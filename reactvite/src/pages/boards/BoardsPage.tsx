@@ -1,51 +1,62 @@
-import React, { useState, useEffect } from 'react';
+// src/pages/boards/BoardsPage.tsx
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Avatar from '../../components/common/Avatar';
+import CreateBoardButton from '../../components/boards/CreateBoardButton';
 import SearchBar from '../../components/boards/SearchBar';
 import SortDropdown from '../../components/boards/SortDropdown';
 import BoardsList, { Board } from '../../components/boards/BoardsList';
+import CreateBoardModal from '../../components/boards/CreateBoardModal';
+import { useBoards } from '../../hooks/boards/useBoards';
+import { useCreateBoard } from '../../hooks/boards/useCreateBoard';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import './BoardsPage.css';
 
 export default function BoardsPage() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'Name' | 'Owner' | 'Date'>('Name');
-  const [boards, setBoards] = useState<Board[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
+  // Load & manage boards
+  const { boards, loading, error: loadError, refresh } = useBoards();
+  // Create-board handler; on success, refresh list
+  const { createBoard } = useCreateBoard({ onSuccess: refresh });
+
+  // Redirect if unauthorized
+  React.useEffect(() => {
+    if (loadError === 'Unauthorized') {
       navigate('/login', { replace: true });
-      return;
     }
+  }, [loadError, navigate]);
 
-    fetch('/api/boards/user', {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then(res => {
-        if (res.status === 401) {
-          navigate('/login', { replace: true });
-          throw new Error('Unauthorized');
-        }
-        if (!res.ok) throw new Error('Failed to load boards');
-        return res.json() as Promise<Board[]>;
-      })
-      .then(setBoards)
-      .catch(console.error);
-  }, [navigate]);
+  if (loading) {
+    return <div>Loading boards…</div>;
+  }
 
-  // filter by name ??
-  let filtered = boards.filter(b =>
+  // Filter by name
+  const filtered = boards.filter(b =>
     b.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // TODO: sort by owner and date
-
   return (
     <div className="boards-page">
-      <div className="avatar-wrapper">
+      <ToastContainer />
+      <div className="header-actions">
+        <CreateBoardButton onClick={() => setIsModalOpen(true)} />
         <Avatar />
       </div>
+
+      <CreateBoardModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onCreate={async name => {
+          await createBoard(name);
+          setIsModalOpen(false);
+        }}
+      />
+
       <div className="boards-divider" />
 
       <div className="boards-content">
@@ -62,7 +73,10 @@ export default function BoardsPage() {
           </div>
         </div>
 
-        <BoardsList boards={filtered} />
+        <BoardsList
+          boards={filtered}
+          refresh={refresh}
+        />
       </div>
     </div>
   );

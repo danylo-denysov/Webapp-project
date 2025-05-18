@@ -67,6 +67,18 @@ export class BoardsService {
     return board;
   }
 
+  async rename_board(boardId: string, newName: string, ownerId: string): Promise<Board> {
+    const board = await this.boardsRepository.findOne({
+      where: { id: boardId, owner: { id: ownerId } },
+    });
+    if (!board) {
+      throw new NotFoundException(`Board with ID "${boardId}" not found or you don't have access`);
+    }
+    board.name = newName;
+    await this.boardsRepository.save(board);
+    return board;
+  }
+
   async add_user_to_board(
     boardId: string,
     userId: string,

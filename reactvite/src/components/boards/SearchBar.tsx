@@ -5,6 +5,7 @@ import './SearchBar.css';
 interface SearchBarProps {
   value: string;
   onChange: (val: string) => void;
+  placeholder?: string
 }
 
 export default function SearchBar({ value, onChange }: SearchBarProps) {
