@@ -8,18 +8,19 @@ export class ConsumerService {
   @RabbitSubscribe({
     exchange: 'main_exchange',
     routingKey: 'board.created',
-    queue: 'boards.events',
+    queue: 'boards.events.created',
     queueOptions: { durable: true },
   })
   public handleBoardCreated(msg: { boardId: string }) {
-    this.logger.log(`Created ${msg.boardId}`);
+    this.logger.log(`→ Created ${msg.boardId}`);
     this.logger.log(`Processing completed for ${msg.boardId}`);
   }
 
   @RabbitSubscribe({
     exchange: 'main_exchange',
     routingKey: 'board.renamed',
-    queue: 'boards.events',
+    queue: 'boards.events.deleted',
+    queueOptions: { durable: true },
   })
   public handleBoardRenamed(msg: { boardId: string; newName: string }) {
     this.logger.log(`→ Renamed: ${msg.boardId} → ${msg.newName}`);
@@ -29,7 +30,8 @@ export class ConsumerService {
   @RabbitSubscribe({
     exchange: 'main_exchange',
     routingKey: 'board.deleted',
-    queue: 'boards.events',
+    queue: 'boards.events.deleted',
+    queueOptions: { durable: true },
   })
   public handleBoardDeleted(msg: { boardId: string }) {
     this.logger.log(`→ Deleted: ${msg.boardId}`);
