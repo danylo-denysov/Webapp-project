@@ -55,6 +55,7 @@ export class BoardsService {
     }
 
     await this.boardsRepository.remove(board);
+    await this.publisher.publishBoardDeleted(boardId);
   }
 
   async get_board_by_id(boardId: string, userId: string): Promise<Board> {
@@ -79,6 +80,7 @@ export class BoardsService {
     }
     board.name = newName;
     await this.boardsRepository.save(board);
+    await this.publisher.publishBoardRenamed(boardId, newName);
     return board;
   }
 

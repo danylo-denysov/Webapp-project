@@ -12,4 +12,20 @@ export class PublisherService {
       { boardId }, // payload
     );
   }
+
+  async publishBoardRenamed(boardId: string, newName: string) {
+    return this.amqp.publish(
+      'main_exchange', // exchange
+      'board.renamed', // routingKey
+      { boardId, newName }, // payload
+    );
+  }
+
+  async publishBoardDeleted(boardId: string) {
+    return this.amqp.publish(
+      'main_exchange', // exchange
+      'board.deleted', // routingKey
+      { boardId }, // payload
+    );
+  }
 }
