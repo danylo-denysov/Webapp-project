@@ -5,9 +5,11 @@ import { TaskGroupsModule } from './task-groups/task-groups.module';
 import { BoardsModule } from './boards/boards.module';
 import { UsersModule } from './users/users.module';
 import { HealthController } from './health-check';
+import { MessagingModule } from './messaging/messaging.module';
 
 @Module({
   imports: [
+    MessagingModule,
     TasksModule,
     TaskGroupsModule,
     BoardsModule,

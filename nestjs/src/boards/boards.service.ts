@@ -7,6 +7,7 @@ import { CreateBoardDto } from './dto/create-board.dto';
 import { BoardUser } from './board-user.entity';
 import { BoardUserRole } from './board-user-role.enum';
 import { UpdateBoardUserRoleDto } from './dto/update-board-user-role.dto';
+import { PublisherService } from '../messaging/publisher.service';
 
 @Injectable()
 export class BoardsService {
@@ -14,6 +15,7 @@ export class BoardsService {
     @InjectRepository(Board) private boardsRepository: Repository<Board>,
     @InjectRepository(User) private usersRepository: Repository<User>,
     @InjectRepository(BoardUser) private boardUsersRepository: Repository<BoardUser>,
+    private readonly publisher: PublisherService,
   ) {}
 
   async get_user_boards(userId: string): Promise<Board[]> {
@@ -39,6 +41,7 @@ export class BoardsService {
     });
 
     await this.boardsRepository.save(board);
+    await this.publisher.publishBoardCreated(board.id);
     return board;
   }
 

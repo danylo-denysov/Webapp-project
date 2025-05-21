@@ -11,6 +11,8 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe()); // Automatically validate incoming requests based on DTOs
   app.setGlobalPrefix('api'); // Set a global prefix for all routes
 
+  await app.startAllMicroservices(); // Start all microservices
+
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();
