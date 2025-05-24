@@ -1,0 +1,88 @@
+.tasks-page {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  padding: 2rem 3rem;
+  box-sizing: border-box;
+}
+
+.tasks-header {
+  position: absolute;
+  top: 1rem;
+  left: 3rem;
+  right: 3rem;
+  display: flex;
+  align-items: center;
+}
+
+.tasks-title {
+  position: relative;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+
+  flex: 0 0 30rem;
+  font-size: 3rem;
+  font-weight: 500;
+
+  mask-image: linear-gradient(
+    to right,
+    black 75%,
+    transparent 100%
+  );
+
+  /* Safari/WebKit prefix: */
+  -webkit-mask-image: linear-gradient(
+    to right,
+    black 75%,
+    transparent 100%
+  );
+  mask-size: 100% 100%;
+}
+
+.tasks-header-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.tasks-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--color-cards);
+  color: var(--color-text);
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  cursor: pointer;
+  text-decoration: none; /* for Link */
+  box-shadow:
+    0 var(--button-shadow-y)
+      var(--button-shadow-blur)
+      var(--button-shadow-color);
+  transition:
+    transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+    box-shadow 0.2s ease;
+}
+.tasks-action-btn img {
+  width: 1rem;
+  height: 1rem;
+}
+.tasks-action-btn:hover {
+  transform: scale(1.05);
+}
+
+.tasks-divider {
+  width: 100%;
+  height: 1px;
+  background-color: var(--color-text);
+  margin-top: 4rem;
+}
+
+.tasks-loading {
+  margin-top: 8rem;
+  text-align: center;
+  color: var(--color-text);
+}

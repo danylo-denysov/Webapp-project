@@ -29,6 +29,7 @@
   cursor: pointer;
   position: relative;
   font-size: 1rem;
+  color: var(--color-text)
 }
 
 .menu-list li::after {

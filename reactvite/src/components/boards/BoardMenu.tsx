@@ -1,3 +1,4 @@
+// src/components/boards/BoardMenu.tsx
 import React, { useState, useRef, useEffect } from 'react';
 import './BoardMenu.css';
 import { EditBoardModal } from './EditBoardModal';
@@ -15,6 +16,7 @@ export default function BoardMenu({ boardId, initialName, refresh }: BoardMenuPr
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
+  // Close if clicked outside
   useEffect(() => {
     const onOutside = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) {
@@ -25,13 +27,32 @@ export default function BoardMenu({ boardId, initialName, refresh }: BoardMenuPr
     return () => document.removeEventListener('mousedown', onOutside);
   }, []);
 
+  // universal stopper
+  const stopLink = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
   return (
     <div className="board-menu" ref={ref}>
-      <button className="menu-button" onClick={() => setOpen(o => !o)}>⋮</button>
+      <button
+        className="menu-button"
+        onClick={e => {
+          stopLink(e);
+          setOpen(o => !o);
+        }}
+      >
+        ⋮
+      </button>
+
       {open && (
-        <ul className="menu-list">
-          <li onClick={() => { setOpen(false); setIsEditOpen(true); }}>Edit name</li>
-          <li onClick={() => { setOpen(false); setIsDeleteOpen(true); }}>Delete</li>
+        <ul className="menu-list" onClick={stopLink}>
+          <li onClick={() => { setOpen(false); setIsEditOpen(true); }}>
+            Edit name
+          </li>
+          <li onClick={() => { setOpen(false); setIsDeleteOpen(true); }}>
+            Delete
+          </li>
         </ul>
       )}
 

@@ -1,4 +1,3 @@
-// src/pages/boards/BoardsPage.tsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Avatar from '../../components/common/Avatar';

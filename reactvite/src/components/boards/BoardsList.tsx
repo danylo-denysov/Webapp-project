@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom'
 import BoardCard, { Board } from './BoardCard';
 import './BoardsList.css';
 
@@ -11,11 +12,13 @@ export default function BoardsList({ boards, refresh }: BoardsListProps) {
   return (
     <div className="boards-list">
       {boards.map(b => (
-        <BoardCard
+        <Link
           key={b.id}
-          board={b}
-          refresh={refresh}
-        />
+          to={`/boards/${b.id}`}
+          className="board-card-link"
+        >
+          <BoardCard board={b} refresh={refresh} />
+        </Link>
       ))}
     </div>
   );

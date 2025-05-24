@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Slide, toast } from 'react-toastify';
 import './BoardModals.css';
 import './CreateBoardButton.css';
+import ReactDOM from 'react-dom';
 
 interface CreateBoardModalProps {
   isOpen: boolean;
@@ -56,10 +57,10 @@ export default function CreateBoardModal({
     onClose();
   };
 
-  return (
+  return ReactDOM.createPortal (
     <>
       <div className="modal-overlay" onClick={onClose} />
-      <div className="modal-window">
+      <div className="modal-window" onMouseDown={e => e.stopPropagation()} onClick={e => e.stopPropagation()}>
         <h2 className="modal-title">Create new board</h2>
         <input
           type="text"
@@ -73,6 +74,7 @@ export default function CreateBoardModal({
           </button>
         </div>
       </div>
-    </>
+    </>,
+    document.body
   );
 }

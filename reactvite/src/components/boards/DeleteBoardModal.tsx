@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { toast, Slide } from 'react-toastify';
 import './BoardModals.css';
+import ReactDOM from 'react-dom';
 
 interface DeleteBoardModalProps {
   isOpen: boolean;
@@ -62,16 +63,17 @@ export function DeleteBoardModal({
     }
   };
 
-  return (
+  return ReactDOM.createPortal (
     <>
       <div className="modal-overlay" onClick={onClose} />
-      <div className="modal-window">
+      <div className="modal-window" onMouseDown={e => e.stopPropagation()} onClick={e => e.stopPropagation()}>
         <h2 className="modal-title">Delete board?</h2>
         <div className="modal-actions">
           <button className="create-board-btn" onClick={handleDelete}>Yes</button>
           <button className="create-board-btn" onClick={onClose}>No</button>
         </div>
       </div>
-    </>
+    </>,
+    document.body
   );
 }

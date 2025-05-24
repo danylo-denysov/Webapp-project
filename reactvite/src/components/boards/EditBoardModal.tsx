@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Slide, toast } from 'react-toastify';
 import './BoardModals.css';
+import ReactDOM from 'react-dom';
 
 interface EditBoardModalProps {
   isOpen: boolean;
@@ -89,10 +90,10 @@ export function EditBoardModal({
     }
   };
 
-  return (
+  return ReactDOM.createPortal(
     <>
       <div className="modal-overlay" onClick={onClose} />
-      <div className="modal-window">
+      <div className="modal-window" onMouseDown={e => e.stopPropagation()} onClick={e => e.stopPropagation()}>
         <h2 className="modal-title">Provide new board name</h2>
         <input
           className="modal-input"
@@ -104,6 +105,7 @@ export function EditBoardModal({
           <button className="create-board-btn" onClick={onClose}>Cancel</button>
         </div>
       </div>
-    </>
+    </>,
+    document.body
   );
 }
