@@ -14,8 +14,28 @@
       var(--button-shadow-color);
 }
 .group-header{
-  font-weight:600; margin-bottom:.75rem;
+  font-weight: 700;
+  font-size: 1.15rem;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 5px;
+  margin-bottom: .75rem;
+  user-select: none;
 }
+
+.group-name{
+  display:inline-block;
+  cursor:pointer;
+
+  text-decoration:underline;
+  text-decoration-thickness:1px;
+  text-underline-offset:4px;
+
+  max-width:100%;
+  white-space:normal;
+  word-wrap:break-word;
+}
+
 .tasks-scroll{
   flex: 1 1 auto;
   min-height: 0;
