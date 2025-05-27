@@ -1,4 +1,4 @@
-import { IsNotEmpty } from 'class-validator';
+import { isNotEmpty, IsNotEmpty } from 'class-validator';
 
 export class CreateTaskDto {
   @IsNotEmpty()
@@ -6,4 +6,7 @@ export class CreateTaskDto {
 
   @IsNotEmpty()
   description: string;
+
+  @IsNotEmpty()
+  groupId: string;
 }

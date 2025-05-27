@@ -1,36 +1,27 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { TaskStatus } from './task-status.enum';
 import { CreateTaskDto } from './dto/create-task.dto';
-import { UpdateTaskStatusDto } from './dto/update-task-status.dto';
 import { Task } from './task.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { GetTasksFilterDto } from './dto/get-tasks-filter.dto';
+import { TaskGroup } from 'src/task-groups/task-group.entity';
 
 @Injectable()
 export class TasksService {
   // whenever you interact with database its asynchronous operation
   constructor(
     @InjectRepository(Task) private tasksRepository: Repository<Task>,
+    @InjectRepository(TaskGroup) private readonly groupRepository: Repository<TaskGroup>,
   ) {}
 
-  async get_tasks(filterDto: GetTasksFilterDto): Promise<Task[]> {
-    const { status, search } = filterDto;
-    const query = this.tasksRepository.createQueryBuilder('task'); // create query builder
-
-    if (status) {
-      query.andWhere('task.status = :status', { status }); // add status filter
-    }
-    if (search) {
-      query.andWhere(
-        '(LOWER(task.title) LIKE LOWER(:search) OR LOWER(task.description) LIKE LOWER(:search))',
-        { search: `%${search}%` },
-      ); // add search filter
+  async get_tasks(groupId?: string): Promise<Task[]> {
+    if (!groupId) {
+      return this.tasksRepository.find({ order: { created_at: 'ASC' } });
     }
 
-    const tasks = await query.getMany(); // get all tasks
-
-    return tasks;
+    return this.tasksRepository.find({
+      where: { taskGroup: { id: groupId } },
+      order: { created_at: 'ASC' },
+    });
   }
 
   async get_task_by_id(id: string): Promise<Task> {
@@ -43,11 +34,15 @@ export class TasksService {
   }
 
   async create_task(createTaskDto: CreateTaskDto): Promise<Task> {
-    const { title, description } = createTaskDto;
+    const { title, description, groupId } = createTaskDto;
+
+    const group = await this.groupRepository.findOne({ where: { id: groupId } });
+    if (!group) throw new NotFoundException('Task-group not found');
+
     const task = this.tasksRepository.create({
       title,
       description,
-      status: TaskStatus.OPEN,
+      taskGroup: group,
     });
     await this.tasksRepository.save(task);
     return task;
@@ -58,16 +53,5 @@ export class TasksService {
     if (result.affected === 0) {
       throw new NotFoundException(`Task with ID "${id}" not found`); // 404 response
     }
-  }
-
-  async update_task_status(
-    id: string,
-    updateTaskStatusDto: UpdateTaskStatusDto,
-  ): Promise<Task> {
-    const { status } = updateTaskStatusDto;
-    const task = await this.get_task_by_id(id);
-    task.status = status;
-    await this.tasksRepository.save(task);
-    return task;
   }
 }

@@ -4,7 +4,8 @@
   display:flex; flex-direction:column;
   flex: 0 0 var(--group-width);
   max-width: var(--group-width);
-  max-height: calc(100vh - 8rem);
+  max-height: 100%;
+  overflow: hidden; 
   background: var(--color-cards);
   border-radius:8px; padding:1rem;
   box-shadow:
@@ -16,7 +17,10 @@
   font-weight:600; margin-bottom:.75rem;
 }
 .tasks-scroll{
-  flex:1 1 auto; overflow-y:auto; padding-right:.25rem;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: .25rem;
 }
 .add-task-btn{
   margin-top:.75rem; 
@@ -37,4 +41,26 @@
 
 .tasks-scroll--hidden {
   display: none;
+}
+
+/* custom scrollbar */
+.tasks-scroll{
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-gradient-start) var(--color-cards);
+}
+
+.tasks-scroll::-webkit-scrollbar{
+  width: 8px;
+}
+.tasks-scroll::-webkit-scrollbar-track{
+  background: var(--color-cards);
+  border-radius: 4px;
+}
+.tasks-scroll::-webkit-scrollbar-thumb{
+  background: var(--color-gradient-end);
+  border-radius: 4px;
+  box-shadow: 0 0 2px rgba(0,0,0,.25) inset;
+}
+.tasks-scroll::-webkit-scrollbar-thumb:hover{
+  background: var(--color-text);
 }

@@ -1,5 +1,4 @@
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { TaskStatus } from './task-status.enum';
 import { TaskGroup } from 'src/task-groups/task-group.entity';
 
 @Entity()
@@ -12,9 +11,6 @@ export class Task {
 
   @Column()
   description: string;
-
-  @Column()
-  status: TaskStatus;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' }) // Add default value
   created_at: Date;
