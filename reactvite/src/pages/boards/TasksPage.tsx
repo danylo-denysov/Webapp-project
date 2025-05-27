@@ -3,13 +3,21 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import Avatar from '../../components/common/Avatar'
 import teamIcon from '../../assets/team.svg'
 import listIcon from '../../assets/list.svg'
+import plusIcon from '../../assets/plus.svg';
 import './TasksPage.css'
+import { useTaskGroups } from '../../hooks/taskGroups/useTaskGroups';
+import { useCreateTaskGroup } from '../../hooks/taskGroups/useCreateTaskGroup';
+import TaskGroup from '../../components/taskGroups/TaskGroup';
+import CreateTaskGroupModal from '../../components/taskGroups/CreateTaskGroupModal';
 
 export default function TasksPage() {
   const { boardId } = useParams<{ boardId: string }>()
   const navigate = useNavigate()
   const [boardName, setBoardName] = useState('')
   const [loading, setLoading] = useState(true)
+  const { groups, refresh } = useTaskGroups(boardId);
+  const { create: createGroup } = useCreateTaskGroup(boardId, ()=>refresh());
+  const [groupModalOpen,setGroupModalOpen]=useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -38,9 +46,14 @@ export default function TasksPage() {
   return (
     <div className="tasks-page">
       <div className="tasks-header">
+
         <h1 className="tasks-title" data-text={boardName} >{boardName}</h1>
 
         <div className="tasks-header-actions">
+          <button className="tasks-action-btn"
+                  onClick={() => setGroupModalOpen(true)}>
+            <img src={plusIcon} alt="add group" /> New group
+          </button>
           <button className="tasks-action-btn">
             <img src={teamIcon} alt="Team" /> Team
           </button>
@@ -53,7 +66,19 @@ export default function TasksPage() {
 
       <div className="tasks-divider" />
 
-      {/* TODO: tasks rendering and management */}
+      <div className="groups-row">
+        {groups.map(g =>
+          <TaskGroup key={g.id}
+                     group={g}
+                     onTaskAdded ={(gId,t)=>refresh()}
+                     onTaskDeleted={(gId,id)=>refresh()}/>)}
+      </div>
+
+      <CreateTaskGroupModal
+         isOpen={groupModalOpen}
+         onClose={()=>setGroupModalOpen(false)}
+         onCreate={name=>createGroup(name)}/>
+
     </div>
   )
 }

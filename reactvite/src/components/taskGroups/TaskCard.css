@@ -1,0 +1,18 @@
+.task-card {
+  position: relative;
+  background: var(--color-cards);
+  border-radius: 6px;
+  padding: .75rem;
+  margin-bottom: .5rem;
+  box-shadow:
+    0 var(--button-shadow-y)
+      var(--button-shadow-blur)
+      var(--button-shadow-color);
+}
+.task-title { font-weight: 600; }
+.task-desc  { font-size: .85rem; margin-top: .25rem; }
+.task-delete{
+  position:absolute; top:.25rem; right:.25rem;
+  background:none; border:none; cursor:pointer;
+}
+.task-delete img{ width:.8rem; height:.8rem; }
