@@ -34,6 +34,11 @@ export function useTaskGroups(boardId: string | undefined) {
       if (res.status === 401) throw new Error('Unauthorized');
       if (!res.ok)           throw new Error('Failed to load task groups');
       setGroups(await res.json());
+      const raw = await res.json();
+      raw.forEach(g => g.tasks.sort(
+        (a, b) => a.order - b.order || +new Date(a.created_at) - +new Date(b.created_at)
+      ));
+      setGroups(raw);
     } catch (err: any) {
       setError(err.message); toast.error(err.message);
     } finally {

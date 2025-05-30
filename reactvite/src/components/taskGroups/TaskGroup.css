@@ -36,6 +36,19 @@
   word-wrap:break-word;
 }
 
+.group-delete {
+  position:absolute;
+  top:-14px; 
+  right:-14px;
+  background:none;
+  border:none;
+  cursor:pointer;
+  padding:2px;
+}
+.group-delete img{
+  width:.8rem; height:.8rem;
+}
+
 .tasks-scroll{
   flex: 1 1 auto;
   min-height: 0;
@@ -62,6 +75,7 @@
 .tasks-scroll--hidden {
   display: none;
 }
+
 
 /* custom scrollbar */
 .tasks-scroll{

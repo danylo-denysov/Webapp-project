@@ -68,12 +68,14 @@ export default function TasksPage() {
 
       <div className="groups-row">
         {groups.map(g =>
-          <TaskGroup key={g.id}
-                     boardId={boardId!}
-                     group={g}
-                     onTaskAdded ={()=>refresh()}
-                     onTaskDeleted={()=>refresh()}
-                     onGroupRenamed={() => refresh()}/>)}
+          <TaskGroup 
+            key={g.id}
+            boardId={boardId!}
+            group={g}
+            onTaskAdded ={()=>refresh()}
+            onTaskDeleted={()=>refresh()}
+            onGroupRenamed={() => refresh()}
+            onGroupDeleted ={() => refresh()}/>)}
       </div>
 
       <CreateTaskGroupModal
