@@ -5,10 +5,20 @@ import LoginPage from './pages/auth/LoginPage';
 import StartPage from './pages/StartPage';
 import BoardsPage from './pages/boards/BoardsPage';
 import TasksPage   from './pages/boards/TasksPage'
+import { ToastContainer, Slide } from 'react-toastify';
 
 export default function App() {
   return (
     <BrowserRouter>
+      <ToastContainer 
+        position="top-center"
+        autoClose={2000}
+        hideProgressBar={false}
+        closeOnClick
+        pauseOnHover
+        icon={false}
+        transition={Slide}
+      />
       <Routes>
         <Route path="/" element={<StartPage />} />
         <Route path="/signup" element={<SignUpPage />} />

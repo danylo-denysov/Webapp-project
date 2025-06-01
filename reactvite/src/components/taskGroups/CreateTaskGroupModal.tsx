@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
 import '../boards/BoardModals.css';
 import '../boards/CreateBoardButton.css';
+import { toastError } from '../../utils/toast';
 
 export default function CreateTaskGroupModal({
   isOpen, onClose, onCreate,
@@ -15,7 +16,10 @@ export default function CreateTaskGroupModal({
 
   const submit = () => {
     const trimmed = name.trim();
-    if (!trimmed) return window.alert('Name required');
+    if (!trimmed) {
+      toastError('Name required'); 
+      return;
+    }
     onCreate(trimmed); setName(''); onClose();
   };
 

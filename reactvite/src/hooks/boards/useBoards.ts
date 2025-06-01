@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
+import { toastError } from '../../utils/toast';
 
 export interface Board {
   id: string;
@@ -28,7 +29,7 @@ export function useBoards() {
       setBoards(data);
     } catch (err: any) {
       setError(err.message);
-      toast.error(err.message);
+      toastError(err.message);
     } finally {
       setLoading(false);
     }

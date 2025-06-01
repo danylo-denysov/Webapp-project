@@ -4,6 +4,7 @@ import { Slide, toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import AuthCard from '../../components/auth/AuthCard';
 import FormInput from '../../components/auth/FormInput';
+import { toastError } from '../../utils/toast';
 
 export default function SignUpPage() {
   const [formData, setFormData] = useState({
@@ -67,31 +68,12 @@ export default function SignUpPage() {
         navigate('/login');
       }, 3000);
     } catch (error: any) {
-      toast.error(
-      <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-        <span style={{ fontSize: '1.25rem' }}>❌</span>
-        {error.message || 'An error occurred. Please try again.'}
-      </span>,
-        {
-        position: 'top-center',
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        icon: false,
-        transition: Slide,
-        style: {
-          backgroundColor: 'var(--color-cards)',
-          color: 'var(--color-text)',
-        },
-      });
+      toastError(error.message || 'Failed to create account');
     }
   };
 
   return (
     <>
-      <ToastContainer />
       <AuthCard
         title="Create an account"
         promptText="Already have one?"

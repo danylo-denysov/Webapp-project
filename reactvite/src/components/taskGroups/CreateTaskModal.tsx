@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
 import '../boards/BoardModals.css';
 import '../boards/CreateBoardButton.css';
+import { toastError } from '../../utils/toast';
 
 export default function CreateTaskModal({
   isOpen,
@@ -20,7 +21,10 @@ export default function CreateTaskModal({
   const submit = () => {
     const t = title.trim();
     const d = description.trim();
-    if (!t || !d) return window.alert('Both fields are required');
+    if (!t || !d) {
+      toastError('Both fields are required');
+      return;
+    }
     onCreate(t, d);
     setTitle(''); setDescription('');
     onClose();

@@ -41,7 +41,6 @@ export default function BoardsPage() {
 
   return (
     <div className="boards-page">
-      <ToastContainer />
       <div className="header-actions">
         <CreateBoardButton onClick={() => setIsModalOpen(true)} />
         <Avatar />

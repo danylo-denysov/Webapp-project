@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { toast } from 'react-toastify';
 import { Board } from './useBoards';
+import { toastError } from '../../utils/toast';
 
 interface UseCreateBoardOptions {
   onSuccess?: (newBoard: Board) => void;
@@ -14,7 +15,7 @@ export function useCreateBoard({ onSuccess }: UseCreateBoardOptions = {}) {
   const createBoard = async (name: string) => {
     if (!name.trim()) {
       setError('Name cannot be empty');
-      toast.error('Name cannot be empty');
+      toastError('Board name cannot be empty');
       return;
     }
     setLoading(true);
@@ -36,7 +37,7 @@ export function useCreateBoard({ onSuccess }: UseCreateBoardOptions = {}) {
       onSuccess?.(data);
     } catch (err: any) {
       setError(err.message);
-      toast.error(err.message);
+      toastError(err.message || 'Failed to create board');
     } finally {
       setLoading(false);
     }

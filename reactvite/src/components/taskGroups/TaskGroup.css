@@ -81,6 +81,9 @@
 .tasks-scroll{
   scrollbar-width: thin;
   scrollbar-color: var(--color-gradient-start) var(--color-cards);
+  margin-right: -12px;
+  padding-right: 10px;
+  overflow-y: auto;
 }
 
 .tasks-scroll::-webkit-scrollbar{

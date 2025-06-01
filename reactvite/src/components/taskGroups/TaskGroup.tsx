@@ -5,7 +5,8 @@ import cross from '../../assets/close.svg';
 import TaskCard from './TaskCard';
 import CreateTaskModal from './CreateTaskModal';
 import { TaskGroup as TG } from '../../hooks/taskGroups/useTaskGroups';
-import { useTasks } from '../../hooks/taskGroups/useTasks';
+import { useCreateTask } from '../../hooks/taskGroups/useCreateTask';
+import { useDeleteTask } from '../../hooks/taskGroups/useDeleteTask';
 import { useRenameTaskGroup } from '../../hooks/taskGroups/useRenameTaskGroup';
 import RenameTaskGroupModal from './RenameTaskGroupModal';
 import DeleteTaskGroupModal  from './DeleteTaskGroupModal';
@@ -34,10 +35,16 @@ export default function TaskGroup({ boardId, group, onTaskAdded, onTaskDeleted, 
   onGroupRenamed?: ()=>void;
   onGroupDeleted?: () => void;
 }) {
-  const { createTask, deleteTask } = useTasks(
+  const { createTask } = useCreateTask(
     group.id,
-    t => onTaskAdded(group.id, t),
-    id => onTaskDeleted(group.id, id),
+    (newTask) => {
+      onTaskAdded(group.id, newTask);
+    }
+  );
+  const { deleteTask } = useDeleteTask(
+    (deletedId) => {
+      onTaskDeleted(group.id, deletedId);
+    }
   );
   const [modalOpen,setModalOpen]=useState(false);
   const [renameOpen, setRenameOpen] = useState(false); 

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import '../boards/BoardModals.css';
 import '../boards/CreateBoardButton.css';
+import { toastError } from '../../utils/toast';
 
 export default function RenameTaskGroupModal({
   isOpen,
@@ -21,7 +22,10 @@ export default function RenameTaskGroupModal({
 
   const submit = () => {
     const trimmed = name.trim();
-    if (!trimmed) return window.alert('Name required');
+    if (!trimmed) {
+      toastError('Name required');
+      return;
+    }
     onRename(trimmed);
     onClose();
   };

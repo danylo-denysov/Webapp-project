@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Slide, toast } from 'react-toastify';
 import './BoardModals.css';
 import ReactDOM from 'react-dom';
+import { toastError } from '../../utils/toast';
 
 interface EditBoardModalProps {
   isOpen: boolean;
@@ -35,18 +36,7 @@ export function EditBoardModal({
 
   const handleSave = async () => {
     if (!name.trim()) {
-      toast.error(
-        <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <span style={{ fontSize: '1.25rem' }}>❌</span>
-          Board name cannot be empty
-        </span>, {
-          position: 'top-center', autoClose: 3000,
-          hideProgressBar: false, icon: false,
-          closeOnClick: true, pauseOnHover: true,
-          draggable: true, transition: Slide,
-          style: { backgroundColor: 'var(--color-cards)', color: 'var(--color-text)' },
-        }
-      );
+      toastError("Board name cannot be empty")
       return;
     }
     try {
@@ -75,18 +65,7 @@ export function EditBoardModal({
       await refresh();
       onClose();
     } catch (err: any) {
-      toast.error(
-        <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <span style={{ fontSize: '1.25rem' }}>❌</span>
-          {err.message || 'Failed to rename board'}
-        </span>, {
-          position: 'top-center', autoClose: 3000,
-          hideProgressBar: false, icon: false,
-          closeOnClick: true, pauseOnHover: true,
-          draggable: true, transition: Slide,
-          style: { backgroundColor: 'var(--color-cards)', color: 'var(--color-text)' },
-        }
-      );
+      toastError(err.message || 'Failed to rename board');
     }
   };
 

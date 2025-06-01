@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { toast }    from 'react-toastify';
 import { TaskGroup } from './useTaskGroups';
+import { toastError } from '../../utils/toast';
 
 export function useRenameTaskGroup(
   boardId: string | undefined, 
@@ -9,7 +10,7 @@ export function useRenameTaskGroup(
   const [loading, setLoading] = useState(false);
 
   const rename = async (id: string, newName: string) => {
-    if (!newName.trim()) return toast.error('Name cannot be empty');
+    if (!newName.trim()) return toastError('Name cannot be empty');
     try {
       setLoading(true);
       const res = await fetch(`/api/boards/${boardId}/task-groups/${id}`, {
@@ -26,7 +27,7 @@ export function useRenameTaskGroup(
       onSuccess?.(data);
       return data;
     } catch (e: any) {
-      toast.error(e.message);
+      toastError(e.message || 'Failed to rename');
     } finally { setLoading(false); }
   };
 

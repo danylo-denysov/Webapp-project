@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
+import { toastError } from '../../utils/toast';
 
 export interface Task {
   id: string;
@@ -40,7 +41,8 @@ export function useTaskGroups(boardId: string | undefined) {
       ));
       setGroups(raw);
     } catch (err: any) {
-      setError(err.message); toast.error(err.message);
+      setError(err.message); 
+      toastError(err.message);
     } finally {
       setLoading(false);
     }

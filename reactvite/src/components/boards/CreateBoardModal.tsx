@@ -3,6 +3,7 @@ import { Slide, toast } from 'react-toastify';
 import './BoardModals.css';
 import './CreateBoardButton.css';
 import ReactDOM from 'react-dom';
+import { toastError } from '../../utils/toast';
 
 interface CreateBoardModalProps {
   isOpen: boolean;
@@ -31,25 +32,7 @@ export default function CreateBoardModal({
   const handleSubmit = () => {
     const trimmed = name.trim();
     if (!trimmed) {
-      toast.error(
-      <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-        <span style={{ fontSize: '1.25rem' }}>❌</span>
-        Board name cannot be empty
-      </span>, 
-      {
-        position: 'top-center',
-        autoClose: 2000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        icon: false,
-        transition: Slide,
-        style: {
-          backgroundColor: 'var(--color-cards)',
-          color: 'var(--color-text)',
-        },
-      });
+      toastError('Board name cannot be empty');
       return;
     }
     onCreate(trimmed);

@@ -1,13 +1,14 @@
 import { toast } from 'react-toastify';
 import { useState } from 'react';
 import { TaskGroup } from './useTaskGroups';
+import { toastError } from '../../utils/toast';
 
 export function useCreateTaskGroup(boardId: string | undefined,
                                    onSuccess?: (g: TaskGroup)=>void) {
   const [loading, setLoading] = useState(false);
 
   const create = async (name: string) => {
-    if (!name.trim()) return toast.error('Name cannot be empty');
+    if (!name.trim()) return toastError('Group name cannot be empty');
     try {
       setLoading(true);
       const res = await fetch(`/api/boards/${boardId}/task-groups`, {
@@ -23,7 +24,7 @@ export function useCreateTaskGroup(boardId: string | undefined,
       toast.success('Group created');
       onSuccess?.(data);
     } catch (e: any) {
-      toast.error(e.message);
+      toastError('Failed to create group');
     } finally { setLoading(false); }
   };
 
