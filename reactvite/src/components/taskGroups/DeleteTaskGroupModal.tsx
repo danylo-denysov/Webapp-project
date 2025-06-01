@@ -38,7 +38,6 @@ export default function DeleteTaskGroupModal({
   const handleDelete = async () => {
     try {
       await onConfirm();
-      toastSuccess('Task group deleted');
       onClose();
     } catch (err: any) {
       toastError(err.message || 'Failed to delete task group');
