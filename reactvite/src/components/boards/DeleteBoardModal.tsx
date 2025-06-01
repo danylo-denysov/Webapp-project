@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { toast, Slide } from 'react-toastify';
 import './BoardModals.css';
 import ReactDOM from 'react-dom';
-import { toastError } from '../../utils/toast';
+import { toastError, toastSuccess } from '../../utils/toast';
 
 interface DeleteBoardModalProps {
   isOpen: boolean;
@@ -34,18 +34,7 @@ export function DeleteBoardModal({
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error('Failed to delete board');
-      toast.success(
-        <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <span style={{ fontSize: '1.25rem' }}>✅</span>
-          Board deleted
-        </span>, {
-          position: 'top-center', autoClose: 2000,
-          hideProgressBar: false, icon: false,
-          closeOnClick: true, pauseOnHover: true,
-          draggable: true, transition: Slide,
-          style: { backgroundColor: 'var(--color-cards)', color: 'var(--color-text)' },
-        }
-      );
+      toastSuccess('Board deleted');
       await refresh();
       onClose();
     } catch (err: any) {

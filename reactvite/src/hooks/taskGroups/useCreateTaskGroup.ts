@@ -1,7 +1,7 @@
 import { toast } from 'react-toastify';
 import { useState } from 'react';
 import { TaskGroup } from './useTaskGroups';
-import { toastError } from '../../utils/toast';
+import { toastError, toastSuccess } from '../../utils/toast';
 
 export function useCreateTaskGroup(boardId: string | undefined,
                                    onSuccess?: (g: TaskGroup)=>void) {
@@ -21,7 +21,7 @@ export function useCreateTaskGroup(boardId: string | undefined,
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Failed to create group');
-      toast.success('Group created');
+      toastSuccess('Group created');
       onSuccess?.(data);
     } catch (e: any) {
       toastError('Failed to create group');

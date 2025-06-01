@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { toast }    from 'react-toastify';
 import { TaskGroup } from './useTaskGroups';
-import { toastError } from '../../utils/toast';
+import { toastError, toastSuccess } from '../../utils/toast';
 
 export function useRenameTaskGroup(
   boardId: string | undefined, 
@@ -23,7 +23,7 @@ export function useRenameTaskGroup(
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Failed to rename');
-      toast.success('Group renamed');
+      toastSuccess('Group renamed');
       onSuccess?.(data);
       return data;
     } catch (e: any) {

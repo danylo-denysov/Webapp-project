@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { toast } from 'react-toastify';
 import { Board } from './useBoards';
-import { toastError } from '../../utils/toast';
+import { toastError, toastSuccess } from '../../utils/toast';
 
 interface UseCreateBoardOptions {
   onSuccess?: (newBoard: Board) => void;
@@ -33,7 +33,7 @@ export function useCreateBoard({ onSuccess }: UseCreateBoardOptions = {}) {
       if (!res.ok) {
         throw new Error(data.message || 'Failed to create board');
       }
-      toast.success('Board created');
+      toastSuccess('Board created');
       onSuccess?.(data);
     } catch (err: any) {
       setError(err.message);

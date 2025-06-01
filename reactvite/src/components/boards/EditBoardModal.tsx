@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Slide, toast } from 'react-toastify';
 import './BoardModals.css';
 import ReactDOM from 'react-dom';
-import { toastError } from '../../utils/toast';
+import { toastError, toastSuccess } from '../../utils/toast';
 
 interface EditBoardModalProps {
   isOpen: boolean;
@@ -50,18 +50,7 @@ export function EditBoardModal({
         body: JSON.stringify({ name: name.trim() }),
       });
       if (!res.ok) throw new Error('Failed to rename board');
-      toast.success(
-        <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <span style={{ fontSize: '1.25rem' }}>✅</span>
-          Board renamed
-        </span>, {
-          position: 'top-center', autoClose: 2000,
-          hideProgressBar: false, icon: false,
-          closeOnClick: true, pauseOnHover: true,
-          draggable: true, transition: Slide,
-          style: { backgroundColor: 'var(--color-cards)', color: 'var(--color-text)' },
-        }
-      );
+      toastSuccess('Board renamed');
       await refresh();
       onClose();
     } catch (err: any) {

@@ -4,7 +4,7 @@ import { Slide, toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import AuthCard from '../../components/auth/AuthCard';
 import FormInput from '../../components/auth/FormInput';
-import { toastError } from '../../utils/toast';
+import { toastError, toastSuccess } from '../../utils/toast';
 
 export default function SignUpPage() {
   const [formData, setFormData] = useState({
@@ -43,25 +43,7 @@ export default function SignUpPage() {
         throw new Error(errorData.message[0] || 'Failed to sign up');
       }
 
-      toast.success(
-        <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-        <span style={{ fontSize: '1.25rem' }}>✅</span>
-        Account created 
-      </span>,
-      {
-        position: 'top-center',
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        icon: false,
-        transition: Slide,
-        style: {
-          backgroundColor: 'var(--color-cards)',
-          color: 'var(--color-text)',
-        },
-      });
+      toastSuccess('Account created');
 
       // Redirect to login page after a short delay
       setTimeout(() => {

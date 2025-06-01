@@ -1,5 +1,5 @@
 import { toast } from 'react-toastify';
-import { toastError } from '../../utils/toast';
+import { toastError, toastSuccess } from '../../utils/toast';
 
 export function useDeleteTask(onDeleted?: (id: string) => void) {
   const deleteTask = async (id: string) => {
@@ -11,9 +11,9 @@ export function useDeleteTask(onDeleted?: (id: string) => void) {
         }
       });
       if (!res.ok) {
-        return toastError('Faile to delete;')
+        return toastError('Failed to delete');
       }
-      toast.success('Deleted');
+      toastSuccess('Task deleted');
       onDeleted?.(id);
     } catch (err) {
       console.error(err);
