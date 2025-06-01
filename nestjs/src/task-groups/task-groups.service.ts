@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { TaskGroup } from './task-group.entity';
 import { Board } from '../boards/board.entity';
 import { CreateTaskGroupDto } from './dto/create-task-group.dto';
@@ -14,6 +14,8 @@ export class TaskGroupsService {
 
     @InjectRepository(Board)
     private boardsRepository: Repository<Board>,
+
+    private dataSource: DataSource, // for transaction support
   ) {}
 
   async get_task_groups(boardId: string): Promise<TaskGroup[]> {
@@ -84,9 +86,6 @@ export class TaskGroupsService {
     if (dto.name != null) {
       group.name = dto.name;
     }
-    if (dto.order != null) {
-      group.order = dto.order;
-    }
 
     return this.groupsRepository.save(group);
   }
@@ -99,5 +98,22 @@ export class TaskGroupsService {
     if (result.affected === 0) {
       throw new NotFoundException(`TaskGroup with ID "${groupId}" not found`);
     }
+  }
+
+  async reorder_task_groups(boardId: string, ids: string[]): Promise<void> {
+    const existing = await this.groupsRepository.find({
+      where: { board: { id: boardId } },
+      select: ['id'],
+    });
+    const existingIds = new Set(existing.map(g => g.id));
+    if (ids.some((id) => !existingIds.has(id))) {
+      throw new NotFoundException('One or more groups not found in this board');
+    }
+
+    await this.dataSource.transaction(async (manager) => {
+      for (let i = 0; i < ids.length; i++) {
+        await manager.update(TaskGroup, { id: ids[i] }, { order: i });
+      }
+    });
   }
 }

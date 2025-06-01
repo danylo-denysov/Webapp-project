@@ -9,6 +9,10 @@ import { useTaskGroups } from '../../hooks/taskGroups/useTaskGroups';
 import { useCreateTaskGroup } from '../../hooks/taskGroups/useCreateTaskGroup';
 import TaskGroup from '../../components/taskGroups/TaskGroup';
 import CreateTaskGroupModal from '../../components/taskGroups/CreateTaskGroupModal';
+import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core'
+import { arrayMove, SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortable'
+import TaskGroupSortable from '../../components/taskGroups/TaskGroupSortable';
+import { useReorderTaskGroups } from '../../hooks/taskGroups/useReorderTaskGroups';
 
 export default function TasksPage() {
   const { boardId } = useParams<{ boardId: string }>()
@@ -16,8 +20,28 @@ export default function TasksPage() {
   const [boardName, setBoardName] = useState('')
   const [loading, setLoading] = useState(true)
   const { groups, refresh } = useTaskGroups(boardId);
+  const [localOrder, setLocalOrder] = useState<string[]>([]);
+  useEffect(() => {            // keep local array in sync when groups load/refresh
+    setLocalOrder(groups.map(g => g.id))
+  }, [groups]);
+  const reorderGroups = useReorderTaskGroups(boardId, refresh);
+  const sensors = useSensors(useSensor(PointerSensor));
   const { create: createGroup } = useCreateTaskGroup(boardId, ()=>refresh());
   const [groupModalOpen,setGroupModalOpen]=useState(false);
+
+  const handleDragEnd = async ({ active, over }: DragEndEvent) => {
+    if (!over || active.id === over.id) return;
+    const oldIndex = localOrder.indexOf(active.id as string);
+    const newIndex = localOrder.indexOf(over.id as string);
+    const next = arrayMove(localOrder, oldIndex, newIndex);
+    setLocalOrder(next);      // optimistic update
+    try {
+      await reorderGroups(next);
+    } catch (e) {
+      console.error(e);
+      setLocalOrder(localOrder); // rollback on error
+    }
+  };
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -66,17 +90,34 @@ export default function TasksPage() {
 
       <div className="tasks-divider" />
 
-      <div className="groups-row">
-        {groups.map(g =>
-          <TaskGroup 
-            key={g.id}
-            boardId={boardId!}
-            group={g}
-            onTaskAdded ={()=>refresh()}
-            onTaskDeleted={()=>refresh()}
-            onGroupRenamed={() => refresh()}
-            onGroupDeleted ={() => refresh()}/>)}
-      </div>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext
+          items={localOrder}
+          strategy={horizontalListSortingStrategy}
+        >
+          <div className="groups-row">
+            {localOrder.map(id => {
+              const g = groups.find(grp => grp.id === id);
+              if (!g) return null;
+              return (
+                <TaskGroupSortable
+                  key={g.id}
+                  boardId={boardId!}
+                  group={g}
+                  onTaskAdded   ={refresh}
+                  onTaskDeleted ={refresh}
+                  onGroupRenamed={refresh}
+                  onGroupDeleted={refresh}
+                />
+              );
+            })}
+          </div>
+        </SortableContext>
+      </DndContext>
 
       <CreateTaskGroupModal
          isOpen={groupModalOpen}

@@ -5,9 +5,4 @@ export class UpdateTaskGroupDto {
   @IsString()
   @IsNotEmpty()
   name?: string;
-
-  @IsOptional()
-  @IsInt()
-  @Min(0)
-  order?: number;
 }

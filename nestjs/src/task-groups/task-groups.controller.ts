@@ -2,6 +2,7 @@ import { Controller, Get, Param, Post, Body, Patch, Delete, UsePipes, Validation
 import { TaskGroupsService } from './task-groups.service';
 import { CreateTaskGroupDto } from './dto/create-task-group.dto';
 import { UpdateTaskGroupDto } from './dto/update-task-group.dto';
+import { UpdateGroupOrdersDto } from './dto/update-group-orders.tdo';
 
 @Controller('boards/:boardId/task-groups')
 @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
@@ -24,6 +25,14 @@ export class TaskGroupsController {
     @Body() dto: CreateTaskGroupDto,
   ) {
     return this.svc.create_task_group(boardId, dto);
+  }
+
+  @Patch('reorder')
+  reorder_task_groups(
+    @Param('boardId') boardId: string,
+    @Body() dto: UpdateGroupOrdersDto,
+  ) {
+    return this.svc.reorder_task_groups(boardId, dto.ids);
   }
 
   @Patch(':groupId')
