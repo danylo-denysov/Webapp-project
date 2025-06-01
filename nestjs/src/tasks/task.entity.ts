@@ -15,7 +15,7 @@ export class Task {
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' }) // Add default value
   created_at: Date;
 
-  @Column({ nullable: true }) // Allow null for order if not provided, for test cases
+  @Column({ type: 'int', default: 0 }) // Allow null for order if not provided, for test cases
   order: number;
 
   @ManyToOne(() => TaskGroup, (taskGroup) => taskGroup.tasks, {

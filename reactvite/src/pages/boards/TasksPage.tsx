@@ -7,10 +7,10 @@ import plusIcon from '../../assets/plus.svg';
 import './TasksPage.css'
 import { useTaskGroups } from '../../hooks/taskGroups/useTaskGroups';
 import { useCreateTaskGroup } from '../../hooks/taskGroups/useCreateTaskGroup';
-import TaskGroup from '../../components/taskGroups/TaskGroup';
 import CreateTaskGroupModal from '../../components/taskGroups/CreateTaskGroupModal';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core'
 import { arrayMove, SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortable'
+import { restrictToFirstScrollableAncestor, restrictToHorizontalAxis } from '@dnd-kit/modifiers'
 import TaskGroupSortable from '../../components/taskGroups/TaskGroupSortable';
 import { useReorderTaskGroups } from '../../hooks/taskGroups/useReorderTaskGroups';
 
@@ -25,7 +25,13 @@ export default function TasksPage() {
     setLocalOrder(groups.map(g => g.id))
   }, [groups]);
   const reorderGroups = useReorderTaskGroups(boardId, refresh);
-  const sensors = useSensors(useSensor(PointerSensor));
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5, 
+      },
+    })
+  );
   const { create: createGroup } = useCreateTaskGroup(boardId, ()=>refresh());
   const [groupModalOpen,setGroupModalOpen]=useState(false);
 
@@ -34,7 +40,7 @@ export default function TasksPage() {
     const oldIndex = localOrder.indexOf(active.id as string);
     const newIndex = localOrder.indexOf(over.id as string);
     const next = arrayMove(localOrder, oldIndex, newIndex);
-    setLocalOrder(next);      // optimistic update
+    setLocalOrder(next);
     try {
       await reorderGroups(next);
     } catch (e) {
@@ -93,6 +99,7 @@ export default function TasksPage() {
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
+        modifiers={[restrictToFirstScrollableAncestor, restrictToHorizontalAxis]}
         onDragEnd={handleDragEnd}
       >
         <SortableContext
@@ -100,21 +107,23 @@ export default function TasksPage() {
           strategy={horizontalListSortingStrategy}
         >
           <div className="groups-row">
-            {localOrder.map(id => {
-              const g = groups.find(grp => grp.id === id);
-              if (!g) return null;
-              return (
-                <TaskGroupSortable
-                  key={g.id}
-                  boardId={boardId!}
-                  group={g}
-                  onTaskAdded   ={refresh}
-                  onTaskDeleted ={refresh}
-                  onGroupRenamed={refresh}
-                  onGroupDeleted={refresh}
-                />
-              );
-            })}
+            <div className="groups-row__inner-wrapper">
+              {localOrder.map(id => {
+                const g = groups.find(grp => grp.id === id);
+                if (!g) return null;
+                return (
+                  <TaskGroupSortable
+                    key={g.id}
+                    boardId={boardId!}
+                    group={g}
+                    onTaskAdded   ={refresh}
+                    onTaskDeleted ={refresh}
+                    onGroupRenamed={refresh}
+                    onGroupDeleted={refresh}
+                  />
+                );
+              })}
+            </div>
           </div>
         </SortableContext>
       </DndContext>

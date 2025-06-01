@@ -15,12 +15,12 @@ export class TasksService {
 
   async get_tasks(groupId?: string): Promise<Task[]> {
     if (!groupId) {
-      return this.tasksRepository.find({ order: { created_at: 'ASC' } });
+      return this.tasksRepository.find({ order: { order: 'ASC' } });
     }
 
     return this.tasksRepository.find({
       where: { taskGroup: { id: groupId } },
-      order: { created_at: 'ASC' },
+      order: { order: 'ASC' },
     });
   }
 
@@ -39,10 +39,18 @@ export class TasksService {
     const group = await this.groupRepository.findOne({ where: { id: groupId } });
     if (!group) throw new NotFoundException('Task-group not found');
 
+    const maxRaw = await this.tasksRepository
+      .createQueryBuilder('t')
+      .select('MAX(t.order)', 'max')
+      .where('t.taskGroupId = :groupId', { groupId })
+      .getRawOne<{ max: number }>();
+    const nextOrder = (maxRaw?.max ?? -1) + 1;
+
     const task = this.tasksRepository.create({
       title,
       description,
       taskGroup: group,
+      order: nextOrder,
     });
     await this.tasksRepository.save(task);
     return task;
@@ -53,5 +61,22 @@ export class TasksService {
     if (result.affected === 0) {
       throw new NotFoundException(`Task with ID "${id}" not found`); // 404 response
     }
+  }
+
+  async reorder_tasks(groupId: string, ids: string[]): Promise<void> {
+    const existing = await this.tasksRepository.find({
+      where: { taskGroup: { id: groupId } },
+      select: ['id'],
+    });
+    const existingIds = new Set(existing.map((t) => t.id));
+    if (ids.some((id) => !existingIds.has(id))) {
+      throw new NotFoundException('One or more tasks not found in this group');
+    }
+
+    await this.tasksRepository.manager.transaction(async (manager) => {
+      for (let i = 0; i < ids.length; i++) {
+        await manager.update(Task, { id: ids[i] }, { order: i });
+      }
+    });
   }
 }

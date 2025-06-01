@@ -19,17 +19,20 @@ export class TaskGroupsService {
   ) {}
 
   async get_task_groups(boardId: string): Promise<TaskGroup[]> {
-    // TODO? ensure board exists
     const board = await this.boardsRepository.findOneBy({ id: boardId });
     if (!board) {
       throw new NotFoundException(`Board with ID "${boardId}" not found`);
     }
 
-    return this.groupsRepository.find({
-      where: { board: { id: boardId } },
-      order: { order: 'ASC', created_at: 'ASC' },
-      relations: ['tasks'],
-    });
+    const groupsWithSortedTasks = await this.groupsRepository
+      .createQueryBuilder('g')
+      .leftJoinAndSelect('g.tasks', 't')
+      .where('g.boardId = :boardId', { boardId })
+      .orderBy('g.order', 'ASC')
+      .addOrderBy('t.order', 'ASC')
+      .getMany();
+
+    return groupsWithSortedTasks;
   }
 
   async get_task_group_by_id(id: string): Promise<TaskGroup> {

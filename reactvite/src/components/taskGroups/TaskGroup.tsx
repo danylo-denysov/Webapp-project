@@ -10,6 +10,21 @@ import { useRenameTaskGroup } from '../../hooks/taskGroups/useRenameTaskGroup';
 import RenameTaskGroupModal from './RenameTaskGroupModal';
 import DeleteTaskGroupModal  from './DeleteTaskGroupModal';
 import { useDeleteTaskGroup } from '../../hooks/taskGroups/useDeleteTaskGroup';
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { restrictToParentElement, restrictToVerticalAxis } from '@dnd-kit/modifiers'
+import TaskCardSortable from './TaskCardSortable';
+import { useReorderTasks } from '../../hooks/taskGroups/useReorderTasks';
 
 export default function TaskGroup({ boardId, group, onTaskAdded, onTaskDeleted, onGroupRenamed, onGroupDeleted }:{
   boardId: string; 
@@ -44,6 +59,40 @@ export default function TaskGroup({ boardId, group, onTaskAdded, onTaskDeleted, 
   const { remove } = useDeleteTaskGroup(boardId, () => onGroupDeleted?.());
   const [deleteOpen, setDeleteOpen] = useState(false);
 
+  const [localOrder, setLocalOrder] = React.useState<string[]>([]);
+  React.useEffect(() => {
+    setLocalOrder(group.tasks.map((t) => t.id));
+  }, [group.tasks]);
+  const reorderTasks = useReorderTasks();
+  
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5, 
+      },
+    })
+  );
+
+  const handleDragEnd = async ({ active, over }: DragEndEvent) => {
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = localOrder.indexOf(active.id as string);
+    const newIndex = localOrder.indexOf(over.id as string);
+    if (oldIndex < 0 || newIndex < 0) return;
+
+    const nextOrder = [...localOrder];
+    nextOrder.splice(oldIndex, 1);
+    nextOrder.splice(newIndex, 0, active.id as string);
+
+    setLocalOrder(nextOrder);
+    try {
+      await reorderTasks(group.id, nextOrder);
+    } catch (e) {
+      console.error('Failed to reorder tasks:', e);
+      setLocalOrder(localOrder);
+    }
+  };
+
   return (
     <div className={`task-group ${!hasTasks ? 'task-group--empty' : ''}`}>
       <header className="group-header" style={{ position:'relative' }}>
@@ -62,8 +111,29 @@ export default function TaskGroup({ boardId, group, onTaskAdded, onTaskDeleted, 
       </header>
 
       <div className={`tasks-scroll ${!hasTasks ? 'tasks-scroll--hidden' : ''}`}>
-        {group.tasks.map(t =>
-          <TaskCard key={t.id} task={t} onDelete={deleteTask}/>)}
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          modifiers={[restrictToParentElement, restrictToVerticalAxis]}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={localOrder}
+            strategy={verticalListSortingStrategy}
+          >
+            {localOrder.map((taskId) => {
+              const taskObj = group.tasks.find((t) => t.id === taskId);
+              if (!taskObj) return null;
+              return (
+                <TaskCardSortable
+                  key={taskObj.id}
+                  task={taskObj}
+                  onDelete={deleteTask}
+                />
+              );
+            })}
+          </SortableContext>
+        </DndContext>
       </div>
 
       <button className="add-task-btn" onClick={()=>setModalOpen(true)}>

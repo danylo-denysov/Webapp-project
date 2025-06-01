@@ -1,7 +1,8 @@
-import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { Task } from './task.entity';
+import { UpdateTaskOrdersDto } from './dto/update-task-orders.dto';
 
 @Controller('tasks')
 export class TasksController {
@@ -25,5 +26,13 @@ export class TasksController {
   @Delete('/:id')
   deleteTaskById(@Param('id') id: string): Promise<void> {
     return this.tasksService.delete_task_by_id(id);
+  }
+
+  @Patch('group/:groupId/reorder')
+  reorderTasks(
+    @Param('groupId') groupId: string,
+    @Body() dto: UpdateTaskOrdersDto,
+  ): Promise<void> {
+    return this.tasksService.reorder_tasks(groupId, dto.ids);
   }
 }
