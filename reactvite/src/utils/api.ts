@@ -1,5 +1,8 @@
 // 401 respons -> automatically refresh token
 // refresh returns token -> save to localStorage and retry original request
+
+import { toastError } from "./toast";
+
 // refresh returns 401 -> clear token and redirect to /login
 export async function safe_fetch(
   input: RequestInfo,
@@ -24,6 +27,7 @@ export async function safe_fetch(
     const url = typeof input === 'string' ? input : input instanceof Request ? input.url : '';
     if (url.endsWith('/api/users/refresh')) {
       localStorage.removeItem('token');
+      toastError('Twoja sesja wygasła. Zaloguj się ponownie.');
       window.location.href = '/login';
       throw new Error('Session expired');
     }
