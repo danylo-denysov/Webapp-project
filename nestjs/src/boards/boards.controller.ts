@@ -2,7 +2,6 @@ import { Controller, Get, Post, Delete, Param, Body, UseGuards, Patch } from '@n
 import { BoardsService } from './boards.service';
 import { Board } from './board.entity';
 import { CreateBoardDto } from './dto/create-board.dto';
-import { BoardUserRole } from './board-user-role.enum';
 import { BoardUser } from './board-user.entity';
 import { UpdateBoardUserRoleDto } from './dto/update-board-user-role.dto';
 import { AuthGuard } from '@nestjs/passport';

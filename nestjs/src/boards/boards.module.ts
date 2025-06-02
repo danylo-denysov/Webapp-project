@@ -16,5 +16,6 @@ import { MessagingModule } from 'src/messaging/messaging.module';
   ],
   controllers: [BoardsController],
   providers: [BoardsService],
+  exports: [BoardsService],
 })
 export class BoardsModule {}

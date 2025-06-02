@@ -5,7 +5,6 @@ import { Board } from './board.entity';
 import { User } from '../users/user.entity';
 import { CreateBoardDto } from './dto/create-board.dto';
 import { BoardUser } from './board-user.entity';
-import { BoardUserRole } from './board-user-role.enum';
 import { UpdateBoardUserRoleDto } from './dto/update-board-user-role.dto';
 import { PublisherService } from '../messaging/publisher.service';
 
@@ -17,6 +16,17 @@ export class BoardsService {
     @InjectRepository(BoardUser) private boardUsersRepository: Repository<BoardUser>,
     private readonly publisher: PublisherService,
   ) {}
+
+  async findBoardWithOwner(boardId: string): Promise<Board> {
+    const board = await this.boardsRepository.findOne({
+      where: { id: boardId },
+      relations: ['owner'],
+    });
+    if (!board) {
+      throw new NotFoundException(`Board with ID "${boardId}" not found`);
+    }
+    return board;
+  }
 
   async get_user_boards(userId: string): Promise<Board[]> {
     const boards = await this.boardsRepository.find({

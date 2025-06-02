@@ -1,11 +1,14 @@
-import { Controller, Get, Param, Post, Body, Patch, Delete, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Controller, Get, Param, Post, Body, Patch, Delete, UsePipes, ValidationPipe, UseGuards } from '@nestjs/common';
 import { TaskGroupsService } from './task-groups.service';
 import { CreateTaskGroupDto } from './dto/create-task-group.dto';
 import { UpdateTaskGroupDto } from './dto/update-task-group.dto';
 import { UpdateGroupOrdersDto } from './dto/update-group-orders.dto';
+import { AuthGuard } from '@nestjs/passport';
+import { BoardOwnerGuard } from 'src/common/board-owner.guard';
 
 @Controller('boards/:boardId/task-groups')
 @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
+@UseGuards(AuthGuard(), BoardOwnerGuard)
 export class TaskGroupsController {
   constructor(private readonly svc: TaskGroupsService) {}
 
