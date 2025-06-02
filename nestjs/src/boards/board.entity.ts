@@ -4,6 +4,7 @@ import {
   PrimaryGeneratedColumn,
   ManyToOne,
   OneToMany,
+  Index,
 } from 'typeorm';
 import { User } from 'src/users/user.entity';
 import { TaskGroup } from '../task-groups/task-group.entity';
@@ -19,6 +20,7 @@ export class Board {
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' }) // Add default value
   created_at: Date;
 
+  @Index()
   @ManyToOne(() => User, (user) => user.boards, { onDelete: 'CASCADE' })
   owner: User;
 

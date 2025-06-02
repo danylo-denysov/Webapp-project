@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, In, Index, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { TaskGroup } from 'src/task-groups/task-group.entity';
 
 @Entity()
@@ -18,6 +18,7 @@ export class Task {
   @Column({ type: 'int', default: 0 }) // Allow null for order if not provided, for test cases
   order: number;
 
+  @Index()
   @ManyToOne(() => TaskGroup, (taskGroup) => taskGroup.tasks, {
     onDelete: 'CASCADE',
   })

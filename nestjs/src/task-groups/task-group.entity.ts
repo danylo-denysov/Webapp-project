@@ -1,4 +1,4 @@
-import { Column, Entity, PrimaryGeneratedColumn, ManyToOne, OneToMany } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn, ManyToOne, OneToMany, In, Index } from 'typeorm';
 import { Board } from 'src/boards/board.entity';
 import { Task } from '../tasks/task.entity';
 
@@ -16,6 +16,7 @@ export class TaskGroup {
   @Column()
   order: number;
 
+  @Index()
   @ManyToOne(() => Board, (board) => board.taskGroups, { onDelete: 'CASCADE' })
   board: Board;
 

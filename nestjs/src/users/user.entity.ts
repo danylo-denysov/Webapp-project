@@ -1,4 +1,4 @@
-import { Column, Entity, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn, OneToMany, Index } from 'typeorm';
 import { Board } from '../boards/board.entity';
 
 @Entity()
@@ -6,9 +6,11 @@ export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Index()
   @Column({ unique: true })
   username: string;
 
+  @Index()
   @Column({ unique: true })
   email: string;
 
