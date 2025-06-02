@@ -1,6 +1,7 @@
 import { toast } from 'react-toastify';
 import type { Task } from '../taskGroups/useTaskGroups';
 import { toastError, toastSuccess } from '../../utils/toast';
+import { safe_fetch } from '../../utils/api';
 
 export function useCreateTask(
   groupId: string,
@@ -12,11 +13,10 @@ export function useCreateTask(
     }
 
     try {
-      const res = await fetch('/api/tasks', {
+      const res = await safe_fetch('/api/tasks', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
         body: JSON.stringify({ title, description, groupId }),
       });

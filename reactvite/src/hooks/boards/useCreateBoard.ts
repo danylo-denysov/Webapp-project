@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { toast } from 'react-toastify';
 import { Board } from './useBoards';
 import { toastError, toastSuccess } from '../../utils/toast';
+import { safe_fetch } from '../../utils/api';
 
 interface UseCreateBoardOptions {
   onSuccess?: (newBoard: Board) => void;
@@ -21,11 +22,10 @@ export function useCreateBoard({ onSuccess }: UseCreateBoardOptions = {}) {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/boards/user', {
+      const res = await safe_fetch('/api/boards/user', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ name }),
       });

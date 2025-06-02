@@ -1,6 +1,7 @@
 import { toast } from 'react-toastify';
 import { useState } from 'react';
 import { toastError, toastSuccess } from '../../utils/toast';
+import { safe_fetch } from '../../utils/api';
 
 export function useDeleteTaskGroup(boardId: string, onSuccess?: () => void) {
   const [loading, setLoading] = useState(false);
@@ -8,9 +9,8 @@ export function useDeleteTaskGroup(boardId: string, onSuccess?: () => void) {
   const remove = async (id: string) => {
     try {
       setLoading(true);
-      const res = await fetch(`/api/boards/${boardId}/task-groups/${id}`, {
+      const res = await safe_fetch(`/api/boards/${boardId}/task-groups/${id}`, {
         method : 'DELETE',
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
       if (!res.ok) throw new Error('Failed to delete group');
       toastSuccess('Group deleted');

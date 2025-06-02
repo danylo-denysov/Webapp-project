@@ -33,9 +33,7 @@ export class UsersController {
     @Body() verifyUserDto: VerifyUserDto,
     @Res({ passthrough: true }) response: Response,
   ): Promise<{ accessToken: string }> {
-    const { accessToken } = await this.usersService.verify_user(verifyUserDto);
-    const tokens = await this.usersService.verify_user(verifyUserDto);
-    const { accessToken: at, refreshToken: rt } = tokens;
+    const { accessToken: at, refreshToken: rt } = await this.usersService.verify_user(verifyUserDto);
     response.cookie('refresh_token', rt, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production', // only https in production
@@ -56,8 +54,7 @@ export class UsersController {
   ): Promise<{ accessToken: string }> {
     const { userId, refreshToken } = request.user as any;
 
-    const tokens = await this.usersService.refreshTokens(userId, refreshToken);
-    const { accessToken: newAT, refreshToken: newRT } = tokens;
+    const { accessToken: newAT, refreshToken: newRT } = await this.usersService.refreshTokens(userId, refreshToken);
 
     response.cookie('refresh_token', newRT, {
       httpOnly: true,

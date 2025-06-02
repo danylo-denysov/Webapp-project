@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { toast }    from 'react-toastify';
 import { TaskGroup } from './useTaskGroups';
 import { toastError, toastSuccess } from '../../utils/toast';
+import { safe_fetch } from '../../utils/api';
 
 export function useRenameTaskGroup(
   boardId: string | undefined, 
@@ -13,11 +14,10 @@ export function useRenameTaskGroup(
     if (!newName.trim()) return toastError('Name cannot be empty');
     try {
       setLoading(true);
-      const res = await fetch(`/api/boards/${boardId}/task-groups/${id}`, {
+      const res = await safe_fetch(`/api/boards/${boardId}/task-groups/${id}`, {
         method : 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          Authorization : `Bearer ${localStorage.getItem('token')}`,
         },
         body: JSON.stringify({ name: newName }),
       });

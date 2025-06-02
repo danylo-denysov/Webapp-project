@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import { toastError } from '../../utils/toast';
+import { safe_fetch } from '../../utils/api';
 
 export interface Board {
   id: string;
@@ -20,8 +21,8 @@ export function useBoards() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/boards/user', {
-        headers: { Authorization: `Bearer ${token}` },
+      const res = await safe_fetch('/api/boards/user', {
+        method: 'GET',
       });
       if (res.status === 401) throw new Error('Unauthorized');
       if (!res.ok) throw new Error('Failed to load boards');
@@ -33,7 +34,7 @@ export function useBoards() {
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, []);
 
   useEffect(() => {
     if (token) fetchBoards();

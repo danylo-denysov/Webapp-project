@@ -2,6 +2,7 @@ import { toast } from 'react-toastify';
 import { useState } from 'react';
 import { TaskGroup } from './useTaskGroups';
 import { toastError, toastSuccess } from '../../utils/toast';
+import { safe_fetch } from '../../utils/api';
 
 export function useCreateTaskGroup(boardId: string | undefined,
                                    onSuccess?: (g: TaskGroup)=>void) {
@@ -11,11 +12,10 @@ export function useCreateTaskGroup(boardId: string | undefined,
     if (!name.trim()) return toastError('Group name cannot be empty');
     try {
       setLoading(true);
-      const res = await fetch(`/api/boards/${boardId}/task-groups`, {
+      const res = await safe_fetch(`/api/boards/${boardId}/task-groups`, {
         method : 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization : `Bearer ${localStorage.getItem('token')}`,
         },
         body: JSON.stringify({ name }),
       });

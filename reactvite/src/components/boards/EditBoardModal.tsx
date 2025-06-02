@@ -3,6 +3,7 @@ import { Slide, toast } from 'react-toastify';
 import './BoardModals.css';
 import ReactDOM from 'react-dom';
 import { toastError, toastSuccess } from '../../utils/toast';
+import { safe_fetch } from '../../utils/api';
 
 interface EditBoardModalProps {
   isOpen: boolean;
@@ -41,11 +42,10 @@ export function EditBoardModal({
     }
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`/api/boards/${boardId}/user`, {
+      const res = await safe_fetch(`/api/boards/${boardId}/user`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ name: name.trim() }),
       });

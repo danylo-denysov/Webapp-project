@@ -23,6 +23,7 @@ import { toastError, toastSuccess } from '../../utils/toast';
         const response = await fetch('/api/users/verify', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'include', // Ensure cookies are sent
           body: JSON.stringify({
             email: formData.email,
             password: formData.password,

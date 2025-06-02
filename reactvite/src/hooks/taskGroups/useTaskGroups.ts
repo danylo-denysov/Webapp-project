@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
-import { toast } from 'react-toastify';
 import { toastError } from '../../utils/toast';
+import { safe_fetch } from '../../utils/api';
 
 export interface Task {
   id: string;
@@ -29,8 +29,8 @@ export function useTaskGroups(boardId: string | undefined) {
     if (!boardId) return;
     try {
       setLoading(true); setError(null);
-      const res  = await fetch(`/api/boards/${boardId}/task-groups`, {
-        headers: { Authorization: `Bearer ${token}` },
+      const res  = await safe_fetch(`/api/boards/${boardId}/task-groups`, {
+        method: 'GET',
       });
       if (res.status === 401) throw new Error('Unauthorized');
       if (!res.ok) throw new Error('Failed to load task groups');
@@ -45,7 +45,7 @@ export function useTaskGroups(boardId: string | undefined) {
     } finally {
       setLoading(false);
     }
-  }, [boardId, token]);
+  }, [boardId]);
 
   useEffect(() => { fetchGroups(); }, [fetchGroups]);
 

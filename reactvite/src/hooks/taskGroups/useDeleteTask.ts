@@ -1,14 +1,12 @@
 import { toast } from 'react-toastify';
 import { toastError, toastSuccess } from '../../utils/toast';
+import { safe_fetch } from '../../utils/api';
 
 export function useDeleteTask(onDeleted?: (id: string) => void) {
   const deleteTask = async (id: string) => {
     try {
-      const res = await fetch(`/api/tasks/${id}`, {
+      const res = await safe_fetch(`/api/tasks/${id}`, {
         method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`
-        }
       });
       if (!res.ok) {
         return toastError('Failed to delete');

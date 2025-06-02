@@ -3,6 +3,7 @@ import { toast, Slide } from 'react-toastify';
 import './BoardModals.css';
 import ReactDOM from 'react-dom';
 import { toastError, toastSuccess } from '../../utils/toast';
+import { safe_fetch } from '../../utils/api';
 
 interface DeleteBoardModalProps {
   isOpen: boolean;
@@ -29,9 +30,8 @@ export function DeleteBoardModal({
   const handleDelete = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`/api/boards/${boardId}/user`, {
+      const res = await safe_fetch(`/api/boards/${boardId}/user`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error('Failed to delete board');
       toastSuccess('Board deleted');

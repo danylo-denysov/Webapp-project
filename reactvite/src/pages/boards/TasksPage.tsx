@@ -13,6 +13,8 @@ import { arrayMove, SortableContext, horizontalListSortingStrategy } from '@dnd-
 import { restrictToFirstScrollableAncestor, restrictToHorizontalAxis } from '@dnd-kit/modifiers'
 import TaskGroupSortable from '../../components/taskGroups/TaskGroupSortable';
 import { useReorderTaskGroups } from '../../hooks/taskGroups/useReorderTaskGroups';
+import { safe_fetch } from '../../utils/api'
+import { toastError } from '../../utils/toast'
 
 export default function TasksPage() {
   const { boardId } = useParams<{ boardId: string }>()
@@ -50,26 +52,27 @@ export default function TasksPage() {
   };
 
   useEffect(() => {
-    const token = localStorage.getItem('token')
-    if (!token) {
-      navigate('/login', { replace: true })
-      return
-    }
-    fetch(`/api/boards/${boardId}/user`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then(res => {
-        if (res.status === 401) {
-          navigate('/login', { replace: true })
-          throw new Error('Unauthorized')
+    async function loadBoardName() {
+      if (!boardId) return;
+      try {
+        setLoading(true);
+        const res = await safe_fetch(`/api/boards/${boardId}/user`, {
+          method: 'GET',
+        });
+        if (!res.ok) {
+          throw new Error('Failed to load board');
         }
-        if (!res.ok) throw new Error('Failed to load board')
-        return res.json()
-      })
-      .then((b: { name: string }) => setBoardName(b.name))
-      .catch(console.error)
-      .finally(() => setLoading(false))
-  }, [boardId, navigate])
+        const b = await res.json();
+        setBoardName(b.name);
+      } catch (err) {
+        toastError('Failed to load board name');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+      loadBoardName();
+  }, [boardId]);
 
   if (loading) return <div className="tasks-loading">Loading board…</div>
 
