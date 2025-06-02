@@ -18,6 +18,9 @@ export class User {
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' }) // Add default value
   created_at: Date;
 
+  @Column({ type: 'text', nullable: true })
+  current_hashed_refresh_token: string | null;
+
   @OneToMany(() => Board, (board) => board.owner, { cascade: true })
   boards: Board[];
 }

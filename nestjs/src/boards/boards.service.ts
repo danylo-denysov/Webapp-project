@@ -17,17 +17,6 @@ export class BoardsService {
     private readonly publisher: PublisherService,
   ) {}
 
-  async findBoardWithOwner(boardId: string): Promise<Board> {
-    const board = await this.boardsRepository.findOne({
-      where: { id: boardId },
-      relations: ['owner'],
-    });
-    if (!board) {
-      throw new NotFoundException(`Board with ID "${boardId}" not found`);
-    }
-    return board;
-  }
-
   async get_user_boards(userId: string): Promise<Board[]> {
     const boards = await this.boardsRepository.find({
       where: { owner: { id: userId } },
@@ -172,5 +161,17 @@ export class BoardsService {
       where: { board: { id: boardId } },
       relations: ['user'],
     });
+  }
+
+  // Helper
+  async findBoardWithOwner(boardId: string): Promise<Board> {
+    const board = await this.boardsRepository.findOne({
+      where: { id: boardId },
+      relations: ['owner'],
+    });
+    if (!board) {
+      throw new NotFoundException(`Board with ID "${boardId}" not found`);
+    }
+    return board;
   }
 }

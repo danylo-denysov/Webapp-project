@@ -11,17 +11,20 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     @InjectRepository(User) private usersRepository: Repository<User>,
   ) {
     super({
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(), // "Bearer <token>"
       secretOrKey: 'topSecret51',
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(), // how to extract the token
     });
   }
 
-  async validate(payload): Promise<User> {
-    const { email } = payload;
-    const user = await this.usersRepository.findOne({ where: { email } });
+  async validate(payload: any): Promise<Partial<User>> {
+    const userId = payload.sub;
+    const email = payload.email;
+    const user = await this.usersRepository.findOne({
+      where: { id: userId, email },
+    });
     if (!user) {
-      throw new UnauthorizedException(); //401 response
+      throw new UnauthorizedException();
     }
-    return user; // return the user object
+    return { id: user.id, email: user.email };
   }
 }

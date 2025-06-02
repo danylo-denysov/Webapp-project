@@ -8,9 +8,10 @@ import { AuthGuard } from '@nestjs/passport';
 import { User } from 'src/users/user.entity';
 import { GetUser } from 'src/users/get-user.decorator';
 import { RenameBoardDto } from './dto/rename-board.dto';
+import { JwtAuthGuard } from 'src/users/jwt-auth.guard';
 
 @Controller('boards')
-@UseGuards(AuthGuard())
+@UseGuards(JwtAuthGuard)
 export class BoardsController {
   constructor(private boardsService: BoardsService) {}
 
