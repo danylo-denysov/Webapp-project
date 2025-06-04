@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import Header from '../../components/common/Header';
@@ -7,24 +7,35 @@ import arrowLeftIcon from '../../assets/arrow-left.svg';
 
 import './ProfilePage.css';
 
+import ChangeNicknameModal from '../../components/auth/ChangeNicknameModal';
+import ChangePasswordModal from '../../components/auth/ChangePasswordModal';
+import DeleteAccountModal from '../../components/auth/DeleteAccountModal';
+
 export default function ProfilePage() {
   const navigate = useNavigate();
+
+  const [isNicknameModalOpen, setIsNicknameModalOpen] = useState(false);
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   const handleChangeProfilePicture = () => {
     console.log('Change profile picture…');
   };
 
-  const handleChangeNickname = () => {
-    console.log('Change nickname…');
-  };
+  const handleChangeNickname = (newNickname: string) => {
+    // TODO: backend
+   console.log('New nickname:', newNickname);
+ };
 
-  const handleChangePassword = () => {
-    console.log('Change password…');
-  };
+  const handleChangePassword = (current: string, next: string) => {
+   // TODO: backend
+   console.log('Change password from', current, '→', next);
+ };
 
   const handleDeleteAccount = () => {
-    console.log('Delete account…');
-  };
+   // TODO: backend
+   console.log('Account deletion confirmed');
+ };
 
   return (
     <div className="profile-page">
@@ -53,25 +64,43 @@ export default function ProfilePage() {
 
         <button
           className="profile-card__btn"
-          onClick={handleChangeNickname}
+          onClick={() => setIsNicknameModalOpen(true)}
         >
           Change nickname
         </button>
 
         <button
           className="profile-card__btn"
-          onClick={handleChangePassword}
+          onClick={() => setIsPasswordModalOpen(true)}
         >
           Change password
         </button>
 
         <button
           className="profile-card__btn profile-card__btn--danger"
-          onClick={handleDeleteAccount}
+          onClick={() => setIsDeleteModalOpen(true)}
         >
           Delete account
         </button>
       </div>
+
+      <ChangeNicknameModal
+        isOpen={isNicknameModalOpen}
+        onClose={() => setIsNicknameModalOpen(false)}
+        onConfirm={handleChangeNickname}
+      />
+
+      <ChangePasswordModal
+        isOpen={isPasswordModalOpen}
+        onClose={() => setIsPasswordModalOpen(false)}
+        onConfirm={handleChangePassword}
+      />
+
+      <DeleteAccountModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDeleteAccount}
+      />
     </div>
   );
 }
