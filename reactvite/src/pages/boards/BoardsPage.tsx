@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Avatar from '../../components/common/Avatar';
 import CreateBoardButton from '../../components/boards/CreateBoardButton';
@@ -13,6 +13,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import './BoardsPage.css';
 import Header from '../../components/common/Header';
 import { Link } from 'react-router-dom';
+import { toastError } from '../../utils/toast';
 
 export default function BoardsPage() {
   const navigate = useNavigate();
@@ -20,9 +21,7 @@ export default function BoardsPage() {
   const [sortBy, setSortBy] = useState<'Name' | 'Owner' | 'Date'>('Name');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Load & manage boards
   const { boards, loading, error: loadError, refresh } = useBoards();
-  // Create-board handler; on success, refresh list
   const { createBoard } = useCreateBoard({ onSuccess: refresh });
 
   // Redirect if unauthorized
@@ -31,6 +30,14 @@ export default function BoardsPage() {
       navigate('/login', { replace: true });
     }
   }, [loadError, navigate]);
+
+  const boardsErrorToastedRef = useRef(false);
+  useEffect(() => {
+    if (loadError && loadError !== 'Unauthorized' && !boardsErrorToastedRef.current) {
+      toastError(loadError);
+      boardsErrorToastedRef.current = true;
+    }
+  }, [loadError]);
 
   if (loading) {
     return <div>Loading boards…</div>;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import Avatar from '../../components/common/Avatar'
 import teamIcon from '../../assets/team.svg'
@@ -21,8 +21,26 @@ export default function TasksPage() {
   const { boardId } = useParams<{ boardId: string }>()
   const navigate = useNavigate()
   const [boardName, setBoardName] = useState('')
-  const [loading, setLoading] = useState(true)
-  const { groups, refresh } = useTaskGroups(boardId);
+  const { groups, loading: groupsLoading, error: groupsError, refresh } = useTaskGroups(boardId);
+  const [groupErrorToasted, setGroupErrorToasted] = useState(false);
+  const [boardLoading, setBoardLoading] = useState(true);
+  const [boardError, setBoardError] = useState<string | null>(null);
+  const [boardErrorToasted, setBoardErrorToasted] = useState(false);
+  useEffect(() => {
+    if (groupsError === 'Forbidden') {
+      navigate('/boards', { replace: true });
+    }
+  }, [groupsError, navigate]);
+  useEffect(() => {
+    if (
+      groupsError &&
+      groupsError !== 'Forbidden' &&
+      !groupErrorToasted
+    ) {
+      toastError(groupsError);
+      setGroupErrorToasted(true);
+    }
+  }, [groupsError, groupErrorToasted]);
   const [localOrder, setLocalOrder] = useState<string[]>([]);
   useEffect(() => {            // keep local array in sync when groups load/refresh
     setLocalOrder(groups.map(g => g.id))
@@ -47,35 +65,52 @@ export default function TasksPage() {
     try {
       await reorderGroups(next);
     } catch (e) {
-      console.error(e);
       setLocalOrder(localOrder); // rollback on error
     }
   };
 
   useEffect(() => {
     async function loadBoardName() {
-      if (!boardId) return;
+      if (!boardId) {
+        setBoardLoading(false);
+        return;
+      }
+
       try {
-        setLoading(true);
+        setBoardLoading(true);
         const res = await safe_fetch(`/api/boards/${boardId}/user`, {
           method: 'GET',
+          credentials: 'include',
         });
+        if (res.status === 403 || res.status === 401) {
+          navigate('/boards', { replace: true });
+          return;
+        }
         if (!res.ok) {
           throw new Error('Failed to load board');
         }
         const b = await res.json();
         setBoardName(b.name);
       } catch (err) {
-        toastError('Failed to load board name');
+        setBoardError('Failed to load board name');
       } finally {
-        setLoading(false);
+        setBoardLoading(false);
       }
     }
 
       loadBoardName();
-  }, [boardId]);
+  }, []);
 
-  if (loading) return <div className="tasks-loading">Loading board…</div>
+  useEffect(() => {
+    if (boardError && !boardErrorToasted) {
+      toastError(boardError);
+      setBoardErrorToasted(true);
+    }
+  }, [boardError, boardErrorToasted]);
+
+  if (boardLoading || groupsLoading) {
+    return <div className="tasks-loading">Loading board…</div>;
+  }
 
   return (
     <div className="tasks-page">
