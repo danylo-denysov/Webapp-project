@@ -15,6 +15,7 @@ import TaskGroupSortable from '../../components/taskGroups/TaskGroupSortable';
 import { useReorderTaskGroups } from '../../hooks/taskGroups/useReorderTaskGroups';
 import { safe_fetch } from '../../utils/api'
 import { toastError } from '../../utils/toast'
+import Header from '../../components/common/Header'
 
 export default function TasksPage() {
   const { boardId } = useParams<{ boardId: string }>()
@@ -78,26 +79,30 @@ export default function TasksPage() {
 
   return (
     <div className="tasks-page">
-      <div className="tasks-header">
-
-        <h1 className="tasks-title" data-text={boardName} >{boardName}</h1>
-
-        <div className="tasks-header-actions">
-          <button className="tasks-action-btn"
-                  onClick={() => setGroupModalOpen(true)}>
-            <img src={plusIcon} alt="add group" /> New group
-          </button>
-          <button className="tasks-action-btn">
-            <img src={teamIcon} alt="Team" /> Team
-          </button>
-          <Link to="/boards" className="tasks-action-btn tasks-boards-link">
-            <img src={listIcon} alt="Boards" /> Boards
-          </Link>
-          <Avatar />
-        </div>
-      </div>
-
-      <div className="tasks-divider" />
+      <Header
+        left={
+          <h1 className="tasks-title" data-text={boardName}>
+            {boardName}
+          </h1>
+        }
+        right={
+          <>
+            <button
+              className="tasks-action-btn"
+              onClick={() => setGroupModalOpen(true)}
+            >
+              <img src={plusIcon} alt="add group" /> New group
+            </button>
+            <button className="tasks-action-btn">
+              <img src={teamIcon} alt="Team" /> Team
+            </button>
+            <Link to="/boards" className="tasks-action-btn tasks-boards-link">
+              <img src={listIcon} alt="Boards" /> Boards
+            </Link>
+            <Avatar />
+          </>
+        }
+      />
 
       <DndContext
         sensors={sensors}
