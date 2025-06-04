@@ -1,4 +1,3 @@
-// users.controller.ts
 import {
   Controller,
   Get,
@@ -11,6 +10,7 @@ import {
   Res,
   Req,
   UseGuards,
+  Patch,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -18,6 +18,7 @@ import { VerifyUserDto } from './dto/verify-user.dto';
 import { User } from './user.entity';
 import { JwtRefreshGuard } from './jwt-refresh.guard';
 import { Response, Request } from 'express';
+import { JwtAuthGuard } from 'src/users/jwt-auth.guard';
 
 import {
   ApiTags,
@@ -35,6 +36,9 @@ import {
   ApiConflictResponse,
   ApiInternalServerErrorResponse,
 } from '@nestjs/swagger';
+import { ChangeNicknameDto } from './dto/change-nickname.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { GetUser } from './get-user.decorator';
 
 const REFRESH_TOKEN_COOKIE_MAX_AGE = 1000 * 60 * 60 * 24 * 7; // 7 days
 
@@ -215,6 +219,95 @@ export class UsersController {
         });
         return { accessToken: newAT };
       });
+  }
+  @UseGuards(JwtAuthGuard)
+  @Get('/me')
+  @ApiOperation({
+    summary: 'Get current user’s profile info',
+  })
+  @ApiOkResponse({
+    description: 'Current user returned',
+    type: User,
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized (401)',
+  })
+  async getCurrentUser(@GetUser() user: any): Promise<Partial<User>> {
+    const found = await this.usersService.findById(user.id);
+    return {
+      id: found.id,
+      username: found.username,
+      email: found.email,
+      created_at: found.created_at,
+    };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('/me/nickname')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Change current user’s nickname' })
+  @ApiBody({ type: ChangeNicknameDto })
+  @ApiOkResponse({
+    description: 'Nickname changed successfully',
+  })
+  @ApiBadRequestResponse({
+    description: 'Invalid input (422)',
+  })
+  @ApiConflictResponse({
+    description: 'Nickname already in use (409)',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized (401)',
+  })
+  async changeNickname(
+    @GetUser() user: any,
+    @Body() dto: ChangeNicknameDto,
+  ): Promise<void> {
+    return this.usersService.update_nickname(user.id, dto.newNickname);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('/me/password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Change current user’s password',
+  })
+  @ApiBody({ type: ChangePasswordDto })
+  @ApiOkResponse({
+    description: 'Password changed successfully',
+  })
+  @ApiBadRequestResponse({
+    description: 'Invalid input (422)',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Current password is wrong (401)',
+  })
+  async changePassword(
+    @GetUser() user: any,
+    @Body() dto: ChangePasswordDto,
+  ): Promise<void> {
+    return this.usersService.change_password(
+      user.id,
+      dto.currentPassword,
+      dto.newPassword,
+      dto.repeatPassword,
+    );
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('/me')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({
+    summary: 'Delete current user’s account',
+  })
+  @ApiNoContentResponse({
+    description: 'Account deleted successfully',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized (401)',
+  })
+  async deleteMyAccount(@GetUser() user: any): Promise<void> {
+    return this.usersService.delete_user_by_id(user.id);
   }
 
   @UseGuards(JwtRefreshGuard)

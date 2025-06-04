@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './user.entity';
@@ -83,6 +83,65 @@ export class UsersService {
     await this.usersRepository.save(user);
 
     return { accessToken, refreshToken };
+  }
+
+  async update_nickname(userId: string, newNickname: string): Promise<void> {
+    const user = await this.usersRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const existing = await this.usersRepository.findOne({
+      where: { username: newNickname },
+    });
+    if (existing && existing.id !== userId) {
+      throw new ConflictException('Nickname already in use');
+    }
+
+    user.username = newNickname;
+    try {
+      await this.usersRepository.save(user);
+    } catch (err) {
+      throw new InternalServerErrorException('Failed to update nickname');
+    }
+  }
+
+  async change_password(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+    repeatPassword: string,
+  ): Promise<void> {
+    const user = await this.usersRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const matches = await bcrypt.compare(currentPassword, user.password);
+    if (!matches) {
+      throw new UnauthorizedException('Current password is incorrect');
+    }
+
+    if (newPassword !== repeatPassword) {
+      throw new BadRequestException('New passwords do not match');
+    }
+
+    const salt = await bcrypt.genSalt();
+    const hashed = await bcrypt.hash(newPassword, salt);
+    user.password = hashed;
+
+    try {
+      await this.usersRepository.save(user);
+    } catch (err) {
+      throw new InternalServerErrorException('Failed to update password');
+    }
+  }
+
+  async delete_user_by_id(userId: string): Promise<void> {
+    const result = await this.usersRepository.delete(userId);
+    if (result.affected === 0) {
+      throw new NotFoundException(`User with ID "${userId}" not found`);
+    }
   }
 
   // Helpers for JWT token management
