@@ -100,10 +100,9 @@
 
 /* needed wrapper due to dnd-kit’s  */
 .groups-row__inner-wrapper {
-  position: relative;   /* ← this is the “positioned parent” for dnd-kit */
-  display: flex;        /* keep flex so children (TaskGroupSortable) line up horizontally */
+  position: relative;
+  display: flex;
   gap: 2rem;
-  /* Match groups-row’s height/width so restrictToParentElement works */
   width: 100%;
   height: 100%;
 }

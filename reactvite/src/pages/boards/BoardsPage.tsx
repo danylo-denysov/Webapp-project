@@ -11,6 +11,7 @@ import { useCreateBoard } from '../../hooks/boards/useCreateBoard';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './BoardsPage.css';
+import Header from '../../components/common/Header';
 
 export default function BoardsPage() {
   const navigate = useNavigate();
@@ -41,10 +42,14 @@ export default function BoardsPage() {
 
   return (
     <div className="boards-page">
-      <div className="header-actions">
-        <CreateBoardButton onClick={() => setIsModalOpen(true)} />
-        <Avatar />
-      </div>
+      <Header
+        right={
+          <>
+            <CreateBoardButton onClick={() => setIsModalOpen(true)} />
+            <Avatar />
+          </>
+        }
+      />
 
       <CreateBoardModal
         isOpen={isModalOpen}
@@ -55,7 +60,6 @@ export default function BoardsPage() {
         }}
       />
 
-      <div className="boards-divider" />
 
       <div className="boards-content">
         <div className="boards-controls">

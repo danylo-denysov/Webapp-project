@@ -1,0 +1,37 @@
+/* 1) Base container—exactly matches both .tasks-header and .header-actions positioning */
+.common-header {
+  position: absolute;
+  top: 1rem;
+  left: 3rem;
+  right: 3rem;
+  display: flex;
+  align-items: center;
+  z-index: 10;
+}
+
+/* 2) If you pass something into the “left” slot, it will live inside here */
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* 3) The “spacer” pushes the right block all the way to the right */
+.header-spacer {
+  flex: 1;
+}
+
+/* 4) If you pass something into the “right” slot, it will live inside here */
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* 5) Divider line exactly matches .tasks-divider / .boards-divider */
+.common-divider {
+  width: 100%;
+  height: 1px;
+  background-color: var(--color-text);
+  margin-top: 4rem;
+}
