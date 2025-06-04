@@ -21,7 +21,7 @@
   overflow: hidden;
 
   flex: 0 0 30rem;
-  font-size: 3rem;
+  font-size: 2.9rem;
   font-weight: 500;
 
   mask-image: linear-gradient(
@@ -40,6 +40,7 @@
 }
 
 .tasks-action-btn {
+  line-height: 1;    
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;

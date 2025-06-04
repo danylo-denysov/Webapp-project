@@ -7,7 +7,7 @@ import { VerifyUserDto } from './dto/verify-user.dto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 
-const ACCESS_TOKEN_TTL = 1 * 15; // 15 minutes
+const ACCESS_TOKEN_TTL = 60 * 15; // 15 minutes
 const REFRESH_TOKEN_TTL = 60 * 60 * 24 * 7; // 7 days
 
 @Injectable()
