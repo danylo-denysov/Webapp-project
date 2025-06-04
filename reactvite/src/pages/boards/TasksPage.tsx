@@ -99,7 +99,9 @@ export default function TasksPage() {
             <Link to="/boards" className="tasks-action-btn tasks-boards-link">
               <img src={listIcon} alt="Boards" /> Boards
             </Link>
-            <Avatar />
+            <Link to="/profile">
+              <Avatar />
+            </Link>
           </>
         }
       />

@@ -12,6 +12,7 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './BoardsPage.css';
 import Header from '../../components/common/Header';
+import { Link } from 'react-router-dom';
 
 export default function BoardsPage() {
   const navigate = useNavigate();
@@ -46,7 +47,9 @@ export default function BoardsPage() {
         right={
           <>
             <CreateBoardButton onClick={() => setIsModalOpen(true)} />
-            <Avatar />
+            <Link to="/profile">
+              <Avatar />
+            </Link>
           </>
         }
       />
