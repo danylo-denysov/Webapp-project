@@ -10,6 +10,7 @@ import './ProfilePage.css';
 import ChangeNicknameModal from '../../components/auth/ChangeNicknameModal';
 import ChangePasswordModal from '../../components/auth/ChangePasswordModal';
 import DeleteAccountModal from '../../components/auth/DeleteAccountModal';
+import { safe_fetch } from '../../utils/api';
 
 export default function ProfilePage() {
   const navigate = useNavigate();
@@ -22,20 +23,60 @@ export default function ProfilePage() {
     console.log('Change profile picture…');
   };
 
-  const handleChangeNickname = (newNickname: string) => {
-    // TODO: backend
-   console.log('New nickname:', newNickname);
- };
+  const handleChangeNickname = async (newNickname: string) => {
+    try {
+      const res = await safe_fetch('/api/users/me/nickname', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ newNickname }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || 'Failed to change nickname');
+      }
+    } catch (err: any) {
+      throw new Error(err.message);
+    }
+  };
 
-  const handleChangePassword = (current: string, next: string) => {
-   // TODO: backend
-   console.log('Change password from', current, '→', next);
- };
+  const handleChangePassword = async (
+    current: string,
+    next: string
+  ) => {
+    try {
+      const res = await safe_fetch('/api/users/me/password', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          currentPassword: current,
+          newPassword: next,
+          repeatPassword: next,
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || 'Failed to change password');
+      }
+    } catch (err: any) {
+      throw new Error(err.message);
+    }
+  };
 
-  const handleDeleteAccount = () => {
-   // TODO: backend
-   console.log('Account deletion confirmed');
- };
+  const handleDeleteAccount = async () => {
+    try {
+      const res = await safe_fetch('/api/users/me', {
+        method: 'DELETE',
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || 'Failed to delete account');
+      }
+      localStorage.removeItem('token');
+      window.location.href = '/';
+    } catch (err: any) {
+      throw new Error(err.message);
+    }
+  };
 
   return (
     <div className="profile-page">
