@@ -26,6 +26,7 @@
   font-weight: 500;
   color: var(--color-text);
   margin-bottom: 1rem;
+  text-align: center;
 }
 
 .profile-card__btn {
@@ -68,6 +69,22 @@
 }
 
 .profile-back-button img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.profile-logout-button {
+  background: none;
+  border: none;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  margin-right: 1rem;
+}
+
+.profile-logout-button img {
   width: 24px;
   height: 24px;
   object-fit: contain;

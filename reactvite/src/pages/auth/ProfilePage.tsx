@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import Header from '../../components/common/Header';
 import Avatar from '../../components/common/Avatar';
 import arrowLeftIcon from '../../assets/arrow-left.svg';
+import logoutIcon from '../../assets/logout.svg'; 
 
 import './ProfilePage.css';
 
@@ -11,6 +12,7 @@ import ChangeNicknameModal from '../../components/auth/ChangeNicknameModal';
 import ChangePasswordModal from '../../components/auth/ChangePasswordModal';
 import DeleteAccountModal from '../../components/auth/DeleteAccountModal';
 import { safe_fetch } from '../../utils/api';
+import { toastError } from '../../utils/toast';
 
 export default function ProfilePage() {
   const navigate = useNavigate();
@@ -78,6 +80,23 @@ export default function ProfilePage() {
     }
   };
 
+    const handleLogout = async () => {
+    try {
+      const res = await safe_fetch('/api/users/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || 'Failed to log out');
+      }
+      localStorage.removeItem('token');
+      navigate('/login', { replace: true });
+    } catch (err: any) {
+      toastError(err.message);
+    }
+  };
+
   return (
     <div className="profile-page">
       <Header
@@ -90,7 +109,20 @@ export default function ProfilePage() {
             <img src={arrowLeftIcon} alt="Back" />
           </button>
         }
-        right={<Avatar />}
+        right={
+          <>
+            <button
+              className="profile-logout-button"
+              onClick={handleLogout}
+              aria-label="Log out"
+            >
+              <img src={logoutIcon} alt="Logout" />
+            </button>
+
+
+            <Avatar />
+          </>
+        }
       />
 
       <div className="profile-card">

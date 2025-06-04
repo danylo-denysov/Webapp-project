@@ -170,7 +170,7 @@ export class UsersController {
           httpOnly: true,
           secure: process.env.NODE_ENV === 'production',
           sameSite: 'strict',
-          path: '/api/users/refresh',
+          path: '/api/users',
           maxAge: REFRESH_TOKEN_COOKIE_MAX_AGE,
         });
         return { accessToken: at };
@@ -214,7 +214,7 @@ export class UsersController {
           httpOnly: true,
           secure: process.env.NODE_ENV === 'production',
           sameSite: 'strict',
-          path: '/api/users/refresh',
+          path: '/api/users',
           maxAge: REFRESH_TOKEN_COOKIE_MAX_AGE,
         });
         return { accessToken: newAT };
@@ -326,18 +326,19 @@ export class UsersController {
   @ApiNotFoundResponse({
     description: 'User not found (404)',
   })
-  logout(
-    @Req() request: Request,
+  async logout(
+    @GetUser() user: any,
     @Res({ passthrough: true }) response: Response,
-  ) {
-    const { userId } = request.user as any;
-    return this.usersService.removeRefreshToken(userId).then(() => {
-      response.clearCookie('refresh_token', {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        path: '/api/users/refresh',
-      });
+  ): Promise<void> {
+    // user.userId was set by JwtRefreshStrategy.validate()
+    await this.usersService.removeRefreshToken(user.userId);
+
+    // Clear the cookie on the response
+    response.clearCookie('refresh_token', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/api/users/refresh',
     });
   }
 }
