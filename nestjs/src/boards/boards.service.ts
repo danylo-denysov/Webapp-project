@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Board } from './board.entity';
@@ -16,6 +16,22 @@ export class BoardsService {
     @InjectRepository(BoardUser) private boardUsersRepository: Repository<BoardUser>,
     private readonly publisher: PublisherService,
   ) {}
+
+  async verifyOwner(boardId: string, userId: string): Promise<Board> {
+    const board = await this.boardsRepository.findOne({
+      where: { id: boardId },
+      relations: ['owner'],
+    });
+    if (!board) {
+      throw new NotFoundException(`Board with ID "${boardId}" not found`);
+    }
+
+    if (board.owner.id !== userId) {
+      throw new ForbiddenException('You are not the owner of this board');
+    }
+
+    return board;
+  }
 
   async get_user_boards(userId: string): Promise<Board[]> {
     const boards = await this.boardsRepository.find({

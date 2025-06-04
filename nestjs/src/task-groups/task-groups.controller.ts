@@ -16,9 +16,11 @@ import { TaskGroupsService } from './task-groups.service';
 import { CreateTaskGroupDto } from './dto/create-task-group.dto';
 import { UpdateTaskGroupDto } from './dto/update-task-group.dto';
 import { UpdateGroupOrdersDto } from './dto/update-group-orders.dto';
-import { AuthGuard } from '@nestjs/passport';
-import { BoardOwnerGuard } from 'src/common/board-owner.guard';
 import { TaskGroup } from './task-group.entity';
+import { AuthGuard } from '@nestjs/passport';
+import { BoardsService } from 'src/boards/boards.service';
+import { GetUser } from 'src/users/get-user.decorator';
+import { JwtUserPayload } from 'src/users/jwt-user-payload.interface';
 
 import {
   ApiTags,
@@ -37,10 +39,13 @@ import {
 
 @ApiTags('Task Groups')
 @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
-@UseGuards(AuthGuard(), BoardOwnerGuard)
+@UseGuards(AuthGuard())
 @Controller('boards/:boardId/task-groups')
 export class TaskGroupsController {
-  constructor(private readonly svc: TaskGroupsService) {}
+  constructor(
+    private readonly svc: TaskGroupsService,
+    private readonly boardsService: BoardsService,
+  ) {}
 
   @Get()
   @ApiOperation({ summary: 'Get all Task Groups for a Board' })
@@ -64,7 +69,11 @@ export class TaskGroupsController {
   @ApiUnauthorizedResponse({
     description: 'Unauthorized (401) – missing or invalid JWT',
   })
-  get_task_groups(@Param('boardId') boardId: string): Promise<TaskGroup[]> {
+  async get_task_groups(
+    @Param('boardId') boardId: string,
+    @GetUser() user: JwtUserPayload,
+  ): Promise<TaskGroup[]> {
+    await this.boardsService.verifyOwner(boardId, user.id);
     return this.svc.get_task_groups(boardId);
   }
 
@@ -94,10 +103,12 @@ export class TaskGroupsController {
   @ApiUnauthorizedResponse({
     description: 'Unauthorized (401) – missing or invalid JWT',
   })
-  get_task_group_by_id(
+  async get_task_group_by_id(
     @Param('boardId') boardId: string,
     @Param('groupId') groupId: string,
+    @GetUser() user: JwtUserPayload,
   ): Promise<TaskGroup> {
+    await this.boardsService.verifyOwner(boardId, user.id);
     return this.svc.get_task_group_by_id(groupId);
   }
 
@@ -139,10 +150,12 @@ export class TaskGroupsController {
   @ApiUnauthorizedResponse({
     description: 'Unauthorized (401) – missing or invalid JWT',
   })
-  create_task_group(
+  async create_task_group(
     @Param('boardId') boardId: string,
     @Body() dto: CreateTaskGroupDto,
+    @GetUser() user: JwtUserPayload,
   ): Promise<TaskGroup> {
+    await this.boardsService.verifyOwner(boardId, user.id);
     return this.svc.create_task_group(boardId, dto);
   }
 
@@ -195,10 +208,12 @@ export class TaskGroupsController {
   @ApiUnauthorizedResponse({
     description: 'Unauthorized (401) – missing or invalid JWT',
   })
-  reorder_task_groups(
+  async reorder_task_groups(
     @Param('boardId') boardId: string,
     @Body() dto: UpdateGroupOrdersDto,
+    @GetUser() user: JwtUserPayload,
   ): Promise<void> {
+    await this.boardsService.verifyOwner(boardId, user.id);
     return this.svc.reorder_task_groups(boardId, dto.ids);
   }
 
@@ -232,8 +247,7 @@ export class TaskGroupsController {
     description: 'Invalid input data (400) – e.g., empty string for name',
   })
   @ApiUnprocessableEntityResponse({
-    description:
-      'Validation failed (422) – e.g., non‐string name',
+    description: 'Validation failed (422) – e.g., non‐string name',
   })
   @ApiNotFoundResponse({
     description: 'Board or Task Group not found (404)',
@@ -244,11 +258,13 @@ export class TaskGroupsController {
   @ApiUnauthorizedResponse({
     description: 'Unauthorized (401) – missing or invalid JWT',
   })
-  update_task_group(
+  async update_task_group(
     @Param('boardId') boardId: string,
     @Param('groupId') groupId: string,
     @Body() dto: UpdateTaskGroupDto,
+    @GetUser() user: JwtUserPayload,
   ): Promise<TaskGroup> {
+    await this.boardsService.verifyOwner(boardId, user.id);
     return this.svc.update_task_group(boardId, groupId, dto);
   }
 
@@ -277,10 +293,12 @@ export class TaskGroupsController {
   @ApiUnauthorizedResponse({
     description: 'Unauthorized (401) – missing or invalid JWT',
   })
-  delete_task_group(
+  async delete_task_group(
     @Param('boardId') boardId: string,
     @Param('groupId') groupId: string,
+    @GetUser() user: JwtUserPayload,
   ): Promise<void> {
+    await this.boardsService.verifyOwner(boardId, user.id);
     return this.svc.delete_task_group(boardId, groupId);
   }
 }
