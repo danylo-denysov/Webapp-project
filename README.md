@@ -8,12 +8,8 @@ A Trello-style board that lets teams organise work into **Boards → Task Groups
 
 ## ✨ Key features
 
-Authentication: JWT (access + refresh) in HttpOnly cookies; refresh-token rotation; role guards (`admin`, `user`).
-
-Task workflow: CRUD for boards, groups and tasks; order preserved via `order` integer column.
-
-Async jobs: RabbitMQ publisher / consumer keeps HTTP requests fast.
-
-REST API: Prefixed with **`/api`**, Swagger docs at `/api/docs`.
-
+Authentication: JWT (access + refresh) in HttpOnly cookies; refresh-token rotation; role guards (`admin`, `user`).  
+Task workflow: CRUD for boards, groups and tasks; order preserved via `order` integer column.  
+Async jobs: RabbitMQ publisher / consumer keeps HTTP requests fast.  
+REST API: Prefixed with **`/api`**, Swagger docs at `/api/docs`.  
 Database: PostgreSQL schema in 3-NF, entities & migrations handled by TypeORM.
