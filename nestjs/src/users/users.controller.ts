@@ -101,6 +101,74 @@ export class UsersController {
     return this.usersService.create_user(createUserDto);
   }
 
+    @UseGuards(JwtAuthGuard)
+  @Patch('/me/nickname')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Change current user’s nickname' })
+  @ApiBody({ type: ChangeNicknameDto })
+  @ApiOkResponse({
+    description: 'Nickname changed successfully',
+  })
+  @ApiBadRequestResponse({
+    description: 'Invalid input (422)',
+  })
+  @ApiConflictResponse({
+    description: 'Nickname already in use (409)',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized (401)',
+  })
+  async changeNickname(
+    @GetUser() user: any,
+    @Body() dto: ChangeNicknameDto,
+  ): Promise<void> {
+    return this.usersService.update_nickname(user.id, dto.newNickname);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('/me/password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Change current user’s password',
+  })
+  @ApiBody({ type: ChangePasswordDto })
+  @ApiOkResponse({
+    description: 'Password changed successfully',
+  })
+  @ApiBadRequestResponse({
+    description: 'Invalid input (422)',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Current password is wrong (401)',
+  })
+  async changePassword(
+    @GetUser() user: any,
+    @Body() dto: ChangePasswordDto,
+  ): Promise<void> {
+    return this.usersService.change_password(
+      user.id,
+      dto.currentPassword,
+      dto.newPassword,
+      dto.repeatPassword,
+    );
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('/me')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({
+    summary: 'Delete current user’s account',
+  })
+  @ApiNoContentResponse({
+    description: 'Account deleted successfully',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized (401)',
+  })
+  async deleteMyAccount(@GetUser() user: any): Promise<void> {
+    return this.usersService.delete_user_by_id(user.id);
+  }
+
   @Delete('/:userId')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete a User by ID' })
@@ -240,74 +308,6 @@ export class UsersController {
       email: found.email,
       created_at: found.created_at,
     };
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Patch('/me/nickname')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Change current user’s nickname' })
-  @ApiBody({ type: ChangeNicknameDto })
-  @ApiOkResponse({
-    description: 'Nickname changed successfully',
-  })
-  @ApiBadRequestResponse({
-    description: 'Invalid input (422)',
-  })
-  @ApiConflictResponse({
-    description: 'Nickname already in use (409)',
-  })
-  @ApiUnauthorizedResponse({
-    description: 'Unauthorized (401)',
-  })
-  async changeNickname(
-    @GetUser() user: any,
-    @Body() dto: ChangeNicknameDto,
-  ): Promise<void> {
-    return this.usersService.update_nickname(user.id, dto.newNickname);
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Patch('/me/password')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({
-    summary: 'Change current user’s password',
-  })
-  @ApiBody({ type: ChangePasswordDto })
-  @ApiOkResponse({
-    description: 'Password changed successfully',
-  })
-  @ApiBadRequestResponse({
-    description: 'Invalid input (422)',
-  })
-  @ApiUnauthorizedResponse({
-    description: 'Current password is wrong (401)',
-  })
-  async changePassword(
-    @GetUser() user: any,
-    @Body() dto: ChangePasswordDto,
-  ): Promise<void> {
-    return this.usersService.change_password(
-      user.id,
-      dto.currentPassword,
-      dto.newPassword,
-      dto.repeatPassword,
-    );
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Delete('/me')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({
-    summary: 'Delete current user’s account',
-  })
-  @ApiNoContentResponse({
-    description: 'Account deleted successfully',
-  })
-  @ApiUnauthorizedResponse({
-    description: 'Unauthorized (401)',
-  })
-  async deleteMyAccount(@GetUser() user: any): Promise<void> {
-    return this.usersService.delete_user_by_id(user.id);
   }
 
   @UseGuards(JwtRefreshGuard)
