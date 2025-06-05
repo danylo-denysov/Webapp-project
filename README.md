@@ -23,9 +23,37 @@ Database: PostgreSQL schema in 3-NF, entities & migrations handled by TypeORM.
 
 | Table | Description |
 |-------|-------------|
-| **user** | Account & profile (stores hashed refresh token). |
+| **user** | Account and profile (stores hashed refresh token). |
 | **board** | Top-level container; owned by a user, shareable. |
-| **task_group** | Column / swim-lane on a board. |
-| **task** | Individual card / task. |
+| **task_group** | Column with tasks on a board. |
+| **task** | Individual card task. |
 | **board_user** | *M-N* join to share boards with teammates (role per board). |
 </details>
+
+## 🛠 Technologies
+
+- Frontend
+  - React 18
+    - Declarative UI library
+    - Mature ecosystem, Hooks API and excellent TypeScript support, popular on market
+  - Vite
+    - Lightning-fast dev server and builds, fast production
+- Backend
+  - NestJS 10
+    - NestJS provides a clean, modular architecture
+    - Primary HTTP server framework
+  - TypeORM
+    - Object-Relational Mapping for PostgreSQL.
+    - Entity-first approach, automatic migrations, integrates seamlessly with NestJS.
+  - Jest
+    - Unit + e2e testing.
+    - Fast, snapshot-friendly and ships with NestJS starter kits.
+- Database
+  - PostgreSQL
+    - Primary relational database.
+    - Stable, relational store with strong JSON & indexing capabilities.
+- Other
+  - RabbitMQ 3
+    - Message broker for background tasks.
+    - Simple, durable work-queue semantics and handy management UI.
+
