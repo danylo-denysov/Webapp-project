@@ -32,7 +32,7 @@ import { toastError, toastSuccess } from '../../utils/toast';
 
         if (!response.ok) {
           const errorData = await response.json();
-          throw new Error(errorData.message[0] || 'Failed to log in');
+          throw new Error(Array.isArray(errorData.message) ? errorData.message[0] : errorData.message ?? 'Failed to log in');
         }
 
         const { accessToken } = await response.json();
