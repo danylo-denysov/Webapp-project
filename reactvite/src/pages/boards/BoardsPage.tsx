@@ -15,6 +15,15 @@ import Header from '../../components/common/Header';
 import { Link } from 'react-router-dom';
 import { toastError } from '../../utils/toast';
 
+const cmp = <T, K extends keyof T>(a: T, b: T, key: K) => {
+  const va = a[key];
+  const vb = b[key];
+  if (typeof va === 'string' && typeof vb === 'string') {
+    return va.localeCompare(vb, undefined, { sensitivity: 'base' });
+  }
+  return (va as any) > (vb as any) ? 1 : (va === vb ? 0 : -1);
+};
+
 export default function BoardsPage() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
@@ -43,10 +52,22 @@ export default function BoardsPage() {
     return <div>Loading boards…</div>;
   }
 
-  // Filter by name
-  const filtered = boards.filter(b =>
-    b.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredAndSorted = boards
+    .filter(b =>
+      b.name.toLowerCase().includes(searchTerm.toLowerCase()),
+    )
+    .sort((a, b) => {
+      switch (sortBy) {
+        case 'Name':
+          return cmp(a, b, 'name');
+        case 'Owner':
+          return cmp(a, b, 'owner');
+        case 'Date':
+          return cmp(a, b, 'created_at');
+        default:
+          return 0;
+      }
+    });
 
   return (
     <div className="boards-page">
@@ -86,7 +107,7 @@ export default function BoardsPage() {
         </div>
 
         <BoardsList
-          boards={filtered}
+          boards={filteredAndSorted}
           refresh={refresh}
         />
       </div>
