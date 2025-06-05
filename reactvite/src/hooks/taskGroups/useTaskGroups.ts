@@ -27,7 +27,8 @@ export function useTaskGroups(boardId: string | undefined) {
   const fetchGroups = useCallback(async () => {
     if (!boardId) return;
     try {
-      setLoading(true); setError(null);
+      if (!hasFetchedRef.current) setLoading(true);
+      setError(null);
       const res  = await safe_fetch(`/api/boards/${boardId}/task-groups`, {
         method: 'GET',
         credentials: 'include',
@@ -39,6 +40,7 @@ export function useTaskGroups(boardId: string | undefined) {
         (a, b) => a.order - b.order || +new Date(a.created_at) - +new Date(b.created_at)
       ));
       setGroups(data);
+      hasFetchedRef.current = true; 
     } catch (err: any) {
       setError(err.message); 
     } finally {
@@ -48,9 +50,9 @@ export function useTaskGroups(boardId: string | undefined) {
 
   useEffect(() => {
     if (boardId) {
-      fetchGroups();
+      void fetchGroups();
     }
-  }, []);
+  }, [boardId]);
 
   return { groups, loading, error, refresh: fetchGroups };
 }
