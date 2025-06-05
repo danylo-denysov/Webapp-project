@@ -60,12 +60,16 @@ A Trello-style board that lets teams organise work into **Boards → Task Groups
 git clone https://github.com/<your-org>/<repo>.git
 ```
 ### Start with
-backend:
-  yarn start:dev
-frontend:
-  npm run dev
+backend: yarn start:dev  
+frontend: npm run dev
+
 App URL: http://localhost:5173  
 Swagger docs: http://localhost:3000/api/docs  
 RabbitMQ UI → http://localhost:15672 (login: guest / guest)
 
+## Additional Notes
+- API Documentation
+
+  * Generated using Swagger (OpenAPI).
+  * Contains complete reference details for endpoints, parameters, request/response bodies, and auth requirements.
 
