@@ -56,7 +56,7 @@ A Trello-style board that lets teams organise work into **Boards → Task Groups
 
 ---
 
-### 1 → Clone the repo
+### Clone the repo
 ```bash
 git clone https://github.com/<your-org>/<repo>.git
 backend:
@@ -64,7 +64,8 @@ backend:
 frontend:
   npm run dev
 ```
-App URL: http://localhost:5173
-Swagger docs: http://localhost:3000/api/docs
+App URL: http://localhost:5173  
+Swagger docs: http://localhost:3000/api/docs  
+RabbitMQ UI → http://localhost:15672 (login: guest / guest)
 
 
