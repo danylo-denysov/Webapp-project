@@ -15,3 +15,17 @@ REST API: Prefixed with **`/api`**, Swagger docs at `/api/docs`.
 Database: PostgreSQL schema in 3-NF, entities & migrations handled by TypeORM.
 
 ## Database schema
+
+![ER diagram](docs/erd.png)
+
+<details>
+<summary>Table overview</summary>
+
+| Table | Description |
+|-------|-------------|
+| **user** | Account & profile (stores hashed refresh token). |
+| **board** | Top-level container; owned by a user, shareable. |
+| **task_group** | Column / swim-lane on a board. |
+| **task** | Individual card / task. |
+| **board_user** | *M-N* join to share boards with teammates (role per board). |
+</details>
