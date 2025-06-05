@@ -2,17 +2,14 @@
 
 A Trello-style board that lets teams organise work into **Boards → Task Groups → Tasks** with drag-and-drop ordering.
 
-* **Backend** – NestJS 10 + TypeORM (PostgreSQL)  
-* **Frontend** – React 18 + Vite  
-* **Messaging** – RabbitMQ for async jobs (e-mail / notifications)
 
 ## Key features
 
-Authentication: JWT (access + refresh) in HttpOnly cookies; refresh-token rotation; role guards (`admin`, `user`).  
-Task workflow: CRUD for boards, groups and tasks; order preserved via `order` integer column.  
-Async jobs: RabbitMQ publisher / consumer keeps HTTP requests fast.  
-REST API: Prefixed with **`/api`**, Swagger docs at `/api/docs`.  
-Database: PostgreSQL schema in 3-NF, entities & migrations handled by TypeORM.
+- **Authentication** - JWT (access + refresh) in HttpOnly cookies; refresh-token rotation; role guards (`admin`, `user`).  
+- **Task workflow** - CRUD for boards, groups and tasks; order preserved via `order` integer column.  
+- **Async jobs** - RabbitMQ publisher / consumer keeps HTTP requests fast.  
+- **REST API** - Prefixed with **`/api`**, Swagger docs at `/api/docs`.  
+- **Database** - PostgreSQL schema in 3-NF, entities & migrations handled by TypeORM.
 
 ## Database schema
 
@@ -30,30 +27,47 @@ Database: PostgreSQL schema in 3-NF, entities & migrations handled by TypeORM.
 | **board_user** | *M-N* join to share boards with teammates (role per board). |
 </details>
 
-## 🛠 Technologies
+## Technologies
 
-- Frontend
-  - React 18
-    - Declarative UI library
-    - Mature ecosystem, Hooks API and excellent TypeScript support, popular on market
-  - Vite
-    - Lightning-fast dev server and builds, fast production
-- Backend
-  - NestJS 10
-    - NestJS provides a clean, modular architecture
-    - Primary HTTP server framework
-  - TypeORM
-    - Object-Relational Mapping for PostgreSQL.
-    - Entity-first approach, automatic migrations, integrates seamlessly with NestJS.
-  - Jest
-    - Unit + e2e testing.
-    - Fast, snapshot-friendly and ships with NestJS starter kits.
-- Database
-  - PostgreSQL
-    - Primary relational database.
-    - Stable, relational store with strong JSON & indexing capabilities.
-- Other
-  - RabbitMQ 3
-    - Message broker for background tasks.
-    - Simple, durable work-queue semantics and handy management UI.
+- **Frontend**
+  - **React 18** – declarative UI library with Hooks and a mature ecosystem
+  - **Vite 6** – lightning-fast dev server & production builds
+  - **TypeScript 5** – static typing and first-class IDE support
+
+- **Backend**
+  - **NestJS 10** – modular, testable Node.js framework (controllers, services, DI)
+  - **TypeORM** – object–relational mapper for PostgreSQL; entities, migrations, query builder
+  - **Jest** – unit & e2e testing with fast watch mode
+
+- **Database**
+  - **PostgreSQL 15** – battle-hardened relational database with rich JSONB and indexing
+
+- **Messaging / other**
+  - **RabbitMQ 3** – durable message broker for background tasks and notifications
+
+
+## Setup
+
+> **Prerequisites**
+>
+> * Node 18 LTS (or newer)  
+> * Yarn (or npm)  
+> * Docker Desktop – only to start Postgres + RabbitMQ containers
+
+---
+
+### 1 → Clone the repo
+```bash
+git clone https://github.com/<your-org>/<repo>.git
+install rabbitmq and postgresql containers
+backend:
+  yarn install
+  yarn start:dev
+frontend:
+  npm install
+  npm run dev
+```
+
+
+
 
