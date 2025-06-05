@@ -1,21 +1,26 @@
-import { INestApplication, Type } from '@nestjs/common';
-import { Test } from '@nestjs/testing';
-import { JwtAuthGuard } from '../src/users/jwt-auth.guard';
-import { JwtRefreshGuard } from '../src/users/jwt-refresh.guard';
+import { INestApplication, ExecutionContext, CanActivate } from '@nestjs/common';
+import { TestingModule } from '@nestjs/testing';
 
-// Helper that spins up any module and stubs JwtAuthGuard to "always true".
-export async function createTestingApp<T>(
-  rootModule: Type<T>,
+// run nest app from an already compiled TestingModule
+// silence all auth guards for E2E requests.
+export async function createTestingApp(
+  moduleFixture: TestingModule,
 ): Promise<INestApplication> {
-  const module = await Test.createTestingModule({ imports: [rootModule] })
-    .overrideGuard(JwtAuthGuard)
-    .useValue({ canActivate: () => true })
-    .overrideGuard(JwtRefreshGuard)
-    .useValue({ canActivate: () => true })
-    .compile();
-
-  const app = module.createNestApplication();
+  const app = moduleFixture.createNestApplication();
   app.setGlobalPrefix('api');
+
+  class PassGuard implements CanActivate {
+    canActivate(ctx: ExecutionContext): boolean {
+      // inject a fake user so @GetUser() works
+      ctx.switchToHttp().getRequest().user = {
+        id: 'user-1',
+        email: 'tester@example.com',
+      };
+      return true;
+    }
+  }
+  app.useGlobalGuards(new PassGuard());
+
   await app.init();
   return app;
 }
