@@ -59,15 +59,12 @@ A Trello-style board that lets teams organise work into **Boards → Task Groups
 ### 1 → Clone the repo
 ```bash
 git clone https://github.com/<your-org>/<repo>.git
-install rabbitmq and postgresql containers
 backend:
-  yarn install
   yarn start:dev
 frontend:
-  npm install
   npm run dev
 ```
-
-
+App URL: http://localhost:5173
+Swagger docs: http://localhost:3000/api/docs
 
 
