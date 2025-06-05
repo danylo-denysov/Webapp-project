@@ -65,7 +65,7 @@ frontend: npm run dev
 
 App URL: http://localhost:5173  
 Swagger docs: http://localhost:3000/api/docs  
-RabbitMQ UI → http://localhost:15672 (login: guest / guest)
+RabbitMQ UI http://localhost:15672 (login: guest / guest)
 
 ## Additional Notes
 - API Documentation
