@@ -48,11 +48,10 @@ A Trello-style board that lets teams organise work into **Boards → Task Groups
 
 ## Setup
 
-> **Prerequisites**
->
-> * Node 18 LTS (or newer)  
-> * Yarn (or npm)  
-> * Docker Desktop – only to start Postgres + RabbitMQ containers
+**Prerequisites**
+* Node 18 LTS (or newer)
+* Yarn (or npm)
+* Docker Desktop – only to start Postgres + RabbitMQ containers
 
 ---
 
