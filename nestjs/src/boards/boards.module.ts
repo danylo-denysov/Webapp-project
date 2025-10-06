@@ -6,13 +6,11 @@ import { Board } from './board.entity';
 import { User } from '../users/user.entity';
 import { BoardUser } from './board-user.entity';
 import { UsersModule } from 'src/users/users.module';
-import { MessagingModule } from 'src/messaging/messaging.module';
 
 @Module({
   imports: [
     UsersModule,
     TypeOrmModule.forFeature([Board, User, BoardUser]),
-    MessagingModule,
   ],
   controllers: [BoardsController],
   providers: [BoardsService],
