@@ -21,7 +21,7 @@ export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh'
       throw new UnauthorizedException('Brak refresh tokena');
     }
     return {
-      userId: payload.sub,
+      id: payload.sub,
       email: payload.email,
       refreshToken,
     };

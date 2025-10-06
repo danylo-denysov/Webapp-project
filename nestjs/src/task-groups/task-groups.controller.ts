@@ -17,13 +17,13 @@ import { CreateTaskGroupDto } from './dto/create-task-group.dto';
 import { UpdateTaskGroupDto } from './dto/update-task-group.dto';
 import { UpdateGroupOrdersDto } from './dto/update-group-orders.dto';
 import { TaskGroup } from './task-group.entity';
-import { AuthGuard } from '@nestjs/passport';
+import { JwtAuthGuard } from '../users/jwt-auth.guard';
 import { BoardsService } from 'src/boards/boards.service';
 import { GetUser } from 'src/users/get-user.decorator';
 import { JwtUserPayload } from 'src/users/jwt-user-payload.interface';
 
 @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
-@UseGuards(AuthGuard())
+@UseGuards(JwtAuthGuard)
 @Controller('boards/:boardId/task-groups')
 export class TaskGroupsController {
   constructor(

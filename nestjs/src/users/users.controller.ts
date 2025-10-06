@@ -8,7 +8,6 @@ import {
   HttpCode,
   HttpStatus,
   Res,
-  Req,
   UseGuards,
   Patch,
 } from '@nestjs/common';
@@ -17,11 +16,12 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { VerifyUserDto } from './dto/verify-user.dto';
 import { User } from './user.entity';
 import { JwtRefreshGuard } from './jwt-refresh.guard';
-import { Response, Request } from 'express';
+import { Response } from 'express';
 import { JwtAuthGuard } from 'src/users/jwt-auth.guard';
 import { ChangeNicknameDto } from './dto/change-nickname.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { GetUser } from './get-user.decorator';
+import { JwtUserPayload, JwtRefreshPayload } from './jwt-user-payload.interface';
 
 const REFRESH_TOKEN_COOKIE_MAX_AGE = 1000 * 60 * 60 * 24 * 7; // 7 days
 
@@ -45,7 +45,7 @@ export class UsersController {
   @Patch('/me/nickname')
   @HttpCode(HttpStatus.OK)
   async changeNickname(
-    @GetUser() user: any,
+    @GetUser() user: JwtUserPayload,
     @Body() dto: ChangeNicknameDto,
   ): Promise<void> {
     return this.usersService.update_nickname(user.id, dto.newNickname);
@@ -55,7 +55,7 @@ export class UsersController {
   @Patch('/me/password')
   @HttpCode(HttpStatus.OK)
   async changePassword(
-    @GetUser() user: any,
+    @GetUser() user: JwtUserPayload,
     @Body() dto: ChangePasswordDto,
   ): Promise<void> {
     return this.usersService.change_password(
@@ -69,7 +69,7 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Delete('/me')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async deleteMyAccount(@GetUser() user: any): Promise<void> {
+  async deleteMyAccount(@GetUser() user: JwtUserPayload): Promise<void> {
     return this.usersService.delete_user_by_id(user.id);
   }
 
@@ -103,12 +103,11 @@ export class UsersController {
   @HttpCode(HttpStatus.OK)
   @Post('/refresh')
   refreshTokens(
-    @Req() request: Request,
+    @GetUser() user: JwtRefreshPayload,
     @Res({ passthrough: true }) response: Response,
   ): Promise<{ accessToken: string }> {
-    const { userId, refreshToken } = request.user as any;
     return this.usersService
-      .refreshTokens(userId, refreshToken)
+      .refreshTokens(user.id, user.refreshToken)
       .then(({ accessToken: newAT, refreshToken: newRT }) => {
         response.cookie('refresh_token', newRT, {
           httpOnly: true,
@@ -122,7 +121,7 @@ export class UsersController {
   }
   @UseGuards(JwtAuthGuard)
   @Get('/me')
-  async getCurrentUser(@GetUser() user: any): Promise<Partial<User>> {
+  async getCurrentUser(@GetUser() user: JwtUserPayload): Promise<Partial<User>> {
     const found = await this.usersService.findById(user.id);
     return {
       id: found.id,
@@ -136,11 +135,10 @@ export class UsersController {
   @HttpCode(HttpStatus.OK)
   @Post('/logout')
   async logout(
-    @GetUser() user: any,
+    @GetUser() user: JwtUserPayload,
     @Res({ passthrough: true }) response: Response,
   ): Promise<void> {
-    // user.userId was set by JwtRefreshStrategy.validate()
-    await this.usersService.removeRefreshToken(user.userId);
+    await this.usersService.removeRefreshToken(user.id);
 
     // Clear the cookie on the response
     response.clearCookie('refresh_token', {
