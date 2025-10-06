@@ -32,7 +32,7 @@ export class TaskGroupsController {
   ) {}
 
   @Get()
-  async get_task_groups(
+  async getTaskGroups(
     @Param('boardId') boardId: string,
     @GetUser() user: JwtUserPayload,
   ): Promise<TaskGroup[]> {
@@ -41,7 +41,7 @@ export class TaskGroupsController {
   }
 
   @Get(':groupId')
-  async get_task_group_by_id(
+  async getTaskGroupById(
     @Param('boardId') boardId: string,
     @Param('groupId') groupId: string,
     @GetUser() user: JwtUserPayload,
@@ -51,7 +51,7 @@ export class TaskGroupsController {
   }
 
   @Post()
-  async create_task_group(
+  async createTaskGroup(
     @Param('boardId') boardId: string,
     @Body() dto: CreateTaskGroupDto,
     @GetUser() user: JwtUserPayload,
@@ -62,7 +62,7 @@ export class TaskGroupsController {
 
   @Patch('reorder')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async reorder_task_groups(
+  async reorderTaskGroups(
     @Param('boardId') boardId: string,
     @Body() dto: UpdateGroupOrdersDto,
     @GetUser() user: JwtUserPayload,
@@ -72,7 +72,7 @@ export class TaskGroupsController {
   }
 
   @Patch(':groupId')
-  async update_task_group(
+  async updateTaskGroup(
     @Param('boardId') boardId: string,
     @Param('groupId') groupId: string,
     @Body() dto: UpdateTaskGroupDto,
@@ -84,7 +84,7 @@ export class TaskGroupsController {
 
   @Delete(':groupId')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async delete_task_group(
+  async deleteTaskGroup(
     @Param('boardId') boardId: string,
     @Param('groupId') groupId: string,
     @GetUser() user: JwtUserPayload,
