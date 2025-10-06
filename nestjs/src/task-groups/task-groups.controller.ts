@@ -37,7 +37,7 @@ export class TaskGroupsController {
     @GetUser() user: JwtUserPayload,
   ): Promise<TaskGroup[]> {
     await this.boardsService.verifyOwner(boardId, user.id);
-    return this.svc.get_task_groups(boardId);
+    return this.svc.getTaskGroups(boardId);
   }
 
   @Get(':groupId')
@@ -47,7 +47,7 @@ export class TaskGroupsController {
     @GetUser() user: JwtUserPayload,
   ): Promise<TaskGroup> {
     await this.boardsService.verifyOwner(boardId, user.id);
-    return this.svc.get_task_group_by_id(groupId);
+    return this.svc.getTaskGroupById(groupId);
   }
 
   @Post()
@@ -57,7 +57,7 @@ export class TaskGroupsController {
     @GetUser() user: JwtUserPayload,
   ): Promise<TaskGroup> {
     await this.boardsService.verifyOwner(boardId, user.id);
-    return this.svc.create_task_group(boardId, dto);
+    return this.svc.createTaskGroup(boardId, dto);
   }
 
   @Patch('reorder')
@@ -68,7 +68,7 @@ export class TaskGroupsController {
     @GetUser() user: JwtUserPayload,
   ): Promise<void> {
     await this.boardsService.verifyOwner(boardId, user.id);
-    return this.svc.reorder_task_groups(boardId, dto.ids);
+    return this.svc.reorderTaskGroups(boardId, dto.ids);
   }
 
   @Patch(':groupId')
@@ -79,7 +79,7 @@ export class TaskGroupsController {
     @GetUser() user: JwtUserPayload,
   ): Promise<TaskGroup> {
     await this.boardsService.verifyOwner(boardId, user.id);
-    return this.svc.update_task_group(boardId, groupId, dto);
+    return this.svc.updateTaskGroup(boardId, groupId, dto);
   }
 
   @Delete(':groupId')
@@ -90,6 +90,6 @@ export class TaskGroupsController {
     @GetUser() user: JwtUserPayload,
   ): Promise<void> {
     await this.boardsService.verifyOwner(boardId, user.id);
-    return this.svc.delete_task_group(boardId, groupId);
+    return this.svc.deleteTaskGroup(boardId, groupId);
   }
 }

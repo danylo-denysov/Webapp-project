@@ -27,7 +27,7 @@ export class BoardsController {
 
   @Get('/user')
   getUserBoards(@GetUser() user: JwtUserPayload): Promise<Board[]> {
-    return this.boardsService.get_user_boards(user.id);
+    return this.boardsService.getUserBoards(user.id);
   }
 
   @Post('/user')
@@ -35,7 +35,7 @@ export class BoardsController {
     @GetUser() user: JwtUserPayload,
     @Body() createBoardDto: CreateBoardDto,
   ): Promise<Board> {
-    return this.boardsService.create_board(createBoardDto, user.id);
+    return this.boardsService.createBoard(createBoardDto, user.id);
   }
 
   @Delete('/:boardId/user')
@@ -44,7 +44,7 @@ export class BoardsController {
     @Param('boardId') boardId: string,
     @GetUser() user: JwtUserPayload,
   ): Promise<void> {
-    return this.boardsService.delete_board(boardId, user.id);
+    return this.boardsService.deleteBoard(boardId, user.id);
   }
 
   @Get('/:boardId/user')
@@ -52,7 +52,7 @@ export class BoardsController {
     @Param('boardId') boardId: string,
     @GetUser() user: JwtUserPayload,
   ): Promise<Board> {
-    return this.boardsService.get_board_by_id(boardId, user.id);
+    return this.boardsService.getBoardById(boardId, user.id);
   }
 
   @Patch('/:boardId/user')
@@ -61,7 +61,7 @@ export class BoardsController {
     @Body() renameBoardDto: RenameBoardDto,
     @GetUser() user: JwtUserPayload,
   ): Promise<Board> {
-    return this.boardsService.rename_board(
+    return this.boardsService.renameBoard(
       boardId,
       renameBoardDto.name,
       user.id,
@@ -75,7 +75,7 @@ export class BoardsController {
     @Body() updateBoardUserRoleDto: UpdateBoardUserRoleDto,
     @GetUser() user: JwtUserPayload,
   ): Promise<BoardUser> {
-    return this.boardsService.add_user_to_board(
+    return this.boardsService.addUserToBoard(
       boardId,
       userId,
       updateBoardUserRoleDto,
@@ -90,11 +90,11 @@ export class BoardsController {
     @Param('userId') userId: string,
     @GetUser() user: JwtUserPayload,
   ): Promise<void> {
-    return this.boardsService.remove_user_from_board(boardId, userId, user.id);
+    return this.boardsService.removeUserFromBoard(boardId, userId, user.id);
   }
 
   @Get('/:boardId/users')
   getBoardUsers(@Param('boardId') boardId: string): Promise<BoardUser[]> {
-    return this.boardsService.get_board_users(boardId);
+    return this.boardsService.getBoardUsers(boardId);
   }
 }

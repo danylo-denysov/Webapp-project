@@ -23,23 +23,23 @@ export class TasksController {
 
   @Get('group/:groupId')
   getTasks(@Param('groupId') groupId: string): Promise<Task[]> {
-    return this.tasksService.get_tasks(groupId);
+    return this.tasksService.getTasks(groupId);
   }
 
   @Get('/:id')
   getTaskById(@Param('id') id: string): Promise<Task> {
-    return this.tasksService.get_task_by_id(id);
+    return this.tasksService.getTaskById(id);
   }
 
   @Post()
   createTask(@Body() createTaskDto: CreateTaskDto): Promise<Task> {
-    return this.tasksService.create_task(createTaskDto);
+    return this.tasksService.createTask(createTaskDto);
   }
 
   @Delete('/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
   deleteTaskById(@Param('id') id: string): Promise<void> {
-    return this.tasksService.delete_task_by_id(id);
+    return this.tasksService.deleteTaskById(id);
   }
 
   @Patch('group/:groupId/reorder')
@@ -48,6 +48,6 @@ export class TasksController {
     @Param('groupId') groupId: string,
     @Body() dto: UpdateTaskOrdersDto,
   ): Promise<void> {
-    return this.tasksService.reorder_tasks(groupId, dto.ids);
+    return this.tasksService.reorderTasks(groupId, dto.ids);
   }
 }

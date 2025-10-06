@@ -13,7 +13,7 @@ export class TasksService {
     @InjectRepository(TaskGroup) private readonly groupRepository: Repository<TaskGroup>,
   ) {}
 
-  async get_tasks(groupId?: string): Promise<Task[]> {
+  async getTasks(groupId?: string): Promise<Task[]> {
     if (!groupId) {
       return this.tasksRepository.find({ order: { order: 'ASC' } });
     }
@@ -24,7 +24,7 @@ export class TasksService {
     });
   }
 
-  async get_task_by_id(id: string): Promise<Task> {
+  async getTaskById(id: string): Promise<Task> {
     const found = await this.tasksRepository.findOne({ where: { id } });
     if (!found) {
       throw new NotFoundException(`Task with ID "${id}" not found`); // 404 response
@@ -33,7 +33,7 @@ export class TasksService {
     return found; // assert that return param is not null
   }
 
-  async create_task(createTaskDto: CreateTaskDto): Promise<Task> {
+  async createTask(createTaskDto: CreateTaskDto): Promise<Task> {
     const { title, description, groupId } = createTaskDto;
 
     const group = await this.groupRepository.findOne({ where: { id: groupId } });
@@ -56,14 +56,14 @@ export class TasksService {
     return task;
   }
 
-  async delete_task_by_id(id: string): Promise<void> {
+  async deleteTaskById(id: string): Promise<void> {
     const result = await this.tasksRepository.delete(id);
     if (result.affected === 0) {
       throw new NotFoundException(`Task with ID "${id}" not found`); // 404 response
     }
   }
 
-  async reorder_tasks(groupId: string, ids: string[]): Promise<void> {
+  async reorderTasks(groupId: string, ids: string[]): Promise<void> {
     const existing = await this.tasksRepository.find({
       where: { taskGroup: { id: groupId } },
       select: ['id'],

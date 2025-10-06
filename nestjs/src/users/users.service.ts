@@ -17,12 +17,12 @@ export class UsersService {
     private jwtService: JwtService, // Injecting JwtService for JWT token generation
   ) {}
 
-  async get_all_users(): Promise<Partial<User[]>> {
+  async getAllUsers(): Promise<Partial<User[]>> {
     return this.usersRepository.find({ select: ['id', 'email', 'username'] }); // Fetch all users
   }
 
   //Salt hashing technic used
-  async create_user(createUserDto: CreateUserDto): Promise<Partial<User>> {
+  async createUser(createUserDto: CreateUserDto): Promise<Partial<User>> {
     const { username, email, password } = createUserDto;
 
     const salt = await bcrypt.genSalt(); // Generate a salt for hashing
@@ -47,7 +47,7 @@ export class UsersService {
     }
   }
 
-  async delete_user(userId: string): Promise<void> {
+  async deleteUser(userId: string): Promise<void> {
     const result = await this.usersRepository.delete(userId);
 
     if (result.affected === 0) {
@@ -55,7 +55,7 @@ export class UsersService {
     }
   }
 
-  async verify_user(verifyUserDto: VerifyUserDto): Promise<{ accessToken: string; refreshToken: string }> {
+  async verifyUser(verifyUserDto: VerifyUserDto): Promise<{ accessToken: string; refreshToken: string }> {
     const { email, password } = verifyUserDto;
     const user = await this.usersRepository.findOne({ where: { email } });
     if (!user) {
@@ -85,7 +85,7 @@ export class UsersService {
     return { accessToken, refreshToken };
   }
 
-  async update_nickname(userId: string, newNickname: string): Promise<void> {
+  async updateNickname(userId: string, newNickname: string): Promise<void> {
     const user = await this.usersRepository.findOne({ where: { id: userId } });
     if (!user) {
       throw new NotFoundException('User not found');
@@ -106,7 +106,7 @@ export class UsersService {
     }
   }
 
-  async change_password(
+  async changePassword(
     userId: string,
     currentPassword: string,
     newPassword: string,
@@ -137,7 +137,7 @@ export class UsersService {
     }
   }
 
-  async delete_user_by_id(userId: string): Promise<void> {
+  async deleteUserById(userId: string): Promise<void> {
     const result = await this.usersRepository.delete(userId);
     if (result.affected === 0) {
       throw new NotFoundException(`User with ID "${userId}" not found`);

@@ -32,13 +32,13 @@ export class UsersController {
   @Get()
   getAllUsers(): Promise<User[]> {
     return this.usersService
-      .get_all_users()
+      .getAllUsers()
       .then((users) => users.filter((u): u is User => u !== undefined));
   }
 
   @Post('/create')
   createUser(@Body() createUserDto: CreateUserDto): Promise<Partial<User>> {
-    return this.usersService.create_user(createUserDto);
+    return this.usersService.createUser(createUserDto);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -48,7 +48,7 @@ export class UsersController {
     @GetUser() user: JwtUserPayload,
     @Body() dto: ChangeNicknameDto,
   ): Promise<void> {
-    return this.usersService.update_nickname(user.id, dto.newNickname);
+    return this.usersService.updateNickname(user.id, dto.newNickname);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -58,7 +58,7 @@ export class UsersController {
     @GetUser() user: JwtUserPayload,
     @Body() dto: ChangePasswordDto,
   ): Promise<void> {
-    return this.usersService.change_password(
+    return this.usersService.changePassword(
       user.id,
       dto.currentPassword,
       dto.newPassword,
@@ -70,13 +70,13 @@ export class UsersController {
   @Delete('/me')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteMyAccount(@GetUser() user: JwtUserPayload): Promise<void> {
-    return this.usersService.delete_user_by_id(user.id);
+    return this.usersService.deleteUserById(user.id);
   }
 
   @Delete('/:userId')
   @HttpCode(HttpStatus.NO_CONTENT)
   deleteUser(@Param('userId') userId: string): Promise<void> {
-    return this.usersService.delete_user(userId);
+    return this.usersService.deleteUser(userId);
   }
 
   @HttpCode(HttpStatus.OK)
@@ -86,7 +86,7 @@ export class UsersController {
     @Res({ passthrough: true }) response: Response,
   ): Promise<{ accessToken: string }> {
     return this.usersService
-      .verify_user(verifyUserDto)
+      .verifyUser(verifyUserDto)
       .then(({ accessToken: at, refreshToken: rt }) => {
         response.cookie('refresh_token', rt, {
           httpOnly: true,

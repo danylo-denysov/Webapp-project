@@ -31,7 +31,7 @@ export class BoardsService {
     return board;
   }
 
-  async get_user_boards(userId: string): Promise<Board[]> {
+  async getUserBoards(userId: string): Promise<Board[]> {
     const boards = await this.boardsRepository.find({
       where: { owner: { id: userId } },
       relations: ['owner'],
@@ -39,7 +39,7 @@ export class BoardsService {
     return boards;
   }
 
-  async create_board(createBoardDto: CreateBoardDto, userId: string): Promise<Board> {
+  async createBoard(createBoardDto: CreateBoardDto, userId: string): Promise<Board> {
     const user = await this.usersRepository.findOne({ where: { id: userId } });
     if (!user) {
       throw new NotFoundException(`User with ID "${userId}" not found`);
@@ -57,7 +57,7 @@ export class BoardsService {
     return board;
   }
 
-  async delete_board(boardId: string, userId: string): Promise<void> {
+  async deleteBoard(boardId: string, userId: string): Promise<void> {
     const board = await this.boardsRepository.findOne({
       where: { id: boardId, owner: { id: userId } },
     });
@@ -69,7 +69,7 @@ export class BoardsService {
     await this.boardsRepository.remove(board);
   }
 
-  async get_board_by_id(boardId: string, userId: string): Promise<Board> {
+  async getBoardById(boardId: string, userId: string): Promise<Board> {
     const board = await this.boardsRepository.findOne({
       where: { id: boardId, owner: { id: userId } },
       relations: ['taskGroups', 'taskGroups.tasks'],
@@ -82,7 +82,7 @@ export class BoardsService {
     return board;
   }
 
-  async rename_board(boardId: string, newName: string, ownerId: string): Promise<Board> {
+  async renameBoard(boardId: string, newName: string, ownerId: string): Promise<Board> {
     const board = await this.boardsRepository.findOne({
       where: { id: boardId, owner: { id: ownerId } },
     });
@@ -94,7 +94,7 @@ export class BoardsService {
     return board;
   }
 
-  async add_user_to_board(
+  async addUserToBoard(
     boardId: string,
     userId: string,
     updateBoardUserRoleDto: UpdateBoardUserRoleDto,
@@ -137,7 +137,7 @@ export class BoardsService {
     return boardUser;
   }
 
-  async remove_user_from_board(boardId: string, userId: string, ownerId: string): Promise<void> {
+  async removeUserFromBoard(boardId: string, userId: string, ownerId: string): Promise<void> {
     const board = await this.boardsRepository.findOne({
       where: { id: boardId },
       relations: ['owner'],
@@ -162,7 +162,7 @@ export class BoardsService {
     }
   }
 
-  async get_board_users(boardId: string): Promise<BoardUser[]> {
+  async getBoardUsers(boardId: string): Promise<BoardUser[]> {
     const board = await this.boardsRepository.findOne({ where: { id: boardId } });
     if (!board) {
       throw new NotFoundException(`Board with ID "${boardId}" not found`);

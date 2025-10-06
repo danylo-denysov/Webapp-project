@@ -18,7 +18,7 @@ export class TaskGroupsService {
     private dataSource: DataSource, // for transaction support
   ) {}
 
-  async get_task_groups(boardId: string): Promise<TaskGroup[]> {
+  async getTaskGroups(boardId: string): Promise<TaskGroup[]> {
     const board = await this.boardsRepository.findOneBy({ id: boardId });
     if (!board) {
       throw new NotFoundException(`Board with ID "${boardId}" not found`);
@@ -35,7 +35,7 @@ export class TaskGroupsService {
     return groupsWithSortedTasks;
   }
 
-  async get_task_group_by_id(id: string): Promise<TaskGroup> {
+  async getTaskGroupById(id: string): Promise<TaskGroup> {
     const found = await this.groupsRepository.findOne({
       where: { id },
       relations: ['tasks'],
@@ -46,7 +46,7 @@ export class TaskGroupsService {
     return found;
   }
 
-  async create_task_group(
+  async createTaskGroup(
     boardId: string,
     dto: CreateTaskGroupDto,
   ): Promise<TaskGroup> {
@@ -74,7 +74,7 @@ export class TaskGroupsService {
     return this.groupsRepository.save(group);
   }
 
-  async update_task_group(
+  async updateTaskGroup(
     boardId: string,
     groupId: string,
     dto: UpdateTaskGroupDto,
@@ -93,7 +93,7 @@ export class TaskGroupsService {
     return this.groupsRepository.save(group);
   }
 
-  async delete_task_group(boardId: string, groupId: string): Promise<void> {
+  async deleteTaskGroup(boardId: string, groupId: string): Promise<void> {
     const result = await this.groupsRepository.delete({
       id: groupId,
       board: { id: boardId },
@@ -103,7 +103,7 @@ export class TaskGroupsService {
     }
   }
 
-  async reorder_task_groups(boardId: string, ids: string[]): Promise<void> {
+  async reorderTaskGroups(boardId: string, ids: string[]): Promise<void> {
     const existing = await this.groupsRepository.find({
       where: { board: { id: boardId } },
       select: ['id'],
