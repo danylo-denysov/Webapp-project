@@ -1,9 +1,9 @@
 // src/components/taskGroups/DeleteTaskGroupModal.tsx
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import '../boards/BoardModals.css';
 import '../boards/CreateBoardButton.css';
-import { toastError, toastSuccess } from '../../utils/toast';
+import { toastError } from '../../utils/toast';
 
 interface DeleteTaskGroupModalProps {
   isOpen: boolean;
@@ -39,8 +39,9 @@ export default function DeleteTaskGroupModal({
     try {
       await onConfirm();
       onClose();
-    } catch (err: any) {
-      toastError(err.message || 'Failed to delete task group');
+    } catch (err) {
+      const error = err as Error;
+      toastError(error.message || 'Failed to delete task group');
     }
   };
 

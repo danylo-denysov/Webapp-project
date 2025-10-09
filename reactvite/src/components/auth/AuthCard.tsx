@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import { ReactNode } from 'react';
 import './AuthCard.css';
 
 interface AuthCardProps {

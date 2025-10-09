@@ -1,11 +1,9 @@
-import React from 'react';
 import searchIcon from '../../assets/search.svg';
 import './SearchBar.css';
 
 interface SearchBarProps {
   value: string;
   onChange: (val: string) => void;
-  placeholder?: string
 }
 
 export default function SearchBar({ value, onChange }: SearchBarProps) {

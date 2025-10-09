@@ -1,5 +1,4 @@
-import { toast } from 'react-toastify';
-import type { Task } from '../taskGroups/useTaskGroups';
+import type { Task } from '../../types/task';
 import { toastError, toastSuccess } from '../../utils/toast';
 import { safe_fetch } from '../../utils/api';
 

@@ -1,6 +1,6 @@
-import React from 'react';
 import { Link } from 'react-router-dom'
-import BoardCard, { Board } from './BoardCard';
+import BoardCard from './BoardCard';
+import { Board } from '../../types/board';
 import './BoardsList.css';
 
 interface BoardsListProps {

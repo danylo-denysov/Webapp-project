@@ -1,4 +1,3 @@
-import React from 'react';
 import plusIcon from '../../assets/plus.svg';
 import './CreateBoardButton.css';
 

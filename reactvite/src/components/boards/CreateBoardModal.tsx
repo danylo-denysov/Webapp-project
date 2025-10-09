@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { Slide, toast } from 'react-toastify';
+import { useState, useEffect } from 'react';
 import './BoardModals.css';
 import './CreateBoardButton.css';
 import ReactDOM from 'react-dom';

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import '../boards/BoardModals.css';
 import { toastError, toastSuccess } from '../../utils/toast';
@@ -42,8 +42,9 @@ export default function ChangePasswordModal({
       await onConfirm(currentPassword, newPassword);
       toastSuccess('Password changed');
       onClose();
-    } catch (err: any) {
-      toastError(err.message || 'Failed to change password');
+    } catch (err) {
+      const error = err as Error;
+      toastError(error.message || 'Failed to change password');
     }
   };
 

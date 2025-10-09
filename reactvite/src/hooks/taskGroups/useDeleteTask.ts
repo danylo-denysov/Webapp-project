@@ -1,4 +1,3 @@
-import { toast } from 'react-toastify';
 import { toastError, toastSuccess } from '../../utils/toast';
 import { safe_fetch } from '../../utils/api';
 

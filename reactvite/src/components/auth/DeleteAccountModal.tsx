@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import '../boards/BoardModals.css';
 import { toastError, toastSuccess } from '../../utils/toast';
@@ -30,8 +30,9 @@ export default function DeleteAccountModal({
       await onConfirm();
       toastSuccess('Account deleted');
       onClose();
-    } catch (err: any) {
-      toastError(err.message || 'Failed to delete account');
+    } catch (err) {
+      const error = err as Error;
+      toastError(error.message || 'Failed to delete account');
     }
   };
 

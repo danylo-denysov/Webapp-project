@@ -14,10 +14,7 @@ import { JwtRefreshGuard } from './jwt-refresh.guard';
   imports: [
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
-      secret: 'topSecret51', // for temporary use
-      signOptions: {
-        expiresIn: 0,
-      },
+      signOptions: {},
     }),
     TypeOrmModule.forFeature([User])],
   controllers: [UsersController],

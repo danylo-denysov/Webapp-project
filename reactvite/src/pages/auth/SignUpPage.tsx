@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Slide, toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import AuthCard from '../../components/auth/AuthCard';
 import FormInput from '../../components/auth/FormInput';
@@ -49,7 +48,8 @@ export default function SignUpPage() {
       setTimeout(() => {
         navigate('/login');
       }, 3000);
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error;
       toastError(error.message || 'Failed to create account');
     }
   };

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import Header from '../../components/common/Header';
@@ -36,8 +36,9 @@ export default function ProfilePage() {
         const err = await res.json();
         throw new Error(err.message || 'Failed to change nickname');
       }
-    } catch (err: any) {
-      throw new Error(err.message);
+    } catch (err) {
+      const error = err as Error;
+      throw new Error(error.message);
     }
   };
 
@@ -59,8 +60,9 @@ export default function ProfilePage() {
         const err = await res.json();
         throw new Error(err.message || 'Failed to change password');
       }
-    } catch (err: any) {
-      throw new Error(err.message);
+    } catch (err) {
+      const error = err as Error;
+      throw new Error(error.message);
     }
   };
 
@@ -73,10 +75,11 @@ export default function ProfilePage() {
         const err = await res.json();
         throw new Error(err.message || 'Failed to delete account');
       }
-      localStorage.removeItem('token');
+      // httpOnly cookies are cleared automatically on account deletion
       window.location.href = '/';
-    } catch (err: any) {
-      throw new Error(err.message);
+    } catch (err) {
+      const error = err as Error;
+      throw new Error(error.message);
     }
   };
 
@@ -90,10 +93,11 @@ export default function ProfilePage() {
         const err = await res.json();
         throw new Error(err.message || 'Failed to log out');
       }
-      localStorage.removeItem('token');
+      // httpOnly cookies are cleared by server
       navigate('/login', { replace: true });
-    } catch (err: any) {
-      toastError(err.message);
+    } catch (err) {
+      const error = err as Error;
+      toastError(error.message);
     }
   };
 

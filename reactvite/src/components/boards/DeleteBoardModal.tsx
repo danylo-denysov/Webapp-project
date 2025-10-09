@@ -1,5 +1,4 @@
-import React, { useEffect } from 'react';
-import { toast, Slide } from 'react-toastify';
+import { useEffect } from 'react';
 import './BoardModals.css';
 import ReactDOM from 'react-dom';
 import { toastError, toastSuccess } from '../../utils/toast';
@@ -29,7 +28,6 @@ export function DeleteBoardModal({
 
   const handleDelete = async () => {
     try {
-      const token = localStorage.getItem('token');
       const res = await safe_fetch(`/api/boards/${boardId}/user`, {
         method: 'DELETE',
       });
@@ -37,8 +35,9 @@ export function DeleteBoardModal({
       toastSuccess('Board deleted');
       await refresh();
       onClose();
-    } catch (err: any) {
-      toastError(err.message || 'Failed to delete board');
+    } catch (err) {
+      const error = err as Error;
+      toastError(error.message || 'Failed to delete board');
     }
   };
 

@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { toast } from 'react-toastify';
-import { Board } from './useBoards';
+import { Board } from '../../types/board';
 import { toastError, toastSuccess } from '../../utils/toast';
 import { safe_fetch } from '../../utils/api';
 
@@ -11,7 +10,6 @@ interface UseCreateBoardOptions {
 export function useCreateBoard({ onSuccess }: UseCreateBoardOptions = {}) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const token = localStorage.getItem('token');
 
   const createBoard = async (name: string) => {
     if (!name.trim()) {
@@ -35,9 +33,10 @@ export function useCreateBoard({ onSuccess }: UseCreateBoardOptions = {}) {
       }
       toastSuccess('Board created');
       onSuccess?.(data);
-    } catch (err: any) {
-      setError(err.message);
-      toastError(err.message || 'Failed to create board');
+    } catch (err) {
+      const error = err as Error;
+      setError(error.message);
+      toastError(error.message || 'Failed to create board');
     } finally {
       setLoading(false);
     }

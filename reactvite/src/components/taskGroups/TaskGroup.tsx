@@ -4,7 +4,7 @@ import plus from '../../assets/plus.svg';
 import cross from '../../assets/close.svg';
 import TaskCard from './TaskCard';
 import CreateTaskModal from './CreateTaskModal';
-import { TaskGroup as TG } from '../../hooks/taskGroups/useTaskGroups';
+import { Task, TaskGroup as TG } from '../../types/task';
 import { useCreateTask } from '../../hooks/taskGroups/useCreateTask';
 import { useDeleteTask } from '../../hooks/taskGroups/useDeleteTask';
 import { useRenameTaskGroup } from '../../hooks/taskGroups/useRenameTaskGroup';
@@ -28,9 +28,9 @@ import TaskCardSortable from './TaskCardSortable';
 import { useReorderTasks } from '../../hooks/taskGroups/useReorderTasks';
 
 export default function TaskGroup({ boardId, group, onTaskAdded, onTaskDeleted, onGroupRenamed, onGroupDeleted }:{
-  boardId: string; 
+  boardId: string;
   group: TG;
-  onTaskAdded   : (gId:string,t:any)=>void;
+  onTaskAdded   : (gId:string,t:Task)=>void;
   onTaskDeleted : (gId:string,id:string)=>void;
   onGroupRenamed?: ()=>void;
   onGroupDeleted?: () => void;

@@ -1,6 +1,5 @@
-import { toast } from 'react-toastify';
 import { useState } from 'react';
-import { TaskGroup } from './useTaskGroups';
+import { TaskGroup } from '../../types/task';
 import { toastError, toastSuccess } from '../../utils/toast';
 import { safe_fetch } from '../../utils/api';
 
@@ -23,8 +22,9 @@ export function useCreateTaskGroup(boardId: string | undefined,
       if (!res.ok) throw new Error(data.message || 'Failed to create group');
       toastSuccess('Group created');
       onSuccess?.(data);
-    } catch (e: any) {
-      toastError('Failed to create group');
+    } catch (err) {
+      const error = err as Error;
+      toastError(error.message || 'Failed to create group');
     } finally { setLoading(false); }
   };
 

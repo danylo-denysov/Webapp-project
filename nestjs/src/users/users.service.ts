@@ -1,4 +1,5 @@
 import { BadRequestException, ConflictException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './user.entity';
@@ -7,14 +8,12 @@ import { VerifyUserDto } from './dto/verify-user.dto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 
-const ACCESS_TOKEN_TTL = 60 * 15; // 15 minutes
-const REFRESH_TOKEN_TTL = 60 * 60 * 24 * 7; // 7 days
-
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User) private usersRepository: Repository<User>,
-    private jwtService: JwtService, // Injecting JwtService for JWT token generation
+    private jwtService: JwtService,
+    private configService: ConfigService,
   ) {}
 
   async getAllUsers(): Promise<Partial<User[]>> {
@@ -69,14 +68,17 @@ export class UsersService {
 
     const payload = { email, sub: user.id };
 
+    const accessTokenTTL = `${this.configService.get<string>('JWT_ACCESS_TOKEN_TTL') || '900'}s`;
+    const refreshTokenTTL = `${this.configService.get<string>('JWT_REFRESH_TOKEN_TTL') || '604800'}s`;
+
     const accessToken = this.jwtService.sign(payload, {
-      secret: 'topSecret51',
-      expiresIn: ACCESS_TOKEN_TTL, // 15 minutes
+      secret: this.configService.get<string>('JWT_SECRET'),
+      expiresIn: accessTokenTTL,
     });
 
     const refreshToken = this.jwtService.sign(payload, {
-      secret: 'refreshSecret51',
-      expiresIn: REFRESH_TOKEN_TTL, // 7 days
+      secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+      expiresIn: refreshTokenTTL,
     });
 
     user.current_hashed_refresh_token = await bcrypt.hash(refreshToken, 10);
@@ -159,13 +161,16 @@ export class UsersService {
 
     const payload = { email: user.email, sub: user.id };
 
+    const accessTokenTTL = `${this.configService.get<string>('JWT_ACCESS_TOKEN_TTL') || '900'}s`;
+    const refreshTokenTTL = `${this.configService.get<string>('JWT_REFRESH_TOKEN_TTL') || '604800'}s`;
+
     const newAccessToken = this.jwtService.sign(payload, {
-      secret: 'topSecret51',
-      expiresIn: ACCESS_TOKEN_TTL, // 15 minutes
+      secret: this.configService.get<string>('JWT_SECRET'),
+      expiresIn: accessTokenTTL,
     });
     const newRefreshToken = this.jwtService.sign(payload, {
-      secret: 'refreshSecret51',
-      expiresIn: REFRESH_TOKEN_TTL, // 7 days
+      secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+      expiresIn: refreshTokenTTL,
     });
 
     user.current_hashed_refresh_token = await bcrypt.hash(newRefreshToken, 10);

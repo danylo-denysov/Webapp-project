@@ -1,4 +1,3 @@
-import { toast } from 'react-toastify';
 import { useState } from 'react';
 import { toastError, toastSuccess } from '../../utils/toast';
 import { safe_fetch } from '../../utils/api';
@@ -15,8 +14,9 @@ export function useDeleteTaskGroup(boardId: string, onSuccess?: () => void) {
       if (!res.ok) throw new Error('Failed to delete group');
       toastSuccess('Group deleted');
       onSuccess?.();
-    } catch (e: any) {
-      toastError(e.message || 'Failed to delete group');
+    } catch (err) {
+      const error = err as Error;
+      toastError(error.message || 'Failed to delete group');
     } finally { setLoading(false); }
   };
 

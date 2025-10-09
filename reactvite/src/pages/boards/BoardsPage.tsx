@@ -3,12 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import Avatar from '../../components/common/Avatar';
 import CreateBoardButton from '../../components/boards/CreateBoardButton';
 import SearchBar from '../../components/boards/SearchBar';
-import SortDropdown from '../../components/boards/SortDropdown';
-import BoardsList, { Board } from '../../components/boards/BoardsList';
+import SortDropdown from '../../components/boards/SortDropDown';
+import BoardsList from '../../components/boards/BoardsList';
 import CreateBoardModal from '../../components/boards/CreateBoardModal';
 import { useBoards } from '../../hooks/boards/useBoards';
 import { useCreateBoard } from '../../hooks/boards/useCreateBoard';
-import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './BoardsPage.css';
 import Header from '../../components/common/Header';
@@ -21,7 +20,10 @@ const cmp = <T, K extends keyof T>(a: T, b: T, key: K) => {
   if (typeof va === 'string' && typeof vb === 'string') {
     return va.localeCompare(vb, undefined, { sensitivity: 'base' });
   }
-  return (va as any) > (vb as any) ? 1 : (va === vb ? 0 : -1);
+  // For non-string comparisons (numbers, dates, etc.)
+  if (va > vb) return 1;
+  if (va < vb) return -1;
+  return 0;
 };
 
 export default function BoardsPage() {

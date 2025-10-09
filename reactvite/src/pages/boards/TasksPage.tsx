@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import Avatar from '../../components/common/Avatar'
 import teamIcon from '../../assets/team.svg'
@@ -69,37 +69,48 @@ export default function TasksPage() {
     }
   };
 
-  useEffect(() => {
-    async function loadBoardName() {
-      if (!boardId) {
-        setBoardLoading(false);
-        return;
-      }
-
-      try {
-        setBoardLoading(true);
-        const res = await safe_fetch(`/api/boards/${boardId}/user`, {
-          method: 'GET',
-          credentials: 'include',
-        });
-        if (res.status === 403 || res.status === 401) {
-          navigate('/boards', { replace: true });
-          return;
-        }
-        if (!res.ok) {
-          throw new Error('Failed to load board');
-        }
-        const b = await res.json();
-        setBoardName(b.name);
-      } catch (err) {
-        setBoardError('Failed to load board name');
-      } finally {
-        setBoardLoading(false);
-      }
+  const loadBoardName = useCallback(async (signal?: AbortSignal) => {
+    if (!boardId) {
+      setBoardLoading(false);
+      return;
     }
 
-      loadBoardName();
-  }, []);
+    try {
+      setBoardLoading(true);
+      const res = await safe_fetch(`/api/boards/${boardId}/user`, {
+        method: 'GET',
+        credentials: 'include',
+        signal,
+      });
+      if (res.status === 403 || res.status === 401) {
+        navigate('/boards', { replace: true });
+        return;
+      }
+      if (!res.ok) {
+        throw new Error('Failed to load board');
+      }
+      const b = await res.json();
+      setBoardName(b.name);
+    } catch (err) {
+      const error = err as Error;
+      // Don't set error if request was aborted
+      if (error.name !== 'AbortError') {
+        setBoardError('Failed to load board name');
+      }
+    } finally {
+      setBoardLoading(false);
+    }
+  }, [boardId, navigate]);
+
+  useEffect(() => {
+    const abortController = new AbortController();
+
+    loadBoardName(abortController.signal);
+
+    return () => {
+      abortController.abort();
+    };
+  }, [loadBoardName]);
 
   useEffect(() => {
     if (boardError && !boardErrorToasted) {

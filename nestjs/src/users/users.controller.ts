@@ -24,6 +24,7 @@ import { GetUser } from './get-user.decorator';
 import { JwtUserPayload, JwtRefreshPayload } from './jwt-user-payload.interface';
 
 const REFRESH_TOKEN_COOKIE_MAX_AGE = 1000 * 60 * 60 * 24 * 7; // 7 days
+const ACCESS_TOKEN_COOKIE_MAX_AGE = 1000 * 60 * 15; // 15 minutes
 
 @Controller('users')
 export class UsersController {
@@ -84,18 +85,28 @@ export class UsersController {
   verifyUser(
     @Body() verifyUserDto: VerifyUserDto,
     @Res({ passthrough: true }) response: Response,
-  ): Promise<{ accessToken: string }> {
+  ): Promise<{ success: boolean }> {
     return this.usersService
       .verifyUser(verifyUserDto)
       .then(({ accessToken: at, refreshToken: rt }) => {
+        // Set access token cookie
+        response.cookie('access_token', at, {
+          httpOnly: true,
+          secure: false,
+          sameSite: 'lax',
+          path: '/',
+          maxAge: ACCESS_TOKEN_COOKIE_MAX_AGE,
+        });
+
+        // Set refresh token cookie
         response.cookie('refresh_token', rt, {
           httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'strict',
-          path: '/api/users',
+          secure: false,
+          sameSite: 'lax',
+          path: '/',
           maxAge: REFRESH_TOKEN_COOKIE_MAX_AGE,
         });
-        return { accessToken: at };
+        return { success: true };
       });
   }
 
@@ -105,18 +116,28 @@ export class UsersController {
   refreshTokens(
     @GetUser() user: JwtRefreshPayload,
     @Res({ passthrough: true }) response: Response,
-  ): Promise<{ accessToken: string }> {
+  ): Promise<{ success: boolean }> {
     return this.usersService
       .refreshTokens(user.id, user.refreshToken)
       .then(({ accessToken: newAT, refreshToken: newRT }) => {
+        // Set new access token cookie
+        response.cookie('access_token', newAT, {
+          httpOnly: true,
+          secure: false,
+          sameSite: 'lax',
+          path: '/',
+          maxAge: ACCESS_TOKEN_COOKIE_MAX_AGE,
+        });
+
+        // Set new refresh token cookie
         response.cookie('refresh_token', newRT, {
           httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'strict',
-          path: '/api/users',
+          secure: false,
+          sameSite: 'lax',
+          path: '/',
           maxAge: REFRESH_TOKEN_COOKIE_MAX_AGE,
         });
-        return { accessToken: newAT };
+        return { success: true };
       });
   }
   @UseGuards(JwtAuthGuard)
@@ -140,12 +161,20 @@ export class UsersController {
   ): Promise<void> {
     await this.usersService.removeRefreshToken(user.id);
 
-    // Clear the cookie on the response
+    // Clear access token cookie
+    response.clearCookie('access_token', {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax',
+      path: '/',
+    });
+
+    // Clear refresh token cookie
     response.clearCookie('refresh_token', {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      path: '/api/users/refresh',
+      secure: false,
+      sameSite: 'lax',
+      path: '/',
     });
   }
 }

@@ -2,7 +2,7 @@ import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import TaskCard from './TaskCard';
-import type { Task } from '../../hooks/taskGroups/useTaskGroups';
+import type { Task } from '../../types/task';
 
 export default function TaskCardSortable({
   task,

@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { Slide, toast } from 'react-toastify';
+import { useState, useEffect } from 'react';
 import './BoardModals.css';
 import ReactDOM from 'react-dom';
 import { toastError, toastSuccess } from '../../utils/toast';
@@ -41,7 +40,6 @@ export function EditBoardModal({
       return;
     }
     try {
-      const token = localStorage.getItem('token');
       const res = await safe_fetch(`/api/boards/${boardId}/user`, {
         method: 'PATCH',
         headers: {
@@ -53,8 +51,9 @@ export function EditBoardModal({
       toastSuccess('Board renamed');
       await refresh();
       onClose();
-    } catch (err: any) {
-      toastError(err.message || 'Failed to rename board');
+    } catch (err) {
+      const error = err as Error;
+      toastError(error.message || 'Failed to rename board');
     }
   };
 

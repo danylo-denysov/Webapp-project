@@ -1,43 +1,48 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toastError } from '../../utils/toast';
 import { safe_fetch } from '../../utils/api';
-
-export interface Board {
-  id: string;
-  name: string;
-  created_at: string;
-  owner: { username: string };
-}
+import { Board } from '../../types/board';
 
 export function useBoards() {
   const [boards, setBoards] = useState<Board[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const token = localStorage.getItem('token');
-
-  const fetchBoards = useCallback(async () => {
+  const fetchBoards = useCallback(async (signal?: AbortSignal) => {
     setLoading(true);
     setError(null);
     try {
       const res = await safe_fetch('/api/boards/user', {
         method: 'GET',
         credentials: 'include',
+        signal,
       });
       if (res.status === 401) throw new Error('Unauthorized');
       if (!res.ok) throw new Error('Failed to load boards');
       const data: Board[] = await res.json();
       setBoards(data);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      const error = err as Error;
+      // Don't set error state if request was aborted
+      if (error.name !== 'AbortError') {
+        setError(error.message);
+      }
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-   if (token) fetchBoards();
-  }, []);
+    const abortController = new AbortController();
+
+    // Fetch boards with abort signal
+    fetchBoards(abortController.signal);
+
+    // Cleanup: abort request if component unmounts
+    return () => {
+      abortController.abort();
+    };
+  }, [fetchBoards]);
 
   return {
     boards,

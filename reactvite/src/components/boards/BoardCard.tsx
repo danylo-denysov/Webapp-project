@@ -1,15 +1,7 @@
-import React, { useMemo } from 'react'
+import { useMemo } from 'react'
 import './BoardCard.css'
 import BoardMenu from './BoardMenu'
-
-export interface Board {
-  id: string
-  name: string
-  created_at: string
-  owner: { username: string }
-  // ignore any `board.color` coming from props
-  // TODO: board avatar
-}
+import { Board } from '../../types/board';
 
 interface BoardCardProps {
   board: Board

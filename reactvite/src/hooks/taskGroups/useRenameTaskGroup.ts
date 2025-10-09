@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { toast }    from 'react-toastify';
-import { TaskGroup } from './useTaskGroups';
+import { TaskGroup } from '../../types/task';
 import { toastError, toastSuccess } from '../../utils/toast';
 import { safe_fetch } from '../../utils/api';
 
@@ -26,8 +25,9 @@ export function useRenameTaskGroup(
       toastSuccess('Group renamed');
       onSuccess?.(data);
       return data;
-    } catch (e: any) {
-      toastError(e.message || 'Failed to rename');
+    } catch (err) {
+      const error = err as Error;
+      toastError(error.message || 'Failed to rename');
     } finally { setLoading(false); }
   };
 

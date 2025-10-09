@@ -1,5 +1,5 @@
 // src/components/taskGroups/RenameTaskGroupModal.tsx
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import '../boards/BoardModals.css';
 import '../boards/CreateBoardButton.css';
