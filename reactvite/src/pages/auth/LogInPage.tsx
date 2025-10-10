@@ -4,12 +4,15 @@
   import AuthCard from '../../components/auth/AuthCard';
   import FormInput from '../../components/auth/FormInput';
 import { toastError, toastSuccess } from '../../utils/toast';
+import { NAVIGATION_DELAY } from '../../constants/app';
+import { handleApiError } from '../../utils/errorHandler';
 
   export default function LoginPage() {
     const [formData, setFormData] = useState({
       email: '',
       password: '',
     });
+    const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -18,6 +21,7 @@ import { toastError, toastSuccess } from '../../utils/toast';
     };
 
     const handleSubmit = async () => {
+      setIsLoading(true);
       try {
         const response = await fetch('/api/users/verify', {
           method: 'POST',
@@ -30,8 +34,7 @@ import { toastError, toastSuccess } from '../../utils/toast';
         });
 
         if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(Array.isArray(errorData.message) ? errorData.message[0] : errorData.message ?? 'Failed to log in');
+          await handleApiError(response);
         }
 
         // Server sets httpOnly cookies (access_token and refresh_token)
@@ -42,10 +45,12 @@ import { toastError, toastSuccess } from '../../utils/toast';
         // Redirect to /boards
         setTimeout(() => {
           navigate('/boards', { replace: true });
-        }, 2500);
+        }, NAVIGATION_DELAY.AFTER_LOGIN);
       } catch (err) {
         const error = err as Error;
         toastError(error.message || 'An error occurred. Please try again.');
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -53,10 +58,12 @@ import { toastError, toastSuccess } from '../../utils/toast';
       <>
         <AuthCard
           title="Login to your account"
-          promptText="Don’t have an account?"
+          promptText="Don't have an account?"
           promptLinkText="Sign up for free"
           promptLinkTo="/signup"
           onSubmit={handleSubmit}
+          isLoading={isLoading}
+          buttonText={isLoading ? 'Logging in...' : 'Confirm'}
         >
           <FormInput
             label="E-mail"

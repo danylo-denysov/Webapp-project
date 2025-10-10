@@ -20,6 +20,7 @@ export function EditBoardModal({
   onClose,
 }: EditBoardModalProps) {
   const [name, setName] = useState(initialName);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (isOpen) setName(initialName);
@@ -27,10 +28,10 @@ export function EditBoardModal({
 
   useEffect(() => {
     // Close on Escape
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && !isSaving && onClose();
     if (isOpen) window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, isSaving]);
 
   if (!isOpen) return null;
 
@@ -39,6 +40,7 @@ export function EditBoardModal({
       toastError("Board name cannot be empty")
       return;
     }
+    setIsSaving(true);
     try {
       const res = await safe_fetch(`/api/boards/${boardId}/user`, {
         method: 'PATCH',
@@ -54,22 +56,27 @@ export function EditBoardModal({
     } catch (err) {
       const error = err as Error;
       toastError(error.message || 'Failed to rename board');
+    } finally {
+      setIsSaving(false);
     }
   };
 
   return ReactDOM.createPortal(
     <>
-      <div className="modal-overlay" onClick={onClose} />
+      <div className="modal-overlay" onClick={isSaving ? undefined : onClose} />
       <div className="modal-window" onMouseDown={e => e.stopPropagation()} onClick={e => e.stopPropagation()}>
         <h2 className="modal-title">Provide new board name</h2>
         <input
           className="modal-input"
           value={name}
           onChange={e => setName(e.target.value)}
+          disabled={isSaving}
         />
         <div className="modal-actions">
-          <button className="create-board-btn" onClick={handleSave}>Edit name</button>
-          <button className="create-board-btn" onClick={onClose}>Cancel</button>
+          <button className="create-board-btn" onClick={handleSave} disabled={isSaving}>
+            {isSaving ? 'Saving...' : 'Edit name'}
+          </button>
+          <button className="create-board-btn" onClick={onClose} disabled={isSaving}>Cancel</button>
         </div>
       </div>
     </>,

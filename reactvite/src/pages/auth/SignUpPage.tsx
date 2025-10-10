@@ -12,6 +12,7 @@ export default function SignUpPage() {
     password: '',
     repeatPassword: '',
   });
+  const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate();
 
@@ -21,7 +22,7 @@ export default function SignUpPage() {
   };
 
   const handleSubmit = async () => {
-
+    setIsLoading(true);
     try {
       if (formData.password !== formData.repeatPassword) {
         throw new Error('Passwords do not match');
@@ -51,6 +52,8 @@ export default function SignUpPage() {
     } catch (err) {
       const error = err as Error;
       toastError(error.message || 'Failed to create account');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -62,6 +65,8 @@ export default function SignUpPage() {
         promptLinkText="Log in"
         promptLinkTo="/login"
         onSubmit={handleSubmit}
+        isLoading={isLoading}
+        buttonText={isLoading ? 'Creating account...' : 'Confirm'}
       >
         <FormInput
           label="Nickname"

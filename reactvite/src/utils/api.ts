@@ -1,22 +1,22 @@
-// 401 response -> automatically refresh token using httpOnly cookies
-// refresh returns 401 -> redirect to /login
-
 import { toastError } from "./toast";
 
 /**
  * Secure fetch wrapper that handles authentication via httpOnly cookies.
  * Access tokens are stored in httpOnly cookies and automatically sent with requests.
  * On 401, attempts to refresh the token and retry the original request.
+ * Refresh returns 401 -> redirect to /login
  */
 export async function safe_fetch(
   input: RequestInfo,
   init: RequestInit = {},
 ): Promise<Response> {
-  // Send request with credentials (cookies sent automatically)
-  const response = await fetch(input, {
+  // Properly merge init options with credentials
+  const fetchOptions: RequestInit = {
     ...init,
     credentials: 'include',
-  });
+  };
+
+  const response = await fetch(input, fetchOptions);
 
   // Handle 401 Unauthorized - attempt token refresh
   if (response.status === 401) {
@@ -36,16 +36,15 @@ export async function safe_fetch(
     });
 
     if (refreshRes.ok) {
-      // New access token set in httpOnly cookie by server
-      // Retry original request
-      const retryResponse = await fetch(input, {
+      // Retry original request with same options
+      const retryOptions: RequestInit = {
         ...init,
         credentials: 'include',
-      });
+      };
+      const retryResponse = await fetch(input, retryOptions);
 
       return retryResponse;
     } else {
-      // Refresh failed - redirect to login
       toastError('Your session has expired. Please log in again.');
       window.location.href = '/login';
       throw new Error('Session expired');

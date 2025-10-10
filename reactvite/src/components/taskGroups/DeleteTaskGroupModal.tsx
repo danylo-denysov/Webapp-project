@@ -1,5 +1,5 @@
 // src/components/taskGroups/DeleteTaskGroupModal.tsx
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
 import '../boards/BoardModals.css';
 import '../boards/CreateBoardButton.css';
@@ -18,10 +18,12 @@ export default function DeleteTaskGroupModal({
   onConfirm,
   name,
 }: DeleteTaskGroupModalProps) {
+  const [isDeleting, setIsDeleting] = useState(false);
+
   // Close on Escape
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
+      if (e.key === 'Escape' && !isDeleting) {
         onClose();
       }
     };
@@ -31,23 +33,26 @@ export default function DeleteTaskGroupModal({
     return () => {
       window.removeEventListener('keydown', handleKey);
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, isDeleting]);
 
   if (!isOpen) return null;
 
   const handleDelete = async () => {
+    setIsDeleting(true);
     try {
       await onConfirm();
       onClose();
     } catch (err) {
       const error = err as Error;
       toastError(error.message || 'Failed to delete task group');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
   return ReactDOM.createPortal(
     <>
-      <div className="modal-overlay" onClick={onClose} />
+      <div className="modal-overlay" onClick={isDeleting ? undefined : onClose} />
       <div
         className="modal-window"
         onMouseDown={(e) => e.stopPropagation()}
@@ -55,10 +60,10 @@ export default function DeleteTaskGroupModal({
       >
         <h2 className="modal-title">Delete &ldquo;{name}&rdquo;?</h2>
         <div className="modal-actions">
-          <button className="create-board-btn" onClick={handleDelete}>
-            Yes
+          <button className="create-board-btn" onClick={handleDelete} disabled={isDeleting}>
+            {isDeleting ? 'Deleting...' : 'Yes'}
           </button>
-          <button className="create-board-btn" onClick={onClose}>
+          <button className="create-board-btn" onClick={onClose} disabled={isDeleting}>
             No
           </button>
         </div>

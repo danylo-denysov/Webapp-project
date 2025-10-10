@@ -17,15 +17,16 @@ export default function ChangePasswordModal({
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [repeatPassword, setRepeatPassword] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
 
   // Close on Escape
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape' && !isSaving) onClose();
     };
     if (isOpen) window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, isSaving]);
 
   if (!isOpen) return null;
 
@@ -38,6 +39,7 @@ export default function ChangePasswordModal({
       toastError('New passwords do not match');
       return;
     }
+    setIsSaving(true);
     try {
       await onConfirm(currentPassword, newPassword);
       toastSuccess('Password changed');
@@ -45,12 +47,14 @@ export default function ChangePasswordModal({
     } catch (err) {
       const error = err as Error;
       toastError(error.message || 'Failed to change password');
+    } finally {
+      setIsSaving(false);
     }
   };
 
   return ReactDOM.createPortal(
     <>
-      <div className="modal-overlay" onClick={onClose} />
+      <div className="modal-overlay" onClick={isSaving ? undefined : onClose} />
       <div
         className="modal-window"
         onMouseDown={(e) => e.stopPropagation()}
@@ -64,6 +68,7 @@ export default function ChangePasswordModal({
           value={currentPassword}
           onChange={(e) => setCurrentPassword(e.target.value)}
           autoFocus
+          disabled={isSaving}
         />
         <input
           type="password"
@@ -71,6 +76,7 @@ export default function ChangePasswordModal({
           placeholder="New password"
           value={newPassword}
           onChange={(e) => setNewPassword(e.target.value)}
+          disabled={isSaving}
         />
         <input
           type="password"
@@ -78,12 +84,13 @@ export default function ChangePasswordModal({
           placeholder="Repeat new password"
           value={repeatPassword}
           onChange={(e) => setRepeatPassword(e.target.value)}
+          disabled={isSaving}
         />
         <div className="modal-actions">
-          <button className="modal-action-btn" onClick={handleConfirm}>
-            Confirm
+          <button className="modal-action-btn" onClick={handleConfirm} disabled={isSaving}>
+            {isSaving ? 'Changing...' : 'Confirm'}
           </button>
-          <button className="modal-action-btn" onClick={onClose}>
+          <button className="modal-action-btn" onClick={onClose} disabled={isSaving}>
             Cancel
           </button>
         </div>

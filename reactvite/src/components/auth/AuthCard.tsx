@@ -1,4 +1,5 @@
 import { ReactNode } from 'react';
+import { Link } from 'react-router-dom';
 import './AuthCard.css';
 
 interface AuthCardProps {
@@ -8,6 +9,8 @@ interface AuthCardProps {
   promptLinkTo: string;
   children: ReactNode;
   onSubmit: () => void;
+  isLoading?: boolean;
+  buttonText?: string;
 }
 
 export default function AuthCard({
@@ -17,6 +20,8 @@ export default function AuthCard({
   promptLinkTo,
   children,
   onSubmit,
+  isLoading = false,
+  buttonText = 'Confirm',
 }: AuthCardProps) {
   return (
     <div className="auth-card">
@@ -24,12 +29,12 @@ export default function AuthCard({
         <h1>{title}</h1>
         <p>
           {promptText}{' '}
-          <a href={promptLinkTo}>{promptLinkText}</a>
+          <Link to={promptLinkTo}>{promptLinkText}</Link>
         </p>
       </div>
       <div className="body">{children}</div>
-      <button className="submit-btn" onClick={onSubmit}>
-        Confirm
+      <button className="submit-btn" onClick={onSubmit} disabled={isLoading}>
+        {buttonText}
       </button>
     </div>
   );

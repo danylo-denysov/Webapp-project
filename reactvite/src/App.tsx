@@ -8,6 +8,7 @@ import { ToastContainer, Slide } from 'react-toastify';
 import RequireAuth from './components/auth/RequireAuth';
 import ProfilePage from './pages/auth/ProfilePage';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
+import { TOAST_DURATION } from './constants/app';
 
 export default function App() {
   return (
@@ -15,7 +16,7 @@ export default function App() {
       <BrowserRouter>
         <ToastContainer
           position="top-center"
-          autoClose={2000}
+          autoClose={TOAST_DURATION.DEFAULT}
           hideProgressBar={false}
           closeOnClick
           pauseOnHover

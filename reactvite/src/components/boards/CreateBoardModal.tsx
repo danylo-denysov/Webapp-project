@@ -16,15 +16,16 @@ export default function CreateBoardModal({
   onCreate,
 }: CreateBoardModalProps) {
   const [name, setName] = useState('');
+  const [isCreating, setIsCreating] = useState(false);
 
   // Close on Escape
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape' && !isCreating) onClose();
     };
     if (isOpen) window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, isCreating]);
 
   if (!isOpen) return null;
 
@@ -34,14 +35,19 @@ export default function CreateBoardModal({
       toastError('Board name cannot be empty');
       return;
     }
-    onCreate(trimmed);
-    setName('');
-    onClose();
+    setIsCreating(true);
+    try {
+      onCreate(trimmed);
+      setName('');
+      onClose();
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   return ReactDOM.createPortal (
     <>
-      <div className="modal-overlay" onClick={onClose} />
+      <div className="modal-overlay" onClick={isCreating ? undefined : onClose} />
       <div className="modal-window" onMouseDown={e => e.stopPropagation()} onClick={e => e.stopPropagation()}>
         <h2 className="modal-title">Create new board</h2>
         <input
@@ -49,10 +55,11 @@ export default function CreateBoardModal({
           className="modal-input"
           value={name}
           onChange={e => setName(e.target.value)}
+          disabled={isCreating}
         />
         <div className="modal-actions">
-          <button className="create-board-btn" onClick={handleSubmit}>
-            Create board
+          <button className="create-board-btn" onClick={handleSubmit} disabled={isCreating}>
+            {isCreating ? 'Creating...' : 'Create board'}
           </button>
         </div>
       </div>

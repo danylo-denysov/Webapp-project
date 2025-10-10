@@ -17,11 +17,12 @@ export default function CreateTaskGroupModal({
   onCreate,
 }: CreateTaskGroupModalProps) {
   const [name, setName] = useState('');
+  const [isCreating, setIsCreating] = useState(false);
 
   // Close on Escape
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
+      if (e.key === 'Escape' && !isCreating) {
         onClose();
       }
     };
@@ -31,7 +32,7 @@ export default function CreateTaskGroupModal({
     return () => {
       window.removeEventListener('keydown', handleKey);
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, isCreating]);
 
   if (!isOpen) return null;
 
@@ -41,14 +42,19 @@ export default function CreateTaskGroupModal({
       toastError('Name required');
       return;
     }
-    onCreate(trimmed);
-    setName('');
-    onClose();
+    setIsCreating(true);
+    try {
+      onCreate(trimmed);
+      setName('');
+      onClose();
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   return ReactDOM.createPortal(
     <>
-      <div className="modal-overlay" onClick={onClose} />
+      <div className="modal-overlay" onClick={isCreating ? undefined : onClose} />
       <div
         className="modal-window"
         onMouseDown={(e) => e.stopPropagation()}
@@ -61,12 +67,13 @@ export default function CreateTaskGroupModal({
           onChange={(e) => setName(e.target.value)}
           autoFocus
           placeholder="Group name"
+          disabled={isCreating}
         />
         <div className="modal-actions">
-          <button className="create-board-btn" onClick={submit}>
-            Create
+          <button className="create-board-btn" onClick={submit} disabled={isCreating}>
+            {isCreating ? 'Creating...' : 'Create'}
           </button>
-          <button className="create-board-btn" onClick={onClose}>
+          <button className="create-board-btn" onClick={onClose} disabled={isCreating}>
             Cancel
           </button>
         </div>

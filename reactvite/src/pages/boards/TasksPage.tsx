@@ -172,8 +172,8 @@ export default function TasksPage() {
                     key={g.id}
                     boardId={boardId!}
                     group={g}
-                    onTaskAdded   ={refresh}
-                    onTaskDeleted ={refresh}
+                    onTaskAdded={() => refresh()}
+                    onTaskDeleted={() => refresh()}
                     onGroupRenamed={refresh}
                     onGroupDeleted={refresh}
                   />

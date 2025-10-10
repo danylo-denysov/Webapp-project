@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import Header from '../../components/common/Header';
 import Avatar from '../../components/common/Avatar';
 import arrowLeftIcon from '../../assets/arrow-left.svg';
-import logoutIcon from '../../assets/logout.svg'; 
+import logoutIcon from '../../assets/logout.svg';
 
 import './ProfilePage.css';
 
@@ -13,6 +13,7 @@ import ChangePasswordModal from '../../components/auth/ChangePasswordModal';
 import DeleteAccountModal from '../../components/auth/DeleteAccountModal';
 import { safe_fetch } from '../../utils/api';
 import { toastError } from '../../utils/toast';
+import { handleApiError } from '../../utils/errorHandler';
 
 export default function ProfilePage() {
   const navigate = useNavigate();
@@ -26,19 +27,13 @@ export default function ProfilePage() {
   };
 
   const handleChangeNickname = async (newNickname: string) => {
-    try {
-      const res = await safe_fetch('/api/users/me/nickname', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ newNickname }),
-      });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.message || 'Failed to change nickname');
-      }
-    } catch (err) {
-      const error = err as Error;
-      throw new Error(error.message);
+    const res = await safe_fetch('/api/users/me/nickname', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ newNickname }),
+    });
+    if (!res.ok) {
+      await handleApiError(res);
     }
   };
 
@@ -46,41 +41,30 @@ export default function ProfilePage() {
     current: string,
     next: string
   ) => {
-    try {
-      const res = await safe_fetch('/api/users/me/password', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          currentPassword: current,
-          newPassword: next,
-          repeatPassword: next,
-        }),
-      });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.message || 'Failed to change password');
-      }
-    } catch (err) {
-      const error = err as Error;
-      throw new Error(error.message);
+    const res = await safe_fetch('/api/users/me/password', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        currentPassword: current,
+        newPassword: next,
+        repeatPassword: next,
+      }),
+    });
+    if (!res.ok) {
+      await handleApiError(res);
     }
   };
 
   const handleDeleteAccount = async () => {
-    try {
-      const res = await safe_fetch('/api/users/me', {
-        method: 'DELETE',
-      });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.message || 'Failed to delete account');
-      }
-      // httpOnly cookies are cleared automatically on account deletion
-      window.location.href = '/';
-    } catch (err) {
-      const error = err as Error;
-      throw new Error(error.message);
+    const res = await safe_fetch('/api/users/me', {
+      method: 'DELETE',
+    });
+    if (!res.ok) {
+      await handleApiError(res);
     }
+    // httpOnly cookies are cleared automatically on account deletion
+    // Use navigate instead of window.location to maintain SPA behavior
+    navigate('/', { replace: true });
   };
 
     const handleLogout = async () => {

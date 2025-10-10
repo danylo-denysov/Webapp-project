@@ -52,5 +52,10 @@ export function useTaskGroups(boardId: string | undefined) {
     };
   }, [boardId, fetchGroups]);
 
-  return { groups, loading, error, refresh: fetchGroups };
+  // Wrapper for refresh that doesn't require signal parameter
+  const refresh = useCallback(() => {
+    return fetchGroups();
+  }, [fetchGroups]);
+
+  return { groups, loading, error, refresh };
 }

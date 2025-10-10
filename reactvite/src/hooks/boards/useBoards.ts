@@ -44,10 +44,15 @@ export function useBoards() {
     };
   }, [fetchBoards]);
 
+  // Wrapper for refresh that doesn't require signal parameter
+  const refresh = useCallback(() => {
+    return fetchBoards();
+  }, [fetchBoards]);
+
   return {
     boards,
     loading,
     error,
-    refresh: fetchBoards,
+    refresh,
   };
 }

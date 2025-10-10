@@ -18,11 +18,12 @@ export default function CreateTaskModal({
 }: CreateTaskModalProps) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [isCreating, setIsCreating] = useState(false);
 
   // Close on Escape
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
+      if (e.key === 'Escape' && !isCreating) {
         onClose();
       }
     };
@@ -32,7 +33,7 @@ export default function CreateTaskModal({
     return () => {
       window.removeEventListener('keydown', handleKey);
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, isCreating]);
 
   if (!isOpen) return null;
 
@@ -43,15 +44,20 @@ export default function CreateTaskModal({
       toastError('Both fields are required');
       return;
     }
-    onCreate(t, d);
-    setTitle('');
-    setDescription('');
-    onClose();
+    setIsCreating(true);
+    try {
+      onCreate(t, d);
+      setTitle('');
+      setDescription('');
+      onClose();
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   return ReactDOM.createPortal(
     <>
-      <div className="modal-overlay" onClick={onClose} />
+      <div className="modal-overlay" onClick={isCreating ? undefined : onClose} />
       <div
         className="modal-window"
         onMouseDown={(e) => e.stopPropagation()}
@@ -66,6 +72,7 @@ export default function CreateTaskModal({
           onChange={(e) => setTitle(e.target.value)}
           placeholder="Task title"
           autoFocus
+          disabled={isCreating}
         />
 
         <label className="modal-label" style={{ marginTop: '0.75rem' }}>
@@ -77,13 +84,14 @@ export default function CreateTaskModal({
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Task description"
+          disabled={isCreating}
         />
 
         <div className="modal-actions">
-          <button className="create-board-btn" onClick={submit}>
-            Create
+          <button className="create-board-btn" onClick={submit} disabled={isCreating}>
+            {isCreating ? 'Creating...' : 'Create task'}
           </button>
-          <button className="create-board-btn" onClick={onClose}>
+          <button className="create-board-btn" onClick={onClose} disabled={isCreating}>
             Cancel
           </button>
         </div>

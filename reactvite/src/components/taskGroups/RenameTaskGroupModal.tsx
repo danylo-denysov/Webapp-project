@@ -19,6 +19,7 @@ export default function RenameTaskGroupModal({
   onRename,
 }: RenameTaskGroupModalProps) {
   const [name, setName] = useState(currentName);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Reset input when modal opens
   useEffect(() => {
@@ -28,7 +29,7 @@ export default function RenameTaskGroupModal({
   // Close on Escape
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
+      if (e.key === 'Escape' && !isSaving) {
         onClose();
       }
     };
@@ -38,7 +39,7 @@ export default function RenameTaskGroupModal({
     return () => {
       window.removeEventListener('keydown', handleKey);
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, isSaving]);
 
   if (!isOpen) return null;
 
@@ -48,13 +49,18 @@ export default function RenameTaskGroupModal({
       toastError('Name required');
       return;
     }
-    onRename(trimmed);
-    onClose();
+    setIsSaving(true);
+    try {
+      onRename(trimmed);
+      onClose();
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return ReactDOM.createPortal(
     <>
-      <div className="modal-overlay" onClick={onClose} />
+      <div className="modal-overlay" onClick={isSaving ? undefined : onClose} />
       <div
         className="modal-window"
         onMouseDown={(e) => e.stopPropagation()}
@@ -66,12 +72,13 @@ export default function RenameTaskGroupModal({
           value={name}
           onChange={(e) => setName(e.target.value)}
           autoFocus
+          disabled={isSaving}
         />
         <div className="modal-actions">
-          <button className="create-board-btn" onClick={submit}>
-            Save
+          <button className="create-board-btn" onClick={submit} disabled={isSaving}>
+            {isSaving ? 'Saving...' : 'Rename'}
           </button>
-          <button className="create-board-btn" onClick={onClose}>
+          <button className="create-board-btn" onClick={onClose} disabled={isSaving}>
             Cancel
           </button>
         </div>

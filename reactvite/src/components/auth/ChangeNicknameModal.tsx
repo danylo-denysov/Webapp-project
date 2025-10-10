@@ -15,15 +15,16 @@ export default function ChangeNicknameModal({
   onConfirm,
 }: ChangeNicknameModalProps) {
   const [nickname, setNickname] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
 
   // Close on Escape
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape' && !isSaving) onClose();
     };
     if (isOpen) window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, isSaving]);
 
   if (!isOpen) return null;
 
@@ -32,6 +33,7 @@ export default function ChangeNicknameModal({
       toastError('Nickname cannot be empty');
       return;
     }
+    setIsSaving(true);
     try {
       await onConfirm(nickname.trim());
       toastSuccess('Nickname changed');
@@ -39,12 +41,14 @@ export default function ChangeNicknameModal({
     } catch (err) {
       const error = err as Error;
       toastError(error.message || 'Failed to change nickname');
+    } finally {
+      setIsSaving(false);
     }
   };
 
   return ReactDOM.createPortal(
     <>
-      <div className="modal-overlay" onClick={onClose} />
+      <div className="modal-overlay" onClick={isSaving ? undefined : onClose} />
       <div
         className="modal-window"
         onMouseDown={(e) => e.stopPropagation()}
@@ -58,12 +62,13 @@ export default function ChangeNicknameModal({
           value={nickname}
           onChange={(e) => setNickname(e.target.value)}
           autoFocus
+          disabled={isSaving}
         />
         <div className="modal-actions">
-          <button className="modal-action-btn" onClick={handleConfirm}>
-            Confirm
+          <button className="modal-action-btn" onClick={handleConfirm} disabled={isSaving}>
+            {isSaving ? 'Saving...' : 'Confirm'}
           </button>
-          <button className="modal-action-btn" onClick={onClose}>
+          <button className="modal-action-btn" onClick={onClose} disabled={isSaving}>
             Cancel
           </button>
         </div>

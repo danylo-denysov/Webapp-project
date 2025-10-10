@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
 import '../boards/BoardModals.css';
 import { toastError, toastSuccess } from '../../utils/toast';
@@ -14,18 +14,21 @@ export default function DeleteAccountModal({
   onClose,
   onConfirm,
 }: DeleteAccountModalProps) {
+  const [isDeleting, setIsDeleting] = useState(false);
+
   // Close on Escape
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape' && !isDeleting) onClose();
     };
     if (isOpen) window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, isDeleting]);
 
   if (!isOpen) return null;
 
   const handleConfirm = async () => {
+    setIsDeleting(true);
     try {
       await onConfirm();
       toastSuccess('Account deleted');
@@ -33,12 +36,14 @@ export default function DeleteAccountModal({
     } catch (err) {
       const error = err as Error;
       toastError(error.message || 'Failed to delete account');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
   return ReactDOM.createPortal(
     <>
-      <div className="modal-overlay" onClick={onClose} />
+      <div className="modal-overlay" onClick={isDeleting ? undefined : onClose} />
       <div
         className="modal-window"
         onMouseDown={(e) => e.stopPropagation()}
@@ -49,10 +54,10 @@ export default function DeleteAccountModal({
           Are you sure you want to delete your account?
         </p>
         <div className="modal-actions">
-          <button className="modal-action-btn" onClick={handleConfirm}>
-            Yes
+          <button className="modal-action-btn" onClick={handleConfirm} disabled={isDeleting}>
+            {isDeleting ? 'Deleting...' : 'Yes'}
           </button>
-          <button className="modal-action-btn" onClick={onClose}>
+          <button className="modal-action-btn" onClick={onClose} disabled={isDeleting}>
             No
           </button>
         </div>
