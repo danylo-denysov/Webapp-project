@@ -1,6 +1,5 @@
-import { useState, useEffect } from 'react';
-import './BoardModals.css';
-import ReactDOM from 'react-dom';
+import { useState } from 'react';
+import { FormModal } from '../common/Modal';
 import { toastError, toastSuccess } from '../../utils/toast';
 import { safe_fetch } from '../../utils/api';
 
@@ -19,27 +18,9 @@ export function EditBoardModal({
   refresh,
   onClose,
 }: EditBoardModalProps) {
-  const [name, setName] = useState(initialName);
   const [isSaving, setIsSaving] = useState(false);
 
-  useEffect(() => {
-    if (isOpen) setName(initialName);
-  }, [isOpen, initialName]);
-
-  useEffect(() => {
-    // Close on Escape
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && !isSaving && onClose();
-    if (isOpen) window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [isOpen, onClose, isSaving]);
-
-  if (!isOpen) return null;
-
-  const handleSave = async () => {
-    if (!name.trim()) {
-      toastError("Board name cannot be empty")
-      return;
-    }
+  const handleSave = async (name: string) => {
     setIsSaving(true);
     try {
       const res = await safe_fetch(`/api/boards/${boardId}/user`, {
@@ -47,7 +28,7 @@ export function EditBoardModal({
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ name: name.trim() }),
+        body: JSON.stringify({ name }),
       });
       if (!res.ok) throw new Error('Failed to rename board');
       toastSuccess('Board renamed');
@@ -61,25 +42,17 @@ export function EditBoardModal({
     }
   };
 
-  return ReactDOM.createPortal(
-    <>
-      <div className="modal-overlay" onClick={isSaving ? undefined : onClose} />
-      <div className="modal-window" onMouseDown={e => e.stopPropagation()} onClick={e => e.stopPropagation()}>
-        <h2 className="modal-title">Provide new board name</h2>
-        <input
-          className="modal-input"
-          value={name}
-          onChange={e => setName(e.target.value)}
-          disabled={isSaving}
-        />
-        <div className="modal-actions">
-          <button className="create-board-btn" onClick={handleSave} disabled={isSaving}>
-            {isSaving ? 'Saving...' : 'Edit name'}
-          </button>
-          <button className="create-board-btn" onClick={onClose} disabled={isSaving}>Cancel</button>
-        </div>
-      </div>
-    </>,
-    document.body
+  return (
+    <FormModal
+      isOpen={isOpen}
+      onClose={onClose}
+      onSubmit={handleSave}
+      title="Provide new board name"
+      placeholder="Board name"
+      submitText="Edit name"
+      loadingText="Saving..."
+      isLoading={isSaving}
+      initialValue={initialName}
+    />
   );
 }

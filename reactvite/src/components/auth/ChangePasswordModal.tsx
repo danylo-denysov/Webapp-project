@@ -1,6 +1,5 @@
-import { useState, useEffect } from 'react';
-import ReactDOM from 'react-dom';
-import '../boards/BoardModals.css';
+import { useState, FormEvent } from 'react';
+import { Modal } from '../common/Modal';
 import { toastError, toastSuccess } from '../../utils/toast';
 
 interface ChangePasswordModalProps {
@@ -19,18 +18,8 @@ export default function ChangePasswordModal({
   const [repeatPassword, setRepeatPassword] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
-  // Close on Escape
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !isSaving) onClose();
-    };
-    if (isOpen) window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [isOpen, onClose, isSaving]);
-
-  if (!isOpen) return null;
-
-  const handleConfirm = async () => {
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
     if (!currentPassword || !newPassword || !repeatPassword) {
       toastError('All fields are required');
       return;
@@ -43,6 +32,9 @@ export default function ChangePasswordModal({
     try {
       await onConfirm(currentPassword, newPassword);
       toastSuccess('Password changed');
+      setCurrentPassword('');
+      setNewPassword('');
+      setRepeatPassword('');
       onClose();
     } catch (err) {
       const error = err as Error;
@@ -52,15 +44,10 @@ export default function ChangePasswordModal({
     }
   };
 
-  return ReactDOM.createPortal(
-    <>
-      <div className="modal-overlay" onClick={isSaving ? undefined : onClose} />
-      <div
-        className="modal-window"
-        onMouseDown={(e) => e.stopPropagation()}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h2 className="modal-title">Change Password</h2>
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} preventClose={isSaving}>
+      <h2 className="modal-title">Change Password</h2>
+      <form onSubmit={handleSubmit}>
         <input
           type="password"
           className="modal-input"
@@ -77,6 +64,7 @@ export default function ChangePasswordModal({
           value={newPassword}
           onChange={(e) => setNewPassword(e.target.value)}
           disabled={isSaving}
+          style={{ marginTop: '1rem' }}
         />
         <input
           type="password"
@@ -85,17 +73,17 @@ export default function ChangePasswordModal({
           value={repeatPassword}
           onChange={(e) => setRepeatPassword(e.target.value)}
           disabled={isSaving}
+          style={{ marginTop: '1rem' }}
         />
         <div className="modal-actions">
-          <button className="modal-action-btn" onClick={handleConfirm} disabled={isSaving}>
+          <button type="submit" className="modal-btn" disabled={isSaving}>
             {isSaving ? 'Changing...' : 'Confirm'}
           </button>
-          <button className="modal-action-btn" onClick={onClose} disabled={isSaving}>
+          <button type="button" className="modal-btn" onClick={onClose} disabled={isSaving}>
             Cancel
           </button>
         </div>
-      </div>
-    </>,
-    document.body
+      </form>
+    </Modal>
   );
 }

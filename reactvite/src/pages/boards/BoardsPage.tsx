@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Avatar from '../../components/common/Avatar';
 import CreateBoardButton from '../../components/boards/CreateBoardButton';
@@ -50,33 +50,42 @@ export default function BoardsPage() {
     }
   }, [loadError]);
 
+  const filteredAndSorted = useMemo(() => {
+    return boards
+      .filter(b =>
+        b.name.toLowerCase().includes(searchTerm.toLowerCase()),
+      )
+      .sort((a, b) => {
+        switch (sortBy) {
+          case 'Name':
+            return cmp(a, b, 'name');
+          case 'Owner':
+            return cmp(a, b, 'owner');
+          case 'Date':
+            return cmp(a, b, 'created_at');
+          default:
+            return 0;
+        }
+      });
+  }, [boards, searchTerm, sortBy]);
+
+  const handleOpenModal = useCallback(() => setIsModalOpen(true), []);
+  const handleCloseModal = useCallback(() => setIsModalOpen(false), []);
+  const handleCreateBoard = useCallback(async (name: string) => {
+    await createBoard(name);
+    setIsModalOpen(false);
+  }, [createBoard]);
+
   if (loading) {
     return <div>Loading boards…</div>;
   }
-
-  const filteredAndSorted = boards
-    .filter(b =>
-      b.name.toLowerCase().includes(searchTerm.toLowerCase()),
-    )
-    .sort((a, b) => {
-      switch (sortBy) {
-        case 'Name':
-          return cmp(a, b, 'name');
-        case 'Owner':
-          return cmp(a, b, 'owner');
-        case 'Date':
-          return cmp(a, b, 'created_at');
-        default:
-          return 0;
-      }
-    });
 
   return (
     <div className="boards-page">
       <Header
         right={
           <>
-            <CreateBoardButton onClick={() => setIsModalOpen(true)} />
+            <CreateBoardButton onClick={handleOpenModal} />
             <Link to="/profile">
               <Avatar />
             </Link>
@@ -86,11 +95,8 @@ export default function BoardsPage() {
 
       <CreateBoardModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onCreate={async name => {
-          await createBoard(name);
-          setIsModalOpen(false);
-        }}
+        onClose={handleCloseModal}
+        onCreate={handleCreateBoard}
       />
 
 

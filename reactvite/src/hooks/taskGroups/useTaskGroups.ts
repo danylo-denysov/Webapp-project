@@ -46,7 +46,6 @@ export function useTaskGroups(boardId: string | undefined) {
     // Fetch task groups with abort signal
     fetchGroups(abortController.signal);
 
-    // Cleanup: abort request if component unmounts or boardId changes
     return () => {
       abortController.abort();
     };

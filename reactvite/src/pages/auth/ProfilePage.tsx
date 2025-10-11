@@ -63,7 +63,6 @@ export default function ProfilePage() {
       await handleApiError(res);
     }
     // httpOnly cookies are cleared automatically on account deletion
-    // Use navigate instead of window.location to maintain SPA behavior
     navigate('/', { replace: true });
   };
 

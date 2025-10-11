@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { toastError } from '../../utils/toast';
 import { safe_fetch } from '../../utils/api';
 import { Board } from '../../types/board';
@@ -8,8 +8,10 @@ export function useBoards() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  const hasFetchedRef = useRef(false);
+
   const fetchBoards = useCallback(async (signal?: AbortSignal) => {
-    setLoading(true);
+    if (!hasFetchedRef.current) setLoading(true);
     setError(null);
     try {
       const res = await safe_fetch('/api/boards/user', {
@@ -21,6 +23,7 @@ export function useBoards() {
       if (!res.ok) throw new Error('Failed to load boards');
       const data: Board[] = await res.json();
       setBoards(data);
+      hasFetchedRef.current = true;
     } catch (err) {
       const error = err as Error;
       // Don't set error state if request was aborted
@@ -38,7 +41,6 @@ export function useBoards() {
     // Fetch boards with abort signal
     fetchBoards(abortController.signal);
 
-    // Cleanup: abort request if component unmounts
     return () => {
       abortController.abort();
     };

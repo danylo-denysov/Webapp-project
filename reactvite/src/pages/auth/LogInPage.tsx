@@ -1,4 +1,4 @@
-  import { useState } from 'react';
+  import { useCallback, useState } from 'react';
   import { useNavigate } from 'react-router-dom';
   import 'react-toastify/dist/ReactToastify.css';
   import AuthCard from '../../components/auth/AuthCard';
@@ -15,10 +15,10 @@ import { handleApiError } from '../../utils/errorHandler';
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
       const { id, value } = e.target;
       setFormData(prev => ({ ...prev, [id]: value }));
-    };
+    }, []);
 
     const handleSubmit = async () => {
       setIsLoading(true);

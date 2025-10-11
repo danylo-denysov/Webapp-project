@@ -1,14 +1,11 @@
-// src/components/taskGroups/CreateTaskModal.tsx
-import { useState, useEffect } from 'react';
-import ReactDOM from 'react-dom';
-import '../boards/BoardModals.css';
-import '../boards/CreateBoardButton.css';
+import { useState, FormEvent } from 'react';
+import { Modal } from '../common/Modal';
 import { toastError } from '../../utils/toast';
 
 interface CreateTaskModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onCreate: (title: string, description: string) => void;
+  onCreate: (title: string, description: string) => void | Promise<void>;
 }
 
 export default function CreateTaskModal({
@@ -20,24 +17,8 @@ export default function CreateTaskModal({
   const [description, setDescription] = useState('');
   const [isCreating, setIsCreating] = useState(false);
 
-  // Close on Escape
-  useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !isCreating) {
-        onClose();
-      }
-    };
-    if (isOpen) {
-      window.addEventListener('keydown', handleKey);
-    }
-    return () => {
-      window.removeEventListener('keydown', handleKey);
-    };
-  }, [isOpen, onClose, isCreating]);
-
-  if (!isOpen) return null;
-
-  const submit = () => {
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
     const t = title.trim();
     const d = description.trim();
     if (!t || !d) {
@@ -46,7 +27,7 @@ export default function CreateTaskModal({
     }
     setIsCreating(true);
     try {
-      onCreate(t, d);
+      await onCreate(t, d);
       setTitle('');
       setDescription('');
       onClose();
@@ -55,17 +36,13 @@ export default function CreateTaskModal({
     }
   };
 
-  return ReactDOM.createPortal(
-    <>
-      <div className="modal-overlay" onClick={isCreating ? undefined : onClose} />
-      <div
-        className="modal-window"
-        onMouseDown={(e) => e.stopPropagation()}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h2 className="modal-title">Create task</h2>
-
-        <label className="modal-label">Name</label>
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} preventClose={isCreating}>
+      <h2 className="modal-title">Create task</h2>
+      <form onSubmit={handleSubmit}>
+        <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--color-text)' }}>
+          Name
+        </label>
         <input
           className="modal-input"
           value={title}
@@ -75,7 +52,7 @@ export default function CreateTaskModal({
           disabled={isCreating}
         />
 
-        <label className="modal-label" style={{ marginTop: '0.75rem' }}>
+        <label style={{ display: 'block', marginTop: '0.75rem', marginBottom: '0.5rem', color: 'var(--color-text)' }}>
           Description
         </label>
         <textarea
@@ -85,18 +62,18 @@ export default function CreateTaskModal({
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Task description"
           disabled={isCreating}
+          style={{ resize: 'vertical' }}
         />
 
         <div className="modal-actions">
-          <button className="create-board-btn" onClick={submit} disabled={isCreating}>
+          <button type="submit" className="modal-btn" disabled={isCreating}>
             {isCreating ? 'Creating...' : 'Create task'}
           </button>
-          <button className="create-board-btn" onClick={onClose} disabled={isCreating}>
+          <button type="button" className="modal-btn" onClick={onClose} disabled={isCreating}>
             Cancel
           </button>
         </div>
-      </div>
-    </>,
-    document.body
+      </form>
+    </Modal>
   );
 }

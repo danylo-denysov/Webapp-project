@@ -1,6 +1,5 @@
-import { useEffect, useState } from 'react';
-import './BoardModals.css';
-import ReactDOM from 'react-dom';
+import { useState } from 'react';
+import { ConfirmModal } from '../common/Modal';
 import { toastError, toastSuccess } from '../../utils/toast';
 import { safe_fetch } from '../../utils/api';
 
@@ -18,15 +17,6 @@ export function DeleteBoardModal({
   onClose,
 }: DeleteBoardModalProps) {
   const [isDeleting, setIsDeleting] = useState(false);
-
-  // Close on Escape
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && !isDeleting && onClose();
-    if (isOpen) window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [isOpen, onClose, isDeleting]);
-
-  if (!isOpen) return null;
 
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -46,19 +36,17 @@ export function DeleteBoardModal({
     }
   };
 
-  return ReactDOM.createPortal (
-    <>
-      <div className="modal-overlay" onClick={isDeleting ? undefined : onClose} />
-      <div className="modal-window" onMouseDown={e => e.stopPropagation()} onClick={e => e.stopPropagation()}>
-        <h2 className="modal-title">Delete board?</h2>
-        <div className="modal-actions">
-          <button className="create-board-btn" onClick={handleDelete} disabled={isDeleting}>
-            {isDeleting ? 'Deleting...' : 'Yes'}
-          </button>
-          <button className="create-board-btn" onClick={onClose} disabled={isDeleting}>No</button>
-        </div>
-      </div>
-    </>,
-    document.body
+  return (
+    <ConfirmModal
+      isOpen={isOpen}
+      onClose={onClose}
+      onConfirm={handleDelete}
+      title="Delete board?"
+      message="This action cannot be undone."
+      confirmText="Yes"
+      cancelText="No"
+      isLoading={isDeleting}
+      loadingText="Deleting..."
+    />
   );
 }
