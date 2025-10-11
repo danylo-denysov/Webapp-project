@@ -5,6 +5,8 @@
   --color-input-border:   #A0B2D4;
   --color-confirm-text:   #C2D9FF;
   --color-text:           #0B192C;
+  --color-overlay-bg:     rgba(134, 126, 126, 0.5);
+  --color-transparent:    rgba(255, 255, 255, 0);
 
   --button-width:         280px;
 

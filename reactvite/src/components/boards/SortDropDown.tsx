@@ -1,13 +1,13 @@
 import { useState, useRef, useEffect } from 'react';
-import './SortDropdown.css';
+import './SortDropDown.css';
 
-interface SortDropdownProps {
+interface SortDropDownProps {
   options: string[];
   selected: string;
   onSelect: (opt: string) => void;
 }
 
-export default function SortDropdown({ options, selected, onSelect }: SortDropdownProps) {
+export default function SortDropDown({ options, selected, onSelect }: SortDropDownProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 

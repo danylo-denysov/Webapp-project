@@ -1,21 +1,21 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
-import { useParams, useNavigate, Link } from 'react-router-dom'
-import Avatar from '../../components/common/Avatar'
-import teamIcon from '../../assets/team.svg'
-import listIcon from '../../assets/list.svg'
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import Avatar from '../../components/common/Avatar';
+import teamIcon from '../../assets/team.svg';
+import listIcon from '../../assets/list.svg';
 import plusIcon from '../../assets/plus.svg';
-import './TasksPage.css'
+import './TasksPage.css';
 import { useTaskGroups } from '../../hooks/taskGroups/useTaskGroups';
 import { useCreateTaskGroup } from '../../hooks/taskGroups/useCreateTaskGroup';
 import CreateTaskGroupModal from '../../components/taskGroups/CreateTaskGroupModal';
-import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core'
-import { arrayMove, SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortable'
-import { restrictToFirstScrollableAncestor, restrictToHorizontalAxis } from '@dnd-kit/modifiers'
+import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
+import { arrayMove, SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortable';
+import { restrictToFirstScrollableAncestor, restrictToHorizontalAxis } from '@dnd-kit/modifiers';
 import TaskGroupSortable from '../../components/taskGroups/TaskGroupSortable';
 import { useReorderTaskGroups } from '../../hooks/taskGroups/useReorderTaskGroups';
-import { safe_fetch } from '../../utils/api'
-import { toastError } from '../../utils/toast'
-import Header from '../../components/common/Header'
+import { safe_fetch } from '../../utils/api';
+import { toastError } from '../../utils/toast';
+import Header from '../../components/common/Header';
 
 export default function TasksPage() {
   const { boardId } = useParams<{ boardId: string }>()

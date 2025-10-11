@@ -23,7 +23,7 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import { restrictToParentElement, restrictToVerticalAxis } from '@dnd-kit/modifiers'
+import { restrictToParentElement, restrictToVerticalAxis } from '@dnd-kit/modifiers';
 import TaskCardSortable from './TaskCardSortable';
 import { useReorderTasks } from '../../hooks/taskGroups/useReorderTasks';
 

@@ -1,6 +1,6 @@
-import { useMemo } from 'react'
-import './BoardCard.css'
-import BoardMenu from './BoardMenu'
+import { useMemo } from 'react';
+import './BoardCard.css';
+import BoardMenu from './BoardMenu';
 import { Board } from '../../types/board';
 
 interface BoardCardProps {

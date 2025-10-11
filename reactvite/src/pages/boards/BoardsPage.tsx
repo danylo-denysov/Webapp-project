@@ -3,12 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import Avatar from '../../components/common/Avatar';
 import CreateBoardButton from '../../components/boards/CreateBoardButton';
 import SearchBar from '../../components/boards/SearchBar';
-import SortDropdown from '../../components/boards/SortDropDown';
+import SortDropDown from '../../components/boards/SortDropDown';
 import BoardsList from '../../components/boards/BoardsList';
 import CreateBoardModal from '../../components/boards/CreateBoardModal';
 import { useBoards } from '../../hooks/boards/useBoards';
 import { useCreateBoard } from '../../hooks/boards/useCreateBoard';
-import 'react-toastify/dist/ReactToastify.css';
 import './BoardsPage.css';
 import Header from '../../components/common/Header';
 import { Link } from 'react-router-dom';
@@ -103,7 +102,7 @@ export default function BoardsPage() {
       <div className="boards-content">
         <div className="boards-controls">
           <SearchBar value={searchTerm} onChange={setSearchTerm} />
-          <SortDropdown
+          <SortDropDown
             options={['Name', 'Owner', 'Date']}
             selected={sortBy}
             onSelect={setSortBy}

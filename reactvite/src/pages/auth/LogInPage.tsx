@@ -1,13 +1,12 @@
-  import { useCallback, useState } from 'react';
-  import { useNavigate } from 'react-router-dom';
-  import 'react-toastify/dist/ReactToastify.css';
-  import AuthCard from '../../components/auth/AuthCard';
-  import FormInput from '../../components/auth/FormInput';
+import { useCallback, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import AuthCard from '../../components/auth/AuthCard';
+import FormInput from '../../components/auth/FormInput';
 import { toastError, toastSuccess } from '../../utils/toast';
 import { NAVIGATION_DELAY } from '../../constants/app';
 import { handleApiError } from '../../utils/errorHandler';
 
-  export default function LoginPage() {
+export default function LoginPage() {
     const [formData, setFormData] = useState({
       email: '',
       password: '',

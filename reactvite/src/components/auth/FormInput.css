@@ -12,7 +12,3 @@
   background: var(--color-cards);
   outline: none;
 }
-.form-input input:focus {
-  outline: none;
-  box-shadow: none;
-}

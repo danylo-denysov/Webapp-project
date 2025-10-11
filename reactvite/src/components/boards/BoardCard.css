@@ -66,7 +66,7 @@
   pointer-events: none;
   background: linear-gradient(
     to right,
-    rgba(255,255,255,0) 0%,
+    var(--color-transparent) 0%,
     var(--color-cards) 100%
   );
 }
@@ -93,7 +93,7 @@
   pointer-events: none;
   background: linear-gradient(
     to right,
-    rgba(255,255,255,0) 0%,
+    var(--color-transparent) 0%,
     var(--color-cards) 100%
   );
 }
