@@ -25,12 +25,37 @@ export class TasksService {
   }
 
   async getTaskById(id: string): Promise<Task> {
-    const found = await this.tasksRepository.findOne({ where: { id } });
+    const found = await this.tasksRepository.findOne({
+      where: { id },
+      relations: ['taskGroup', 'taskGroup.board'],
+    });
     if (!found) {
-      throw new NotFoundException(`Task with ID "${id}" not found`); // 404 response
+      throw new NotFoundException(`Task with ID "${id}" not found`);
     }
 
-    return found; // assert that return param is not null
+    return found;
+  }
+
+  async getBoardIdFromGroupId(groupId: string): Promise<string> {
+    const group = await this.groupRepository.findOne({
+      where: { id: groupId },
+      relations: ['board'],
+    });
+    if (!group) {
+      throw new NotFoundException(`Task group with ID "${groupId}" not found`);
+    }
+    return group.board.id;
+  }
+
+  async getBoardIdFromTaskId(taskId: string): Promise<string> {
+    const task = await this.tasksRepository.findOne({
+      where: { id: taskId },
+      relations: ['taskGroup', 'taskGroup.board'],
+    });
+    if (!task) {
+      throw new NotFoundException(`Task with ID "${taskId}" not found`);
+    }
+    return task.taskGroup.board.id;
   }
 
   async createTask(createTaskDto: CreateTaskDto): Promise<Task> {

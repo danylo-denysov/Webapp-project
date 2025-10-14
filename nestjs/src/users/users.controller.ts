@@ -10,7 +10,9 @@ import {
   Res,
   UseGuards,
   Patch,
+  Query,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { VerifyUserDto } from './dto/verify-user.dto';
@@ -23,15 +25,33 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 import { GetUser } from './get-user.decorator';
 import { JwtUserPayload, JwtRefreshPayload } from './jwt-user-payload.interface';
 
-const REFRESH_TOKEN_COOKIE_MAX_AGE = 1000 * 60 * 60 * 24 * 7; // 7 days
-const ACCESS_TOKEN_COOKIE_MAX_AGE = 1000 * 60 * 15; // 15 minutes
-
 @Controller('users')
 export class UsersController {
-  constructor(private usersService: UsersService) {}
+  private readonly REFRESH_TOKEN_COOKIE_MAX_AGE: number;
+  private readonly ACCESS_TOKEN_COOKIE_MAX_AGE: number;
 
+  constructor(
+    private usersService: UsersService,
+    private configService: ConfigService,
+  ) {
+    // Cookie maxAge in milliseconds (must match JWT token TTL)
+    // Using getOrThrow to enforce proper .env configuration
+    this.ACCESS_TOKEN_COOKIE_MAX_AGE = parseInt(
+      this.configService.getOrThrow<string>('ACCESS_TOKEN_COOKIE_MAX_AGE'), // 15 minutes
+      10,
+    );
+    this.REFRESH_TOKEN_COOKIE_MAX_AGE = parseInt(
+      this.configService.getOrThrow<string>('REFRESH_TOKEN_COOKIE_MAX_AGE'), // 7 days
+      10,
+    );
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get()
-  getAllUsers(): Promise<User[]> {
+  getAllUsers(@Query('search') search?: string): Promise<Partial<User>[]> {
+    if (search) {
+      return this.usersService.searchUsers(search);
+    }
     return this.usersService
       .getAllUsers()
       .then((users) => users.filter((u): u is User => u !== undefined));
@@ -89,22 +109,22 @@ export class UsersController {
     return this.usersService
       .verifyUser(verifyUserDto)
       .then(({ accessToken: at, refreshToken: rt }) => {
-        // Set access token cookie
+        // Set access token cookie (15 minutes)
         response.cookie('access_token', at, {
           httpOnly: true,
           secure: false,
           sameSite: 'lax',
           path: '/',
-          maxAge: ACCESS_TOKEN_COOKIE_MAX_AGE,
+          maxAge: this.ACCESS_TOKEN_COOKIE_MAX_AGE, // 15 minutes
         });
 
-        // Set refresh token cookie
+        // Set refresh token cookie (7 days)
         response.cookie('refresh_token', rt, {
           httpOnly: true,
           secure: false,
           sameSite: 'lax',
           path: '/',
-          maxAge: REFRESH_TOKEN_COOKIE_MAX_AGE,
+          maxAge: this.REFRESH_TOKEN_COOKIE_MAX_AGE, // 7 days
         });
         return { success: true };
       });
@@ -120,22 +140,22 @@ export class UsersController {
     return this.usersService
       .refreshTokens(user.id, user.refreshToken)
       .then(({ accessToken: newAT, refreshToken: newRT }) => {
-        // Set new access token cookie
+        // Set new access token cookie (15 minutes)
         response.cookie('access_token', newAT, {
           httpOnly: true,
           secure: false,
           sameSite: 'lax',
           path: '/',
-          maxAge: ACCESS_TOKEN_COOKIE_MAX_AGE,
+          maxAge: this.ACCESS_TOKEN_COOKIE_MAX_AGE, // 15 minutes
         });
 
-        // Set new refresh token cookie
+        // Set new refresh token cookie (7 days)
         response.cookie('refresh_token', newRT, {
           httpOnly: true,
           secure: false,
           sameSite: 'lax',
           path: '/',
-          maxAge: REFRESH_TOKEN_COOKIE_MAX_AGE,
+          maxAge: this.REFRESH_TOKEN_COOKIE_MAX_AGE, // 7 days
         });
         return { success: true };
       });

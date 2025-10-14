@@ -18,7 +18,7 @@ import { UpdateTaskGroupDto } from './dto/update-task-group.dto';
 import { UpdateGroupOrdersDto } from './dto/update-group-orders.dto';
 import { TaskGroup } from './task-group.entity';
 import { JwtAuthGuard } from '../users/jwt-auth.guard';
-import { BoardsService } from 'src/boards/boards.service';
+import { BoardAccessService } from 'src/boards/board-access.service';
 import { GetUser } from 'src/users/get-user.decorator';
 import { JwtUserPayload } from 'src/users/jwt-user-payload.interface';
 
@@ -28,7 +28,7 @@ import { JwtUserPayload } from 'src/users/jwt-user-payload.interface';
 export class TaskGroupsController {
   constructor(
     private readonly svc: TaskGroupsService,
-    private readonly boardsService: BoardsService,
+    private readonly boardAccessService: BoardAccessService,
   ) {}
 
   @Get()
@@ -36,7 +36,7 @@ export class TaskGroupsController {
     @Param('boardId') boardId: string,
     @GetUser() user: JwtUserPayload,
   ): Promise<TaskGroup[]> {
-    await this.boardsService.verifyOwner(boardId, user.id);
+    await this.boardAccessService.verifyReadAccess(boardId, user.id);
     return this.svc.getTaskGroups(boardId);
   }
 
@@ -46,7 +46,7 @@ export class TaskGroupsController {
     @Param('groupId') groupId: string,
     @GetUser() user: JwtUserPayload,
   ): Promise<TaskGroup> {
-    await this.boardsService.verifyOwner(boardId, user.id);
+    await this.boardAccessService.verifyReadAccess(boardId, user.id);
     return this.svc.getTaskGroupById(groupId);
   }
 
@@ -56,7 +56,7 @@ export class TaskGroupsController {
     @Body() dto: CreateTaskGroupDto,
     @GetUser() user: JwtUserPayload,
   ): Promise<TaskGroup> {
-    await this.boardsService.verifyOwner(boardId, user.id);
+    await this.boardAccessService.verifyWriteAccess(boardId, user.id);
     return this.svc.createTaskGroup(boardId, dto);
   }
 
@@ -67,7 +67,7 @@ export class TaskGroupsController {
     @Body() dto: UpdateGroupOrdersDto,
     @GetUser() user: JwtUserPayload,
   ): Promise<void> {
-    await this.boardsService.verifyOwner(boardId, user.id);
+    await this.boardAccessService.verifyWriteAccess(boardId, user.id);
     return this.svc.reorderTaskGroups(boardId, dto.ids);
   }
 
@@ -78,7 +78,7 @@ export class TaskGroupsController {
     @Body() dto: UpdateTaskGroupDto,
     @GetUser() user: JwtUserPayload,
   ): Promise<TaskGroup> {
-    await this.boardsService.verifyOwner(boardId, user.id);
+    await this.boardAccessService.verifyWriteAccess(boardId, user.id);
     return this.svc.updateTaskGroup(boardId, groupId, dto);
   }
 
@@ -89,7 +89,7 @@ export class TaskGroupsController {
     @Param('groupId') groupId: string,
     @GetUser() user: JwtUserPayload,
   ): Promise<void> {
-    await this.boardsService.verifyOwner(boardId, user.id);
+    await this.boardAccessService.verifyWriteAccess(boardId, user.id);
     return this.svc.deleteTaskGroup(boardId, groupId);
   }
 }

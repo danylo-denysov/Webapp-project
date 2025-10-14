@@ -83,6 +83,21 @@ export class BoardsController {
     );
   }
 
+  @Patch('/:boardId/users/:userId')
+  updateUserRole(
+    @Param('boardId') boardId: string,
+    @Param('userId') userId: string,
+    @Body() updateBoardUserRoleDto: UpdateBoardUserRoleDto,
+    @GetUser() user: JwtUserPayload,
+  ): Promise<BoardUser> {
+    return this.boardsService.updateUserRole(
+      boardId,
+      userId,
+      updateBoardUserRoleDto,
+      user.id,
+    );
+  }
+
   @Delete('/:boardId/users/:userId')
   @HttpCode(HttpStatus.NO_CONTENT)
   removeUserFromBoard(

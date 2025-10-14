@@ -32,11 +32,26 @@ export class BoardsService {
   }
 
   async getUserBoards(userId: string): Promise<Board[]> {
-    const boards = await this.boardsRepository.find({
+    const ownedBoards = await this.boardsRepository.find({
       where: { owner: { id: userId } },
       relations: ['owner'],
     });
-    return boards;
+
+    const sharedBoards = await this.boardUsersRepository
+      .createQueryBuilder('bu')
+      .leftJoinAndSelect('bu.board', 'board')
+      .leftJoinAndSelect('board.owner', 'owner')
+      .where('bu.userId = :userId', { userId })
+      .getMany();
+
+    const sharedBoardEntities = sharedBoards.map((bu) => bu.board);
+
+    const allBoards = [...ownedBoards, ...sharedBoardEntities];
+    const uniqueBoards = Array.from(
+      new Map(allBoards.map((board) => [board.id, board])).values(),
+    );
+
+    return uniqueBoards;
   }
 
   async createBoard(createBoardDto: CreateBoardDto, userId: string): Promise<Board> {
@@ -71,12 +86,23 @@ export class BoardsService {
 
   async getBoardById(boardId: string, userId: string): Promise<Board> {
     const board = await this.boardsRepository.findOne({
-      where: { id: boardId, owner: { id: userId } },
-      relations: ['taskGroups', 'taskGroups.tasks'],
+      where: { id: boardId },
+      relations: ['owner', 'taskGroups', 'taskGroups.tasks'],
     });
 
     if (!board) {
-      throw new NotFoundException(`Board with ID "${boardId}" not found or you don't have access to it`);
+      throw new NotFoundException(`Board with ID "${boardId}" not found`);
+    }
+
+    // Check if user is owner or has access via BoardUser
+    const isOwner = board.owner.id === userId;
+    if (!isOwner) {
+      const boardUser = await this.boardUsersRepository.findOne({
+        where: { board: { id: boardId }, user: { id: userId } },
+      });
+      if (!boardUser) {
+        throw new ForbiddenException('You do not have access to this board');
+      }
     }
 
     return board;
@@ -137,6 +163,40 @@ export class BoardsService {
     return boardUser;
   }
 
+  async updateUserRole(
+    boardId: string,
+    userId: string,
+    updateBoardUserRoleDto: UpdateBoardUserRoleDto,
+    ownerId: string,
+  ): Promise<BoardUser> {
+    const board = await this.boardsRepository.findOne({
+      where: { id: boardId },
+      relations: ['owner'],
+    });
+
+    if (!board) {
+      throw new NotFoundException(`Board with ID "${boardId}" not found`);
+    }
+
+    if (board.owner.id !== ownerId) {
+      throw new UnauthorizedException('Only the owner of the board can update user roles');
+    }
+
+    const boardUser = await this.boardUsersRepository.findOne({
+      where: { board: { id: boardId }, user: { id: userId } },
+      relations: ['user', 'board'],
+    });
+
+    if (!boardUser) {
+      throw new NotFoundException(`User with ID "${userId}" is not assigned to the board`);
+    }
+
+    boardUser.role = updateBoardUserRoleDto.role;
+    await this.boardUsersRepository.save(boardUser);
+
+    return boardUser;
+  }
+
   async removeUserFromBoard(boardId: string, userId: string, ownerId: string): Promise<void> {
     const board = await this.boardsRepository.findOne({
       where: { id: boardId },
@@ -163,15 +223,29 @@ export class BoardsService {
   }
 
   async getBoardUsers(boardId: string): Promise<BoardUser[]> {
-    const board = await this.boardsRepository.findOne({ where: { id: boardId } });
+    const board = await this.boardsRepository.findOne({
+      where: { id: boardId },
+      relations: ['owner']
+    });
     if (!board) {
       throw new NotFoundException(`Board with ID "${boardId}" not found`);
     }
 
-    return this.boardUsersRepository.find({
+    const boardUsers = await this.boardUsersRepository.find({
       where: { board: { id: boardId } },
       relations: ['user'],
     });
+
+    // Create a virtual BoardUser for the owner with role "Owner"
+    const ownerBoardUser = this.boardUsersRepository.create({
+      id: `owner-${board.owner.id}`, // Unique ID to distinguish from real BoardUser entries
+      user: board.owner,
+      board: board,
+      role: 'Owner' as any, // Cast to any to avoid TypeScript issues with enum
+    });
+
+    // Add owner at the beginning of the list
+    return [ownerBoardUser, ...boardUsers];
   }
 
   // Helper

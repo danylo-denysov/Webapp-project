@@ -68,16 +68,20 @@ export class UsersService {
 
     const payload = { email, sub: user.id };
 
-    const accessTokenTTL = `${this.configService.get<string>('JWT_ACCESS_TOKEN_TTL') || '900'}s`;
-    const refreshTokenTTL = `${this.configService.get<string>('JWT_REFRESH_TOKEN_TTL') || '604800'}s`;
+    // Token expiration times (15 minutes for access, 7 days for refresh)
+    // Using getOrThrow to enforce proper .env configuration
+    const accessTokenTTL = `${this.configService.getOrThrow<string>('JWT_ACCESS_TOKEN_TTL')}s`; // 15 minutes
+    const refreshTokenTTL = `${this.configService.getOrThrow<string>('JWT_REFRESH_TOKEN_TTL')}s`; // 7 days
 
+    // Generate short-lived access token for API requests
     const accessToken = this.jwtService.sign(payload, {
-      secret: this.configService.get<string>('JWT_SECRET'),
+      secret: this.configService.getOrThrow<string>('JWT_SECRET'),
       expiresIn: accessTokenTTL,
     });
 
+    // Generate long-lived refresh token for obtaining new access tokens
     const refreshToken = this.jwtService.sign(payload, {
-      secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+      secret: this.configService.getOrThrow<string>('JWT_REFRESH_SECRET'),
       expiresIn: refreshTokenTTL,
     });
 
@@ -161,15 +165,19 @@ export class UsersService {
 
     const payload = { email: user.email, sub: user.id };
 
-    const accessTokenTTL = `${this.configService.get<string>('JWT_ACCESS_TOKEN_TTL') || '900'}s`;
-    const refreshTokenTTL = `${this.configService.get<string>('JWT_REFRESH_TOKEN_TTL') || '604800'}s`;
+    // Token expiration times (15 minutes for access, 7 days for refresh)
+    // Using getOrThrow to enforce proper .env configuration
+    const accessTokenTTL = `${this.configService.getOrThrow<string>('JWT_ACCESS_TOKEN_TTL')}s`; // 15 minutes
+    const refreshTokenTTL = `${this.configService.getOrThrow<string>('JWT_REFRESH_TOKEN_TTL')}s`; // 7 days
 
+    // Generate new short-lived access token
     const newAccessToken = this.jwtService.sign(payload, {
-      secret: this.configService.get<string>('JWT_SECRET'),
+      secret: this.configService.getOrThrow<string>('JWT_SECRET'),
       expiresIn: accessTokenTTL,
     });
+    // Generate new long-lived refresh token
     const newRefreshToken = this.jwtService.sign(payload, {
-      secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+      secret: this.configService.getOrThrow<string>('JWT_REFRESH_SECRET'),
       expiresIn: refreshTokenTTL,
     });
 
@@ -198,5 +206,16 @@ export class UsersService {
     const user = await this.usersRepository.findOne({ where: { id: userId } });
     if (!user) throw new NotFoundException('User not found');
     return user;
+  }
+
+  async searchUsers(query: string): Promise<Partial<User>[]> {
+    const users = await this.usersRepository
+      .createQueryBuilder('user')
+      .select(['user.id', 'user.username', 'user.email'])
+      .where('LOWER(user.username) LIKE LOWER(:query)', { query: `%${query}%` })
+      .limit(10)
+      .getMany();
+
+    return users;
   }
 }

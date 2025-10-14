@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { BoardsController } from './boards.controller';
 import { BoardsService } from './boards.service';
+import { BoardAccessService } from './board-access.service';
 import { Board } from './board.entity';
 import { User } from '../users/user.entity';
 import { BoardUser } from './board-user.entity';
@@ -13,7 +14,7 @@ import { UsersModule } from 'src/users/users.module';
     TypeOrmModule.forFeature([Board, User, BoardUser]),
   ],
   controllers: [BoardsController],
-  providers: [BoardsService],
-  exports: [BoardsService],
+  providers: [BoardsService, BoardAccessService],
+  exports: [BoardsService, BoardAccessService],
 })
 export class BoardsModule {}
