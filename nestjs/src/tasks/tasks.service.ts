@@ -104,4 +104,63 @@ export class TasksService {
       }
     });
   }
+
+  async moveTaskToGroup(taskId: string, targetGroupId: string, newOrder: number): Promise<void> {
+    const task = await this.tasksRepository.findOne({
+      where: { id: taskId },
+      relations: ['taskGroup'],
+    });
+    if (!task) {
+      throw new NotFoundException(`Task with ID "${taskId}" not found`);
+    }
+
+    const targetGroup = await this.groupRepository.findOne({
+      where: { id: targetGroupId },
+    });
+    if (!targetGroup) {
+      throw new NotFoundException(`Target group with ID "${targetGroupId}" not found`);
+    }
+
+    const sourceGroupId = task.taskGroup.id;
+
+    await this.tasksRepository.manager.transaction(async (manager) => {
+      if (sourceGroupId === targetGroupId) {
+        const tasksInGroup = await manager.find(Task, {
+          where: { taskGroup: { id: targetGroupId } },
+          order: { order: 'ASC' },
+        });
+
+        const oldIndex = tasksInGroup.findIndex((t) => t.id === taskId);
+        if (oldIndex === -1) return;
+
+        tasksInGroup.splice(oldIndex, 1);
+        tasksInGroup.splice(newOrder, 0, task);
+
+        for (let i = 0; i < tasksInGroup.length; i++) {
+          await manager.update(Task, { id: tasksInGroup[i].id }, { order: i });
+        }
+      } else {
+        const tasksInTargetGroup = await manager.find(Task, {
+          where: { taskGroup: { id: targetGroupId } },
+          order: { order: 'ASC' },
+        });
+
+        await manager.update(Task, { id: taskId }, { taskGroup: targetGroup });
+
+        tasksInTargetGroup.splice(newOrder, 0, task);
+
+        for (let i = 0; i < tasksInTargetGroup.length; i++) {
+          await manager.update(Task, { id: tasksInTargetGroup[i].id }, { order: i });
+        }
+
+        const tasksInSourceGroup = await manager.find(Task, {
+          where: { taskGroup: { id: sourceGroupId } },
+          order: { order: 'ASC' },
+        });
+        for (let i = 0; i < tasksInSourceGroup.length; i++) {
+          await manager.update(Task, { id: tasksInSourceGroup[i].id }, { order: i });
+        }
+      }
+    });
+  }
 }

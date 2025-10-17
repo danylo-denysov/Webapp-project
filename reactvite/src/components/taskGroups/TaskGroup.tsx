@@ -1,40 +1,36 @@
-import React, { useState } from 'react';
-import './TaskGroup.css';
-import plus from '../../assets/plus.svg';
-import cross from '../../assets/close.svg';
-import TaskCard from './TaskCard';
+import { useState } from 'react';
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { useDroppable, useDndContext } from '@dnd-kit/core';
+
 import CreateTaskModal from './CreateTaskModal';
-import { Task, TaskGroup as TG } from '../../types/task';
+import DeleteTaskGroupModal from './DeleteTaskGroupModal';
+import RenameTaskGroupModal from './RenameTaskGroupModal';
+import TaskCardSortable from './TaskCardSortable';
+import TaskGroupEndZone from './TaskGroupEndZone';
 import { useCreateTask } from '../../hooks/taskGroups/useCreateTask';
 import { useDeleteTask } from '../../hooks/taskGroups/useDeleteTask';
-import { useRenameTaskGroup } from '../../hooks/taskGroups/useRenameTaskGroup';
-import RenameTaskGroupModal from './RenameTaskGroupModal';
-import DeleteTaskGroupModal  from './DeleteTaskGroupModal';
 import { useDeleteTaskGroup } from '../../hooks/taskGroups/useDeleteTaskGroup';
-import {
-  DndContext,
-  closestCenter,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-} from '@dnd-kit/core';
-import {
-  SortableContext,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import { restrictToParentElement, restrictToVerticalAxis } from '@dnd-kit/modifiers';
-import TaskCardSortable from './TaskCardSortable';
-import { useReorderTasks } from '../../hooks/taskGroups/useReorderTasks';
+import { useRenameTaskGroup } from '../../hooks/taskGroups/useRenameTaskGroup';
+import { Task, TaskGroup as TG } from '../../types/task';
+import { BoardUserRole } from '../../types/boardUser';
+import plus from '../../assets/plus.svg';
+import cross from '../../assets/close.svg';
 
-export default function TaskGroup({ boardId, group, onTaskAdded, onTaskDeleted, onGroupRenamed, onGroupDeleted }:{
+import './TaskGroup.css';
+
+export interface TaskGroupProps {
   boardId: string;
   group: TG;
-  onTaskAdded   : (gId:string,t:Task)=>void;
-  onTaskDeleted : (gId:string,id:string)=>void;
+  onTaskAdded: (gId:string,t:Task)=>void;
+  onTaskDeleted: (gId:string,id:string)=>void;
   onGroupRenamed?: ()=>void;
   onGroupDeleted?: () => void;
-}) {
+  userRole: string | null;
+}
+
+export default function TaskGroup({ boardId, group, onTaskAdded, onTaskDeleted, onGroupRenamed, onGroupDeleted, userRole }: TaskGroupProps) {
+  const canEdit = userRole === BoardUserRole.OWNER || userRole === BoardUserRole.EDITOR;
+
   const { createTask } = useCreateTask(
     group.id,
     (newTask) => {
@@ -47,105 +43,103 @@ export default function TaskGroup({ boardId, group, onTaskAdded, onTaskDeleted, 
     }
   );
   const [modalOpen,setModalOpen]=useState(false);
-  const [renameOpen, setRenameOpen] = useState(false); 
+  const [renameOpen, setRenameOpen] = useState(false);
   const { rename } = useRenameTaskGroup(boardId);
   const handleRename = async (newName: string) => {
     try {
       await rename(group.id, newName);
       onGroupRenamed?.();
-    } catch { /* toast already shown in the hook */ }
+      setRenameOpen(false);
+    } catch {
+    }
   };
   const handleDelete = async () => {
     try {
       await remove(group.id);
       onGroupDeleted?.();
       setDeleteOpen(false);
-    } catch { /* toast already shown by the hook */ }
+    } catch {
+    }
   };
   const hasTasks = group.tasks.length > 0;
   const { remove } = useDeleteTaskGroup(boardId, () => onGroupDeleted?.());
   const [deleteOpen, setDeleteOpen] = useState(false);
 
-  const [localOrder, setLocalOrder] = React.useState<string[]>([]);
-  React.useEffect(() => {
-    setLocalOrder(group.tasks.map((t) => t.id));
-  }, [group.tasks]);
-  const reorderTasks = useReorderTasks();
-  
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 5, 
-      },
-    })
-  );
+  const { setNodeRef } = useDroppable({
+    id: `group-${group.id}`,
+    data: {
+      type: 'group',
+      groupId: group.id,
+    },
+  });
 
-  const handleDragEnd = async ({ active, over }: DragEndEvent) => {
-    if (!over || active.id === over.id) return;
+  const { active, over } = useDndContext();
 
-    const oldIndex = localOrder.indexOf(active.id as string);
-    const newIndex = localOrder.indexOf(over.id as string);
-    if (oldIndex < 0 || newIndex < 0) return;
-
-    const nextOrder = [...localOrder];
-    nextOrder.splice(oldIndex, 1);
-    nextOrder.splice(newIndex, 0, active.id as string);
-
-    setLocalOrder(nextOrder);
-    try {
-      await reorderTasks(group.id, nextOrder);
-    } catch (e) {
-      console.error('Failed to reorder tasks:', e);
-      setLocalOrder(localOrder);
-    }
-  };
+  // Check if a task is being dragged over this group's empty space (not over a task)
+  const isOverGroup = over?.id === `group-${group.id}`;
+  const isOverAnyTask = over?.data.current?.type === 'task';
+  const activeData = active?.data.current;
+  const isTaskBeingDragged = activeData?.type === 'task';
+  const draggedTaskHeight = activeData?.cardHeight || 80;
+  // Only show indicator when over the group container itself, not over any task
+  const showDropIndicator = isOverGroup && isTaskBeingDragged && !isOverAnyTask;
 
   return (
     <div className={`task-group ${!hasTasks ? 'task-group--empty' : ''}`}>
       <header className="group-header" style={{ position:'relative' }}>
         <span
           className="group-name"
-          onClick={() => setRenameOpen(true)}
-          title="Click to rename"
+          onClick={canEdit ? () => setRenameOpen(true) : undefined}
+          title={canEdit ? "Click to rename" : undefined}
+          style={{ cursor: canEdit ? 'pointer' : 'default' }}
         >
           {group.name}
         </span>
-        <button className="group-delete"
-          title="Delete group"
-          onClick={() => setDeleteOpen(true)}>
-          <img src={cross} alt="delete group"/>
-        </button>
+        {canEdit && (
+          <button className="group-delete"
+            title="Delete group"
+            onClick={() => setDeleteOpen(true)}>
+            <img src={cross} alt="delete group"/>
+          </button>
+        )}
       </header>
 
-      <div className={`tasks-scroll ${!hasTasks ? 'tasks-scroll--hidden' : ''}`}>
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          modifiers={[restrictToParentElement, restrictToVerticalAxis]}
-          onDragEnd={handleDragEnd}
+      <div
+        ref={setNodeRef}
+        className={`tasks-scroll ${!hasTasks ? 'tasks-scroll--empty' : ''}`}
+        data-group-id={group.id}
+      >
+        <SortableContext
+          items={[...group.tasks.map((t) => t.id), `end-zone-${group.id}`]}
+          strategy={verticalListSortingStrategy}
         >
-          <SortableContext
-            items={localOrder}
-            strategy={verticalListSortingStrategy}
-          >
-            {localOrder.map((taskId) => {
-              const taskObj = group.tasks.find((t) => t.id === taskId);
-              if (!taskObj) return null;
-              return (
-                <TaskCardSortable
-                  key={taskObj.id}
-                  task={taskObj}
-                  onDelete={deleteTask}
-                />
-              );
-            })}
-          </SortableContext>
-        </DndContext>
+          {group.tasks.map((task) => (
+            <TaskCardSortable
+              key={task.id}
+              task={task}
+              onDelete={deleteTask}
+              canEdit={canEdit}
+              groupId={group.id}
+            />
+          ))}
+          <TaskGroupEndZone groupId={group.id} />
+          {showDropIndicator && (
+            <div style={{
+              height: `${draggedTaskHeight}px`,
+              borderRadius: '6px',
+              backgroundColor: 'rgba(90, 200, 250, 0.15)',
+              border: '2px dashed rgba(90, 200, 250, 0.4)',
+              marginBottom: '0.5rem',
+            }} />
+          )}
+        </SortableContext>
       </div>
 
-      <button className="add-task-btn" onClick={()=>setModalOpen(true)}>
-        <img src={plus} alt="add"/>  Add new task
-      </button>
+      {canEdit && (
+        <button className="add-task-btn" onClick={()=>setModalOpen(true)}>
+          <img src={plus} alt="add"/>  Add new task
+        </button>
+      )}
 
       <CreateTaskModal
         isOpen={modalOpen}

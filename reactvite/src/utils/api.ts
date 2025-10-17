@@ -10,7 +10,6 @@ export async function safe_fetch(
   input: RequestInfo,
   init: RequestInit = {},
 ): Promise<Response> {
-  // Properly merge init options with credentials
   const fetchOptions: RequestInit = {
     ...init,
     credentials: 'include',
@@ -18,25 +17,21 @@ export async function safe_fetch(
 
   const response = await fetch(input, fetchOptions);
 
-  // Handle 401 Unauthorized - attempt token refresh
   if (response.status === 401) {
     const url = typeof input === 'string' ? input : input instanceof Request ? input.url : '';
 
-    // If refresh endpoint itself returns 401, session has expired
     if (url.endsWith('/api/users/refresh')) {
       toastError('Your session has expired. Please log in again.');
       window.location.href = '/login';
       throw new Error('Session expired');
     }
 
-    // Attempt to refresh the token
     const refreshRes = await fetch('/api/users/refresh', {
       method: 'POST',
-      credentials: 'include', // Sends refresh_token cookie
+      credentials: 'include',
     });
 
     if (refreshRes.ok) {
-      // Retry original request with same options
       const retryOptions: RequestInit = {
         ...init,
         credentials: 'include',

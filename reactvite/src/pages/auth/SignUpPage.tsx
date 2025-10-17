@@ -20,7 +20,7 @@ export default function SignUpPage() {
     setFormData((prev) => ({ ...prev, [id]: value }));
   }, []);
 
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
     setIsLoading(true);
     try {
       if (formData.password !== formData.repeatPassword) {
@@ -43,8 +43,6 @@ export default function SignUpPage() {
       }
 
       toastSuccess('Account created');
-
-      // Redirect to login page after a short delay
       setTimeout(() => {
         navigate('/login');
       }, 3000);
@@ -54,7 +52,13 @@ export default function SignUpPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [formData.nickname, formData.email, formData.password, formData.repeatPassword, navigate]);
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && !isLoading) {
+      handleSubmit();
+    }
+  }, [isLoading, handleSubmit]);
 
   return (
     <>
@@ -71,32 +75,36 @@ export default function SignUpPage() {
           label="Nickname"
           id="nickname"
           placeholder="Your nickname"
-          value={formData.nickname} // Bind to formData
-          onChange={handleChange} // Update formData on input change
+          value={formData.nickname}
+          onChange={handleChange}
+          onKeyDown={handleKeyDown}
         />
         <FormInput
           label="E-mail"
           id="email"
           type="email"
           placeholder="you@example.com"
-          value={formData.email} // Bind to formData
-          onChange={handleChange} // Update formData on input change
+          value={formData.email}
+          onChange={handleChange}
+          onKeyDown={handleKeyDown}
         />
         <FormInput
           label="Password"
           id="password"
           type="password"
           placeholder="••••••••"
-          value={formData.password} // Bind to formData
-          onChange={handleChange} // Update formData on input change
+          value={formData.password}
+          onChange={handleChange}
+          onKeyDown={handleKeyDown}
         />
         <FormInput
           label="Repeat password"
           id="repeatPassword"
           type="password"
           placeholder="••••••••"
-          value={formData.repeatPassword} // Bind to formData
-          onChange={handleChange} // Update formData on input change
+          value={formData.repeatPassword}
+          onChange={handleChange}
+          onKeyDown={handleKeyDown}
         />
       </AuthCard>
     </>

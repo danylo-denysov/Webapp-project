@@ -24,19 +24,8 @@
   font-size: 2.9rem;
   font-weight: 500;
 
-  mask-image: linear-gradient(
-    to right,
-    black 75%,
-    transparent 100%
-  );
-
-  /* Safari/WebKit prefix: */
-  -webkit-mask-image: linear-gradient(
-    to right,
-    black 75%,
-    transparent 100%
-  );
-  mask-size: 100% 100%;
+  mask-image: linear-gradient(to right, black calc(100% - 5rem), transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, black calc(100% - 5rem), transparent 100%);
 }
 
 .tasks-action-btn {
@@ -83,16 +72,17 @@
 
 .groups-row{
   position:absolute;
-  top:7rem; left:3rem; right:3rem; bottom:2rem;
-  display: flex; 
+  top:6.5rem; left:3rem; right:3rem; bottom:0.25rem;
+  display: flex;
   gap: 2rem;
   align-items: flex-start;
   overflow-x: auto;
-  padding-bottom: 1rem;
+  padding-bottom: 0.25rem;
   scroll-snap-type: x mandatory;
+  scrollbar-gutter: stable;
 }
 
-/* needed wrapper due to dnd-kit’s  */
+/* needed wrapper due to dnd-kit's  */
 .groups-row__inner-wrapper {
   position: relative;
   display: flex;
@@ -101,8 +91,8 @@
   height: 100%;
 }
 
-.task-group{ 
-  scroll-snap-align:start; 
+.task-group{
+  scroll-snap-align:start;
 }
 
 /* custom scrollbar */
@@ -112,7 +102,7 @@
 }
 
 .groups-row::-webkit-scrollbar {
-  height: 6px;
+  height: 8px;
 }
 
 .groups-row::-webkit-scrollbar-track {

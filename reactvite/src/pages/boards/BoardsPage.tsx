@@ -1,17 +1,19 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+
 import Avatar from '../../components/common/Avatar';
+import Header from '../../components/common/Header';
+import BoardsList from '../../components/boards/BoardsList';
 import CreateBoardButton from '../../components/boards/CreateBoardButton';
+import CreateBoardModal from '../../components/boards/CreateBoardModal';
 import SearchBar from '../../components/boards/SearchBar';
 import SortDropDown from '../../components/boards/SortDropDown';
-import BoardsList from '../../components/boards/BoardsList';
-import CreateBoardModal from '../../components/boards/CreateBoardModal';
+import { useCurrentUser } from '../../hooks/auth/useCurrentUser';
 import { useBoards } from '../../hooks/boards/useBoards';
 import { useCreateBoard } from '../../hooks/boards/useCreateBoard';
-import './BoardsPage.css';
-import Header from '../../components/common/Header';
-import { Link } from 'react-router-dom';
 import { toastError } from '../../utils/toast';
+
+import './BoardsPage.css';
 
 const cmp = <T, K extends keyof T>(a: T, b: T, key: K) => {
   const va = a[key];
@@ -19,7 +21,6 @@ const cmp = <T, K extends keyof T>(a: T, b: T, key: K) => {
   if (typeof va === 'string' && typeof vb === 'string') {
     return va.localeCompare(vb, undefined, { sensitivity: 'base' });
   }
-  // For non-string comparisons (numbers, dates, etc.)
   if (va > vb) return 1;
   if (va < vb) return -1;
   return 0;
@@ -33,9 +34,9 @@ export default function BoardsPage() {
 
   const { boards, loading, error: loadError, refresh } = useBoards();
   const { createBoard } = useCreateBoard({ onSuccess: refresh });
+  const { user: currentUser } = useCurrentUser();
 
-  // Redirect if unauthorized
-  React.useEffect(() => {
+  useEffect(() => {
     if (loadError === 'Unauthorized') {
       navigate('/login', { replace: true });
     }
@@ -75,6 +76,10 @@ export default function BoardsPage() {
     setIsModalOpen(false);
   }, [createBoard]);
 
+  const handleSortChange = useCallback((opt: string) => {
+    setSortBy(opt as 'Name' | 'Owner' | 'Date');
+  }, []);
+
   if (loading) {
     return <div>Loading boards…</div>;
   }
@@ -100,23 +105,29 @@ export default function BoardsPage() {
 
 
       <div className="boards-content">
-        <div className="boards-controls">
-          <SearchBar value={searchTerm} onChange={setSearchTerm} />
-          <SortDropDown
-            options={['Name', 'Owner', 'Date']}
-            selected={sortBy}
-            onSelect={setSortBy}
-          />
+        <div className="boards-top">
+          <div className="boards-controls">
+            <SearchBar value={searchTerm} onChange={setSearchTerm} />
+            <SortDropDown
+              options={['Name', 'Owner', 'Date']}
+              selected={sortBy}
+              onSelect={handleSortChange}
+            />
+          </div>
+
           <div className="boards-headers">
             <span>Owner</span>
             <span>Created at</span>
           </div>
         </div>
 
-        <BoardsList
-          boards={filteredAndSorted}
-          refresh={refresh}
-        />
+        <div className="boards-scroll-container">
+          <BoardsList
+            boards={filteredAndSorted}
+            refresh={refresh}
+            currentUserId={currentUser?.id || null}
+          />
+        </div>
       </div>
     </div>
   );

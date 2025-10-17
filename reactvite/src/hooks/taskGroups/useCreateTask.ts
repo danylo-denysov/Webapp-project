@@ -1,6 +1,7 @@
 import type { Task } from '../../types/task';
-import { toastError, toastSuccess } from '../../utils/toast';
 import { safe_fetch } from '../../utils/api';
+import { handleApiError } from '../../utils/errorHandler';
+import { toastError, toastSuccess } from '../../utils/toast';
 
 export function useCreateTask(
   groupId: string,
@@ -14,20 +15,18 @@ export function useCreateTask(
     try {
       const res = await safe_fetch('/api/tasks', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title, description, groupId }),
       });
-      const data = await res.json();
       if (!res.ok) {
-        return toastError(data.message ?? 'Failed to create task');
+        await handleApiError(res);
       }
+      const data = await res.json();
       toastSuccess('Task added');
       onAdded?.(data as Task);
     } catch (err) {
-      console.error(err);
-      toastError('Failed to create task');
+      const error = err as Error;
+      toastError(error.message);
     }
   };
 

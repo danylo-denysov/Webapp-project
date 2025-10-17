@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { safe_fetch } from '../../utils/api';
-import { Task, TaskGroup } from '../../types/task';
+import { TaskGroup } from '../../types/task';
 
 export function useTaskGroups(boardId: string | undefined) {
   const [groups, setGroups]   = useState<TaskGroup[]>([]);
@@ -29,7 +29,6 @@ export function useTaskGroups(boardId: string | undefined) {
       hasFetchedRef.current = true;
     } catch (err) {
       const error = err as Error;
-      // Don't set error state if request was aborted
       if (error.name !== 'AbortError') {
         setError(error.message);
       }
@@ -40,21 +39,16 @@ export function useTaskGroups(boardId: string | undefined) {
 
   useEffect(() => {
     if (!boardId) return;
-
     const abortController = new AbortController();
-
-    // Fetch task groups with abort signal
     fetchGroups(abortController.signal);
-
     return () => {
       abortController.abort();
     };
   }, [boardId, fetchGroups]);
 
-  // Wrapper for refresh that doesn't require signal parameter
   const refresh = useCallback(() => {
     return fetchGroups();
   }, [fetchGroups]);
 
-  return { groups, loading, error, refresh };
+  return { groups, setGroups, loading, error, refresh };
 }

@@ -1,4 +1,3 @@
-// src/components/boards/BoardMenu.tsx
 import React, { useState, useRef, useEffect } from 'react';
 import './BoardMenu.css';
 import { EditBoardModal } from './EditBoardModal';
@@ -16,7 +15,6 @@ export default function BoardMenu({ boardId, initialName, refresh }: BoardMenuPr
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  // Close if clicked outside
   useEffect(() => {
     const onOutside = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) {
@@ -27,7 +25,6 @@ export default function BoardMenu({ boardId, initialName, refresh }: BoardMenuPr
     return () => document.removeEventListener('mousedown', onOutside);
   }, []);
 
-  // universal stopper
   const stopLink = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();

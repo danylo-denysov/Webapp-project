@@ -62,7 +62,6 @@ export default function ProfilePage() {
     if (!res.ok) {
       await handleApiError(res);
     }
-    // httpOnly cookies are cleared automatically on account deletion
     navigate('/', { replace: true });
   };
 
@@ -76,7 +75,6 @@ export default function ProfilePage() {
         const err = await res.json();
         throw new Error(err.message || 'Failed to log out');
       }
-      // httpOnly cookies are cleared by server
       navigate('/login', { replace: true });
     } catch (err) {
       const error = err as Error;

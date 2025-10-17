@@ -3,9 +3,6 @@
   flex-direction: column;
   gap: 1rem;
   width: 100%;
-
-  overflow: visible;
-  position: relative;
 }
 
 .board-card-link {

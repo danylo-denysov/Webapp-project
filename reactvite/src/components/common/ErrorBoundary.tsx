@@ -26,25 +26,20 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    // Log error to console in development
     console.error('Error caught by boundary:', error, errorInfo);
-
-    // In production, you could send this to an error reporting service
-    // Example: errorReportingService.log(error, errorInfo);
   }
 
   handleReset = () => {
     this.setState({ hasError: false, error: null });
+    window.location.reload();
   };
 
   render() {
     if (this.state.hasError) {
-      // If a custom fallback was provided, render it
       if (this.props.fallback) {
         return this.props.fallback;
       }
 
-      // Default error UI
       return (
         <div className="error-boundary">
           <div className="error-boundary-content">
@@ -61,7 +56,10 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
               </button>
               <button
                 className="error-button error-button-secondary"
-                onClick={() => window.location.href = '/'}
+                onClick={() => {
+                  this.setState({ hasError: false, error: null });
+                  window.location.href = '/';
+                }}
               >
                 Go to home
               </button>

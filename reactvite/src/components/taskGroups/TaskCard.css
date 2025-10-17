@@ -1,9 +1,8 @@
 .task-card {
   position: relative;
-  background: var(--color-cards);
+  background: var(--color-cards-light);
   border-radius: 6px;
   padding: .75rem;
-  margin-bottom: .5rem;
   box-shadow:
     0 var(--button-shadow-y)
       var(--button-shadow-blur)

@@ -1,27 +1,32 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useState, useEffect, useCallback } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { DndContext, closestCorners, PointerSensor, useSensor, useSensors, DragEndEvent, DragStartEvent, DragOverEvent, DragOverlay, CollisionDetection } from '@dnd-kit/core';
+import { arrayMove, SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortable';
+
 import Avatar from '../../components/common/Avatar';
+import Header from '../../components/common/Header';
+import TeamModal from '../../components/boards/TeamModal';
+import CreateTaskGroupModal from '../../components/taskGroups/CreateTaskGroupModal';
+import TaskGroupSortable from '../../components/taskGroups/TaskGroupSortable';
+import TaskCard from '../../components/taskGroups/TaskCard';
+import { useCreateTaskGroup } from '../../hooks/taskGroups/useCreateTaskGroup';
+import { useReorderTaskGroups } from '../../hooks/taskGroups/useReorderTaskGroups';
+import { useTaskGroups } from '../../hooks/taskGroups/useTaskGroups';
+import { useMoveTask } from '../../hooks/taskGroups/useMoveTask';
+import { BoardUserRole } from '../../types/boardUser';
+import { safe_fetch } from '../../utils/api';
+import { toastError } from '../../utils/toast';
 import teamIcon from '../../assets/team.svg';
 import listIcon from '../../assets/list.svg';
 import plusIcon from '../../assets/plus.svg';
+
 import './TasksPage.css';
-import { useTaskGroups } from '../../hooks/taskGroups/useTaskGroups';
-import { useCreateTaskGroup } from '../../hooks/taskGroups/useCreateTaskGroup';
-import CreateTaskGroupModal from '../../components/taskGroups/CreateTaskGroupModal';
-import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
-import { arrayMove, SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortable';
-import { restrictToFirstScrollableAncestor, restrictToHorizontalAxis } from '@dnd-kit/modifiers';
-import TaskGroupSortable from '../../components/taskGroups/TaskGroupSortable';
-import { useReorderTaskGroups } from '../../hooks/taskGroups/useReorderTaskGroups';
-import { safe_fetch } from '../../utils/api';
-import { toastError } from '../../utils/toast';
-import Header from '../../components/common/Header';
 
 export default function TasksPage() {
   const { boardId } = useParams<{ boardId: string }>()
   const navigate = useNavigate()
   const [boardName, setBoardName] = useState('')
-  const { groups, loading: groupsLoading, error: groupsError, refresh } = useTaskGroups(boardId);
+  const { groups, setGroups, loading: groupsLoading, error: groupsError, refresh } = useTaskGroups(boardId);
   const [groupErrorToasted, setGroupErrorToasted] = useState(false);
   const [boardLoading, setBoardLoading] = useState(true);
   const [boardError, setBoardError] = useState<string | null>(null);
@@ -46,26 +51,190 @@ export default function TasksPage() {
     setLocalOrder(groups.map(g => g.id))
   }, [groups]);
   const reorderGroups = useReorderTaskGroups(boardId, refresh);
+  const { moveTask } = useMoveTask();
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 5, 
+        distance: 5,
       },
     })
   );
+
+  // Custom collision detection that filters out the actively dragged task
+  const collisionDetectionStrategy: CollisionDetection = (args) => {
+    const collisions = closestCorners(args);
+
+    // Filter out the currently dragged task to prevent detecting its collapsed placeholder
+    return collisions.filter((collision) => {
+      // Skip if this is the active dragging element
+      if (args.active && collision.id === args.active.id) {
+        return false;
+      }
+      return true;
+    });
+  };
+
   const { create: createGroup } = useCreateTaskGroup(boardId, ()=>refresh());
   const [groupModalOpen,setGroupModalOpen]=useState(false);
+  const [teamModalOpen, setTeamModalOpen] = useState(false);
+  const [isOwner, setIsOwner] = useState(false);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [activeTask, setActiveTask] = useState<any>(null);
 
-  const handleDragEnd = async ({ active, over }: DragEndEvent) => {
+  const handleDragStart = (event: DragStartEvent) => {
+    const { active } = event;
+    const activeData = active.data.current;
+
+    if (activeData?.type === 'task') {
+      // Find the task being dragged
+      for (const group of groups) {
+        const task = group.tasks.find(t => t.id === active.id);
+        if (task) {
+          setActiveTask(task);
+          break;
+        }
+      }
+    }
+  };
+
+  const handleDragOver = (event: DragOverEvent) => {
+    // This helps with real-time collision detection
+    const { active, over } = event;
+    if (!over) return;
+
+    const activeData = active.data.current;
+
+    // Only handle task dragging
+    if (activeData?.type !== 'task') return;
+  };
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    setActiveTask(null);
+    const { active, over } = event;
     if (!over || active.id === over.id) return;
-    const oldIndex = localOrder.indexOf(active.id as string);
-    const newIndex = localOrder.indexOf(over.id as string);
-    const next = arrayMove(localOrder, oldIndex, newIndex);
-    setLocalOrder(next);
-    try {
-      await reorderGroups(next);
-    } catch (e) {
-      setLocalOrder(localOrder); // rollback on error
+
+    // Check if we're dragging a task or a group
+    const activeData = active.data.current;
+    const overData = over.data.current;
+
+    // Handle task dragging
+    if (activeData?.type === 'task') {
+      const taskId = active.id as string;
+      const sourceGroupId = activeData.groupId;
+      let targetGroupId: string | undefined;
+      let newOrder: number | undefined;
+
+      // Check if dropped on end zone (after all tasks)
+      if (overData?.type === 'end-zone') {
+        targetGroupId = overData.groupId;
+        const targetGroup = groups.find(g => g.id === targetGroupId);
+
+        if (targetGroup) {
+          if (sourceGroupId === targetGroupId) {
+            // Moving within same group to the end
+            // After removal, length decreases by 1, so we want length - 1
+            newOrder = targetGroup.tasks.length - 1;
+          } else {
+            // Moving to different group - add at the end
+            newOrder = targetGroup.tasks.length;
+          }
+        } else {
+          newOrder = 0;
+        }
+      }
+      // Check if dropped on a group container (at the end, after all tasks)
+      else if (overData?.type === 'group') {
+        targetGroupId = overData.groupId;
+        const targetGroup = groups.find(g => g.id === targetGroupId);
+
+        if (targetGroup) {
+          if (sourceGroupId === targetGroupId) {
+            // Moving within same group to the end
+            // After removal, length decreases by 1, so we want length - 1
+            newOrder = targetGroup.tasks.length - 1;
+          } else {
+            // Moving to different group - add at the end
+            newOrder = targetGroup.tasks.length;
+          }
+        } else {
+          newOrder = 0;
+        }
+      }
+      // Check if dropped on another task
+      else if (overData?.type === 'task') {
+        targetGroupId = overData.groupId;
+        const targetGroup = groups.find(g => g.id === targetGroupId);
+
+        if (targetGroup) {
+          const overTaskIndex = targetGroup.tasks.findIndex(t => t.id === over.id);
+
+          if (overTaskIndex >= 0) {
+            // Placeholder shows BEFORE the hovered task, so we insert at that position
+            if (sourceGroupId === targetGroupId) {
+              const sourceTaskIndex = targetGroup.tasks.findIndex(t => t.id === taskId);
+              // If dragging down (source is before target), after removal target shifts left by 1
+              if (sourceTaskIndex < overTaskIndex) {
+                newOrder = overTaskIndex - 1; // Account for removal shifting indices
+              } else {
+                newOrder = overTaskIndex; // Insert at the target position
+              }
+            } else {
+              // Different group - insert at the hovered task position
+              newOrder = overTaskIndex;
+            }
+          } else {
+            newOrder = targetGroup.tasks.length;
+          }
+        }
+      }
+
+      if (targetGroupId !== undefined && newOrder !== undefined) {
+        // Save current state for rollback
+        const previousGroups = [...groups];
+
+        // Optimistically update UI
+        const updatedGroups = groups.map(g => ({ ...g, tasks: [...g.tasks] }));
+        const sourceGroup = updatedGroups.find(g => g.id === sourceGroupId);
+        const targetGroup = updatedGroups.find(g => g.id === targetGroupId);
+
+        if (sourceGroup && targetGroup) {
+          // Remove task from source group
+          const taskIndex = sourceGroup.tasks.findIndex(t => t.id === taskId);
+          if (taskIndex >= 0) {
+            const [movedTask] = sourceGroup.tasks.splice(taskIndex, 1);
+
+            // Add task to target group at specified position
+            targetGroup.tasks.splice(newOrder, 0, movedTask);
+
+            // Update UI immediately
+            setGroups(updatedGroups);
+
+            // Send request to backend
+            try {
+              await moveTask(taskId, targetGroupId, newOrder);
+            } catch (e) {
+              console.error('Failed to move task:', e);
+              toastError('Failed to move task');
+              // Rollback on error
+              setGroups(previousGroups);
+            }
+          }
+        }
+      }
+      return;
+    }
+
+    // Handle group dragging (original logic)
+    if (activeData?.type === 'group') {
+      const oldIndex = localOrder.indexOf(active.id as string);
+      const newIndex = localOrder.indexOf(over.id as string);
+      const next = arrayMove(localOrder, oldIndex, newIndex);
+      setLocalOrder(next);
+      try {
+        await reorderGroups(next);
+      } catch (e) {
+        setLocalOrder(localOrder); // rollback on error
+      }
     }
   };
 
@@ -91,9 +260,32 @@ export default function TasksPage() {
       }
       const b = await res.json();
       setBoardName(b.name);
+
+      const boardUsersRes = await safe_fetch(`/api/boards/${boardId}/users`, {
+        method: 'GET',
+        credentials: 'include',
+        signal,
+      });
+
+      if (boardUsersRes.ok) {
+        const boardUsers = await boardUsersRes.json();
+        const userRes = await safe_fetch('/api/users/me', {
+          method: 'GET',
+          credentials: 'include',
+          signal,
+        });
+
+        if (userRes.ok) {
+          const currentUser = await userRes.json();
+          const currentBoardUser = boardUsers.find((bu: any) => bu.user.id === currentUser.id);
+          if (currentBoardUser) {
+            setUserRole(currentBoardUser.role);
+            setIsOwner(currentBoardUser.role === BoardUserRole.OWNER);
+          }
+        }
+      }
     } catch (err) {
       const error = err as Error;
-      // Don't set error if request was aborted
       if (error.name !== 'AbortError') {
         setBoardError('Failed to load board name');
       }
@@ -133,13 +325,15 @@ export default function TasksPage() {
         }
         right={
           <>
-            <button
-              className="tasks-action-btn"
-              onClick={() => setGroupModalOpen(true)}
-            >
-              <img src={plusIcon} alt="add group" /> New group
-            </button>
-            <button className="tasks-action-btn">
+            {(userRole === BoardUserRole.OWNER || userRole === BoardUserRole.EDITOR) && (
+              <button
+                className="tasks-action-btn"
+                onClick={() => setGroupModalOpen(true)}
+              >
+                <img src={plusIcon} alt="add group" /> New group
+              </button>
+            )}
+            <button className="tasks-action-btn" onClick={() => setTeamModalOpen(true)}>
               <img src={teamIcon} alt="Team" /> Team
             </button>
             <Link to="/boards" className="tasks-action-btn tasks-boards-link">
@@ -154,8 +348,9 @@ export default function TasksPage() {
 
       <DndContext
         sensors={sensors}
-        collisionDetection={closestCenter}
-        modifiers={[restrictToFirstScrollableAncestor, restrictToHorizontalAxis]}
+        collisionDetection={collisionDetectionStrategy}
+        onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
         <SortableContext
@@ -176,18 +371,44 @@ export default function TasksPage() {
                     onTaskDeleted={() => refresh()}
                     onGroupRenamed={refresh}
                     onGroupDeleted={refresh}
+                    userRole={userRole}
                   />
                 );
               })}
             </div>
           </div>
         </SortableContext>
+
+        <DragOverlay>
+          {activeTask ? (
+            <div style={{
+              width: '220px',
+              opacity: 0.95,
+              cursor: 'grabbing',
+              transform: 'rotate(3deg)',
+              boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+            }}>
+              <TaskCard task={activeTask} onDelete={() => {}} canEdit={false} />
+            </div>
+          ) : null}
+        </DragOverlay>
       </DndContext>
+      {/* TODO: when moving task for first time down the little flicker appears showing the ghost card under the next position and then in cards original position */}
+      {/* TODO: fix the group moving (dnd) */}
+      {/* TODO: fix toast error */}
+      
 
       <CreateTaskGroupModal
          isOpen={groupModalOpen}
          onClose={()=>setGroupModalOpen(false)}
          onCreate={name=>createGroup(name)}/>
+
+      <TeamModal
+        isOpen={teamModalOpen}
+        onClose={() => setTeamModalOpen(false)}
+        boardId={boardId!}
+        isOwner={isOwner}
+      />
 
     </div>
   )

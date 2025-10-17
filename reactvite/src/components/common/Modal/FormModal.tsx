@@ -32,7 +32,6 @@ export default function FormModal({
 }: FormModalProps) {
   const [value, setValue] = useState(initialValue);
 
-  // Update value when initialValue changes (for edit modals)
   useEffect(() => {
     if (isOpen) {
       setValue(initialValue);

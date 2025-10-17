@@ -19,7 +19,7 @@ export default function LoginPage() {
       setFormData(prev => ({ ...prev, [id]: value }));
     }, []);
 
-    const handleSubmit = async () => {
+    const handleSubmit = useCallback(async () => {
       setIsLoading(true);
       try {
         const response = await fetch('/api/users/verify', {
@@ -36,12 +36,7 @@ export default function LoginPage() {
           await handleApiError(response);
         }
 
-        // Server sets httpOnly cookies (access_token and refresh_token)
-        // No need to handle tokens in JavaScript - they're secure in cookies
-
         toastSuccess('Login successful');
-
-        // Redirect to /boards
         setTimeout(() => {
           navigate('/boards', { replace: true });
         }, NAVIGATION_DELAY.AFTER_LOGIN);
@@ -51,7 +46,13 @@ export default function LoginPage() {
       } finally {
         setIsLoading(false);
       }
-    };
+    }, [formData.email, formData.password, navigate]);
+
+    const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Enter' && !isLoading) {
+        handleSubmit();
+      }
+    }, [isLoading, handleSubmit]);
 
     return (
       <>
@@ -71,6 +72,7 @@ export default function LoginPage() {
             placeholder="you@example.com"
             value={formData.email}
             onChange={handleChange}
+            onKeyDown={handleKeyDown}
           />
           <FormInput
             label="Password"
@@ -79,6 +81,7 @@ export default function LoginPage() {
             placeholder="••••••••"
             value={formData.password}
             onChange={handleChange}
+            onKeyDown={handleKeyDown}
           />
         </AuthCard>
       </>

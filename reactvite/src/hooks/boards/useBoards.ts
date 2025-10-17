@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { toastError } from '../../utils/toast';
 import { safe_fetch } from '../../utils/api';
 import { Board } from '../../types/board';
 

@@ -28,16 +28,14 @@ export async function handleApiError(response: Response): Promise<never> {
   try {
     const data = await response.json();
 
-    // Handle different error response formats
     if (typeof data.message === 'string') {
       errorMessage = data.message;
     } else if (Array.isArray(data.message)) {
-      errorMessage = data.message[0]; // Take first validation error
+      errorMessage = data.message[0];
     } else if (data.error) {
       errorMessage = data.error;
     }
   } catch {
-    // Response is not JSON or can't be parsed
     errorMessage = `Request failed with status ${response.status}`;
   }
 

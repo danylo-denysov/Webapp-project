@@ -10,7 +10,6 @@ export interface ModalProps {
 }
 
 export default function Modal({ isOpen, onClose, children, preventClose = false }: ModalProps) {
-  // Close on Escape
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && !preventClose) {

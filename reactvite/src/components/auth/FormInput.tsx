@@ -1,4 +1,4 @@
-import React, { ChangeEvent } from 'react';
+import React, { ChangeEvent, KeyboardEvent } from 'react';
 import './FormInput.css';
 
 interface FormInputProps {
@@ -8,9 +8,10 @@ interface FormInputProps {
   placeholder?: string;
   value: string;
   onChange: (e: ChangeEvent<HTMLInputElement>) => void;
+  onKeyDown?: (e: KeyboardEvent<HTMLInputElement>) => void;
 }
 
-const FormInput: React.FC<FormInputProps> = ({ label, id, type = 'text', placeholder, value, onChange }) => {
+const FormInput: React.FC<FormInputProps> = ({ label, id, type = 'text', placeholder, value, onChange, onKeyDown }) => {
   return (
     <div className="form-input">
       <label htmlFor={id}>{label}</label>
@@ -19,7 +20,8 @@ const FormInput: React.FC<FormInputProps> = ({ label, id, type = 'text', placeho
         type={type}
         placeholder={placeholder}
         value={value}
-        onChange={onChange} // Handle input changes
+        onChange={onChange}
+        onKeyDown={onKeyDown}
       />
     </div>
   );

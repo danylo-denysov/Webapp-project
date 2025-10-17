@@ -1,0 +1,168 @@
+/* Override default modal-window styles */
+.modal-window:has(.team-modal) {
+  width: 600px !important;
+  max-width: 90vw !important;
+  padding: 0 !important;
+  background: var(--color-cards) !important;
+  border-radius: 16px !important;
+  gap: 0 !important;
+}
+
+.team-modal {
+  width: 100%;
+  background: var(--color-cards);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.team-modal__tabs {
+  display: flex;
+  gap: 0;
+  background: rgba(255, 255, 255, 0.3);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.team-modal__tab {
+  flex: 1;
+  padding: 16px 24px;
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--color-text);
+  opacity: 0.6;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.team-modal__tab:hover {
+  background: rgba(255, 255, 255, 0.2);
+  opacity: 0.8;
+}
+
+.team-modal__tab--active {
+  opacity: 1;
+}
+
+.team-modal__tab--active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--color-gradient-start);
+}
+
+.team-modal__content {
+  padding: 24px;
+  padding-right: 16px;
+  min-height: 600px;
+  max-height: 600px;
+  overflow-y: scroll;
+  background: var(--color-cards);
+}
+
+.team-modal__team-tab,
+.team-modal__invite-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.team-modal__users-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.team-modal__user-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  background: var(--color-cards-light);
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.team-modal__username {
+  flex: 1;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.team-modal__add-button {
+  background: transparent;
+  border: none;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  padding: 0;
+}
+
+.team-modal__add-button img {
+  width: 20px;
+  height: 20px;
+  filter: none;
+}
+
+.team-modal__add-button:hover {
+  transform: scale(1.15);
+}
+
+.team-modal__loading,
+.team-modal__empty {
+  text-align: center;
+  padding: 32px;
+  color: var(--color-text);
+  opacity: 0.6;
+  font-size: 14px;
+}
+
+/* Scrollbar styling */
+.team-modal__content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.team-modal__content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.team-modal__content::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.team-modal__content::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Override search bar styling in team modal */
+.team-modal .search-bar {
+  width: 100%;
+  border-bottom-color: var(--color-text);
+}
+
+.team-modal .search-bar input {
+  width: 100%;
+  flex: 1;
+  color: var(--color-text);
+}
+
+.team-modal .search-bar input::placeholder {
+  color: var(--color-text);
+  opacity: 0.5;
+}
+
+.team-modal .search-bar img {
+  opacity: 1;
+  filter: none;
+}

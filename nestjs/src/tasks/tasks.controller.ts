@@ -13,6 +13,7 @@ import {
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskOrdersDto } from './dto/update-task-orders.dto';
+import { MoveTaskDto } from './dto/move-task.dto';
 import { Task } from './task.entity';
 import { JwtAuthGuard } from '../users/jwt-auth.guard';
 import { BoardAccessService } from '../boards/board-access.service';
@@ -78,5 +79,21 @@ export class TasksController {
     const boardId = await this.tasksService.getBoardIdFromGroupId(groupId);
     await this.boardAccessService.verifyWriteAccess(boardId, user.id);
     return this.tasksService.reorderTasks(groupId, dto.ids);
+  }
+
+  @Patch(':id/move')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async moveTaskToGroup(
+    @Param('id') taskId: string,
+    @Body() dto: MoveTaskDto,
+    @GetUser() user: JwtUserPayload,
+  ): Promise<void> {
+    const boardId = await this.tasksService.getBoardIdFromTaskId(taskId);
+    await this.boardAccessService.verifyWriteAccess(boardId, user.id);
+    const targetBoardId = await this.tasksService.getBoardIdFromGroupId(dto.targetGroupId);
+    if (boardId !== targetBoardId) {
+      throw new Error('Cannot move task to a group in a different board');
+    }
+    return this.tasksService.moveTaskToGroup(taskId, dto.targetGroupId, dto.newOrder);
   }
 }

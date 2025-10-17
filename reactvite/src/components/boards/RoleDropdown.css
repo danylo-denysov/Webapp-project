@@ -1,0 +1,72 @@
+.role-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.role-dropdown__button {
+  background: transparent;
+  border: none;
+  color: var(--color-text);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 1rem;
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.role-dropdown__button:hover:not(:disabled) {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.role-dropdown__button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.role-dropdown__arrow {
+  font-size: 10px;
+  margin-left: 2px;
+}
+
+.role-dropdown__menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: var(--color-cards-light);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  list-style: none;
+  margin-top: 0.25rem;
+  padding: 0.5rem 0;
+  min-width: 120px;
+  z-index: 10000;
+}
+
+.role-dropdown__menu li {
+  padding: 8px 16px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 1rem;
+  color: var(--color-text);
+  position: relative;
+}
+
+.role-dropdown__menu li::after {
+  content: '';
+  position: absolute;
+  left: 1rem;
+  right: 1rem;
+  bottom: 0.25rem;
+  height: 1.5px;
+  background: var(--color-text);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.role-dropdown__menu li:hover::after {
+  opacity: 1;
+}

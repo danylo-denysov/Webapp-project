@@ -74,6 +74,11 @@
   object-fit: contain;
 }
 
+.profile-back-button:hover {
+  transform: scale(1.2);
+  transition: transform 0.2s;
+}
+
 .profile-logout-button {
   background: none;
   border: none;
@@ -88,4 +93,9 @@
   width: 24px;
   height: 24px;
   object-fit: contain;
+}
+
+.profile-logout-button:hover {
+  transform: scale(1.15);
+  transition: transform 0.2s;
 }

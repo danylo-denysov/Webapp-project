@@ -1,7 +1,9 @@
 import { useState } from 'react';
+
 import { Board } from '../../types/board';
-import { toastError, toastSuccess } from '../../utils/toast';
 import { safe_fetch } from '../../utils/api';
+import { handleApiError } from '../../utils/errorHandler';
+import { toastError, toastSuccess } from '../../utils/toast';
 
 interface UseCreateBoardOptions {
   onSuccess?: (newBoard: Board) => void;
@@ -22,21 +24,19 @@ export function useCreateBoard({ onSuccess }: UseCreateBoardOptions = {}) {
     try {
       const res = await safe_fetch('/api/boards/user', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name }),
       });
-      const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.message || 'Failed to create board');
+        await handleApiError(res);
       }
+      const data = await res.json();
       toastSuccess('Board created');
       onSuccess?.(data);
     } catch (err) {
       const error = err as Error;
       setError(error.message);
-      toastError(error.message || 'Failed to create board');
+      toastError(error.message);
     } finally {
       setLoading(false);
     }
