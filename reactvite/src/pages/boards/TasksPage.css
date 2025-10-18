@@ -91,6 +91,11 @@
   height: 100%;
 }
 
+.groups-row__inner-wrapper > * {
+  flex: 0 0 var(--group-width);
+  max-width: var(--group-width);
+}
+
 .task-group{
   scroll-snap-align:start;
 }

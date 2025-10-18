@@ -8,7 +8,7 @@ export interface TaskGroupSortableProps extends TaskGroupProps {
 }
 
 export default function TaskGroupSortable(props: TaskGroupSortableProps) {
-  const { attributes, listeners, setNodeRef, transform, transition } =
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({
       id: props.group.id,
       data: {
@@ -20,13 +20,17 @@ export default function TaskGroupSortable(props: TaskGroupSortableProps) {
   const style: React.CSSProperties = {
     transform: CSS.Translate.toString(transform),
     transition,
-    flex: '0 0 var(--group-width)',
-    maxWidth: 'var(--group-width)',
+    opacity: isDragging ? 0.3 : 1,
+    // Add margin to extend the droppable area
+    marginLeft: '-1rem',
+    marginRight: '-1rem',
+    paddingLeft: '1rem',
+    paddingRight: '1rem',
   }
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <TaskGroup {...props} />
+    <div ref={setNodeRef} style={style} {...attributes}>
+      <TaskGroup {...props} dragHandleProps={listeners} />
     </div>
   )
 }

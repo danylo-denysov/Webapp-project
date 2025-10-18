@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { DndContext, closestCorners, PointerSensor, useSensor, useSensors, DragEndEvent, DragStartEvent, DragOverEvent, DragOverlay, CollisionDetection } from '@dnd-kit/core';
+import { DndContext, closestCorners, PointerSensor, useSensor, useSensors, DragEndEvent, DragStartEvent, DragOverEvent, DragOverlay, CollisionDetection, pointerWithin } from '@dnd-kit/core';
 import { arrayMove, SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortable';
 
 import Avatar from '../../components/common/Avatar';
@@ -9,6 +9,7 @@ import TeamModal from '../../components/boards/TeamModal';
 import CreateTaskGroupModal from '../../components/taskGroups/CreateTaskGroupModal';
 import TaskGroupSortable from '../../components/taskGroups/TaskGroupSortable';
 import TaskCard from '../../components/taskGroups/TaskCard';
+import GroupGhost from '../../components/taskGroups/GroupGhost';
 import { useCreateTaskGroup } from '../../hooks/taskGroups/useCreateTaskGroup';
 import { useReorderTaskGroups } from '../../hooks/taskGroups/useReorderTaskGroups';
 import { useTaskGroups } from '../../hooks/taskGroups/useTaskGroups';
@@ -62,11 +63,22 @@ export default function TasksPage() {
 
   // Custom collision detection that filters out the actively dragged task
   const collisionDetectionStrategy: CollisionDetection = (args) => {
-    const collisions = closestCorners(args);
+    const activeData = args.active?.data.current;
 
-    // Filter out the currently dragged task to prevent detecting its collapsed placeholder
-    return collisions.filter((collision) => {
-      // Skip if this is the active dragging element
+    // If dragging a group, use pointerWithin for more lenient detection
+    if (activeData?.type === 'group') {
+      const allCollisions = pointerWithin(args);
+      const groupCollisions = allCollisions.filter((collision) => {
+        const container = args.droppableContainers.find(c => c.id === collision.id);
+        const overData = container?.data.current;
+        return overData?.type === 'group' && collision.id !== args.active.id;
+      });
+      return groupCollisions.length > 0 ? groupCollisions : [];
+    }
+
+    // For tasks, use closestCorners
+    const allCollisions = closestCorners(args);
+    return allCollisions.filter((collision) => {
       if (args.active && collision.id === args.active.id) {
         return false;
       }
@@ -80,6 +92,7 @@ export default function TasksPage() {
   const [isOwner, setIsOwner] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [activeTask, setActiveTask] = useState<any>(null);
+  const [activeGroup, setActiveGroup] = useState<any>(null);
 
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
@@ -94,26 +107,32 @@ export default function TasksPage() {
           break;
         }
       }
+    } else if (activeData?.type === 'group') {
+      // Find the group being dragged
+      const group = groups.find(g => g.id === active.id);
+      if (group) {
+        setActiveGroup(group);
+      }
     }
   };
 
   const handleDragOver = (event: DragOverEvent) => {
-    // This helps with real-time collision detection
     const { active, over } = event;
     if (!over) return;
 
     const activeData = active.data.current;
 
-    // Only handle task dragging
+    // Only handle task dragging (not groups - groups use CSS transforms during drag)
     if (activeData?.type !== 'task') return;
   };
 
   const handleDragEnd = async (event: DragEndEvent) => {
     setActiveTask(null);
+    setActiveGroup(null);
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
-    // Check if we're dragging a task or a group
+    // Check if we are dragging a task or a group
     const activeData = active.data.current;
     const overData = over.data.current;
 
@@ -143,7 +162,7 @@ export default function TasksPage() {
         }
       }
       // Check if dropped on a group container (at the end, after all tasks)
-      else if (overData?.type === 'group') {
+      else if (overData?.type === 'group-container') {
         targetGroupId = overData.groupId;
         const targetGroup = groups.find(g => g.id === targetGroupId);
 
@@ -169,7 +188,7 @@ export default function TasksPage() {
           const overTaskIndex = targetGroup.tasks.findIndex(t => t.id === over.id);
 
           if (overTaskIndex >= 0) {
-            // Placeholder shows BEFORE the hovered task, so we insert at that position
+            // Placeholder shows before the hovered task, so we insert at that position
             if (sourceGroupId === targetGroupId) {
               const sourceTaskIndex = targetGroup.tasks.findIndex(t => t.id === taskId);
               // If dragging down (source is before target), after removal target shifts left by 1
@@ -224,16 +243,21 @@ export default function TasksPage() {
       return;
     }
 
-    // Handle group dragging (original logic)
+    // Handle group dragging
     if (activeData?.type === 'group') {
       const oldIndex = localOrder.indexOf(active.id as string);
       const newIndex = localOrder.indexOf(over.id as string);
-      const next = arrayMove(localOrder, oldIndex, newIndex);
-      setLocalOrder(next);
-      try {
-        await reorderGroups(next);
-      } catch (e) {
-        setLocalOrder(localOrder); // rollback on error
+
+      if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+        const newOrder = arrayMove(localOrder, oldIndex, newIndex);
+        setLocalOrder(newOrder);
+        try {
+          await reorderGroups(newOrder);
+        } catch (error) {
+          console.error('Failed to reorder groups:', error);
+          toastError('Failed to reorder groups');
+          setLocalOrder(localOrder); // rollback
+        }
       }
     }
   };
@@ -390,11 +414,12 @@ export default function TasksPage() {
             }}>
               <TaskCard task={activeTask} onDelete={() => {}} canEdit={false} />
             </div>
+          ) : activeGroup ? (
+            <GroupGhost group={activeGroup} />
           ) : null}
         </DragOverlay>
       </DndContext>
       {/* TODO: when moving task for first time down the little flicker appears showing the ghost card under the next position and then in cards original position */}
-      {/* TODO: fix the group moving (dnd) */}
       {/* TODO: fix toast error */}
       
 

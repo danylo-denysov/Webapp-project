@@ -26,9 +26,10 @@ export interface TaskGroupProps {
   onGroupRenamed?: ()=>void;
   onGroupDeleted?: () => void;
   userRole: string | null;
+  dragHandleProps?: any;
 }
 
-export default function TaskGroup({ boardId, group, onTaskAdded, onTaskDeleted, onGroupRenamed, onGroupDeleted, userRole }: TaskGroupProps) {
+export default function TaskGroup({ boardId, group, onTaskAdded, onTaskDeleted, onGroupRenamed, onGroupDeleted, userRole, dragHandleProps }: TaskGroupProps) {
   const canEdit = userRole === BoardUserRole.OWNER || userRole === BoardUserRole.EDITOR;
 
   const { createTask } = useCreateTask(
@@ -66,9 +67,9 @@ export default function TaskGroup({ boardId, group, onTaskAdded, onTaskDeleted, 
   const [deleteOpen, setDeleteOpen] = useState(false);
 
   const { setNodeRef } = useDroppable({
-    id: `group-${group.id}`,
+    id: `group-container-${group.id}`,
     data: {
-      type: 'group',
+      type: 'group-container',
       groupId: group.id,
     },
   });
@@ -76,7 +77,7 @@ export default function TaskGroup({ boardId, group, onTaskAdded, onTaskDeleted, 
   const { active, over } = useDndContext();
 
   // Check if a task is being dragged over this group's empty space (not over a task)
-  const isOverGroup = over?.id === `group-${group.id}`;
+  const isOverGroup = over?.id === `group-container-${group.id}`;
   const isOverAnyTask = over?.data.current?.type === 'task';
   const activeData = active?.data.current;
   const isTaskBeingDragged = activeData?.type === 'task';
@@ -86,7 +87,7 @@ export default function TaskGroup({ boardId, group, onTaskAdded, onTaskDeleted, 
 
   return (
     <div className={`task-group ${!hasTasks ? 'task-group--empty' : ''}`}>
-      <header className="group-header" style={{ position:'relative' }}>
+      <header className="group-header" style={{ position:'relative' }} {...dragHandleProps}>
         <span
           className="group-name"
           onClick={canEdit ? () => setRenameOpen(true) : undefined}

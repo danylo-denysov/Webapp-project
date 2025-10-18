@@ -1,0 +1,35 @@
+.group-ghost {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 var(--group-width);
+  max-width: var(--group-width);
+  max-height: 400px;
+  overflow: hidden;
+  background: var(--color-cards);
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  opacity: 0.95;
+  cursor: grabbing;
+  transform: rotate(2deg);
+  pointer-events: none;
+}
+
+.ghost-task-card {
+  position: relative;
+  background: var(--color-cards-light);
+  border-radius: 6px;
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  box-shadow:
+    0 var(--button-shadow-y)
+      var(--button-shadow-blur)
+      var(--button-shadow-color);
+}
+
+.ghost-task-more {
+  text-align: center;
+  padding: 0.5rem;
+  opacity: 0.6;
+  font-size: 0.9rem;
+}

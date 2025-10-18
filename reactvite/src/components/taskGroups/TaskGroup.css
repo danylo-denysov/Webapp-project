@@ -21,6 +21,11 @@
   text-underline-offset: 5px;
   margin-bottom: .75rem;
   user-select: none;
+  cursor: grab;
+}
+
+.group-header:active {
+  cursor: grabbing;
 }
 
 .group-name{
