@@ -26,4 +26,9 @@
 
 .create-board-btn:hover {
   transform: scale(1.05);
+  box-shadow:
+    0 var(--button-hover-y)
+      var(--button-hover-blur)
+      var(--button-hover-color);
+  filter: brightness(1.02);
 }

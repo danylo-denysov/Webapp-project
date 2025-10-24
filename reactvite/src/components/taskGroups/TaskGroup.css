@@ -5,7 +5,7 @@
   flex: 0 0 var(--group-width);
   max-width: var(--group-width);
   max-height: 100%;
-  overflow: hidden; 
+  overflow: visible;
   background: var(--color-cards);
   border-radius:8px; padding:1rem;
   box-shadow:
@@ -19,7 +19,7 @@
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 5px;
-  margin-bottom: .75rem;
+  margin-bottom: 1rem;
   user-select: none;
   cursor: grab;
 }
@@ -58,12 +58,22 @@
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
+  padding-left: 0.75rem;
   padding-right: 0.25rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.25rem;
   margin-right: -0.75rem;
+  margin-left: -0.75rem;
+  margin-top: -0.5rem;
   scrollbar-gutter: stable;
+  position: relative;
+  z-index: 1;
+
+  mask-image: linear-gradient(to bottom, transparent 0%, black 0.75rem, black calc(100% - 1rem), transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 0.75rem, black calc(100% - 1rem), transparent 100%);
 }
 .add-task-btn{
-  margin-top:.75rem;
+  margin-top: 0.5rem;
   align-self:center;
   display:flex;
   align-items:center; gap:.5rem;

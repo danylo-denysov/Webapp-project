@@ -7,9 +7,25 @@
     0 var(--button-shadow-y)
       var(--button-shadow-blur)
       var(--button-shadow-color);
+
+  transition:
+    transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+    box-shadow 0.2s ease;
+
+  overflow: visible;
 }
+
+.task-card:hover {
+  z-index: 10;
+  transform: scale(1.02);
+  box-shadow:
+    0 calc(var(--button-hover-y) * 0.5)
+      calc(var(--button-hover-blur) * 0.6)
+      var(--button-hover-color);
+  filter: brightness(1.02);
+}
+
 .task-title { font-weight: 600; }
-.task-desc  { font-size: .85rem; margin-top: .25rem; }
 .task-delete{
   position:absolute; top:.25rem; right:.25rem;
   background:none; border:none; cursor:pointer;

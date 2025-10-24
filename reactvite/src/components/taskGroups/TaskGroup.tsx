@@ -145,7 +145,7 @@ export default function TaskGroup({ boardId, group, onTaskAdded, onTaskDeleted, 
       <CreateTaskModal
         isOpen={modalOpen}
         onClose={()=>setModalOpen(false)}
-        onCreate={(title,desc)=>createTask(title,desc)}
+        onCreate={(title)=>createTask(title)}
       />
 
       <RenameTaskGroupModal

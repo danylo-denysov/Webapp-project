@@ -7,16 +7,16 @@ export function useCreateTask(
   groupId: string,
   onAdded?: (task: Task) => void
 ) {
-  const createTask = async (title: string, description: string) => {
-    if (!title.trim() || !description.trim()) {
-      return toastError('All fields required');
+  const createTask = async (title: string) => {
+    if (!title.trim()) {
+      return toastError('Task name is required');
     }
 
     try {
       const res = await safe_fetch('/api/tasks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, description, groupId }),
+        body: JSON.stringify({ title, description: '', groupId }),
       });
       if (!res.ok) {
         await handleApiError(res);

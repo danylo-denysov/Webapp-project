@@ -20,8 +20,8 @@
   white-space: nowrap;
   overflow: hidden;
 
-  flex: 0 0 30rem;
-  font-size: 2.9rem;
+  flex: 0 0 60rem;
+  font-size: 2.7rem;
   font-weight: 500;
 
   mask-image: linear-gradient(to right, black calc(100% - 5rem), transparent 100%);
@@ -55,6 +55,11 @@
 }
 .tasks-action-btn:hover {
   transform: scale(1.05);
+  box-shadow:
+    0 var(--button-hover-y)
+      var(--button-hover-blur)
+      var(--button-hover-color);
+  filter: brightness(1.02);
 }
 
 .tasks-divider {
@@ -72,14 +77,15 @@
 
 .groups-row{
   position:absolute;
-  top:6.5rem; left:3rem; right:3rem; bottom:0.25rem;
+  top:7rem; 
+  left:3rem; 
+  right:3rem; 
+  bottom:0.25rem;
   display: flex;
   gap: 2rem;
   align-items: flex-start;
-  overflow-x: auto;
+  overflow-x: scroll;
   padding-bottom: 0.25rem;
-  scroll-snap-type: x mandatory;
-  scrollbar-gutter: stable;
 }
 
 /* needed wrapper due to dnd-kit's  */
