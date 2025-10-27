@@ -1,4 +1,4 @@
-import { useEffect, ReactNode } from 'react';
+import { useEffect, ReactNode, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import './Modal.css';
 
@@ -10,6 +10,8 @@ export interface ModalProps {
 }
 
 export default function Modal({ isOpen, onClose, children, preventClose = false }: ModalProps) {
+  const mouseDownOnOverlay = useRef(false);
+
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && !preventClose) {
@@ -26,32 +28,29 @@ export default function Modal({ isOpen, onClose, children, preventClose = false 
 
   if (!isOpen) return null;
 
-  const handleOverlayClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (e.target === e.currentTarget && !preventClose) {
-      onClose();
+  const handleOverlayMouseDown = (e: React.MouseEvent) => {
+    // Track if mousedown started on the overlay (not on modal content)
+    if (e.target === e.currentTarget) {
+      mouseDownOnOverlay.current = true;
     }
   };
 
-  const handleOverlayMouseDown = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
+  const handleOverlayClick = (e: React.MouseEvent) => {
+    // Only close if both mousedown and mouseup happened on the overlay
+    if (e.target === e.currentTarget && mouseDownOnOverlay.current && !preventClose) {
+      onClose();
+    }
+    // Reset the flag
+    mouseDownOnOverlay.current = false;
   };
 
   return ReactDOM.createPortal(
     <div
       className="modal-overlay"
-      onClick={handleOverlayClick}
       onMouseDown={handleOverlayMouseDown}
-      onMouseUp={(e) => e.stopPropagation()}
-      onPointerDown={(e) => e.stopPropagation()}
-      onPointerUp={(e) => e.stopPropagation()}
+      onClick={handleOverlayClick}
     >
-      <div
-        className="modal-window"
-        onMouseDown={(e) => e.stopPropagation()}
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="modal-window">
         {children}
       </div>
     </div>,

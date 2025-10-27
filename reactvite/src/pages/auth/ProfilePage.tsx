@@ -11,6 +11,7 @@ import './ProfilePage.css';
 import ChangeNicknameModal from '../../components/auth/ChangeNicknameModal';
 import ChangePasswordModal from '../../components/auth/ChangePasswordModal';
 import DeleteAccountModal from '../../components/auth/DeleteAccountModal';
+import LogoutModal from '../../components/auth/LogoutModal';
 import { safe_fetch } from '../../utils/api';
 import { toastError } from '../../utils/toast';
 import { handleApiError } from '../../utils/errorHandler';
@@ -21,6 +22,7 @@ export default function ProfilePage() {
   const [isNicknameModalOpen, setIsNicknameModalOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   const handleChangeProfilePicture = () => {
     console.log('Change profile picture…');
@@ -98,12 +100,11 @@ export default function ProfilePage() {
           <>
             <button
               className="profile-logout-button"
-              onClick={handleLogout}
+              onClick={() => setIsLogoutModalOpen(true)}
               aria-label="Log out"
             >
               <img src={logoutIcon} alt="Logout" />
             </button>
-
 
             <Avatar />
           </>
@@ -158,6 +159,12 @@ export default function ProfilePage() {
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
         onConfirm={handleDeleteAccount}
+      />
+
+      <LogoutModal
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={handleLogout}
       />
     </div>
   );
