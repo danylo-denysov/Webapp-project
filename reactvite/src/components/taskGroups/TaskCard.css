@@ -13,6 +13,7 @@
     box-shadow 0.2s ease;
 
   overflow: visible;
+  cursor: pointer;
 }
 
 .task-card:hover {
@@ -25,9 +26,39 @@
   filter: brightness(1.02);
 }
 
-.task-title { font-weight: 600; }
-.task-delete{
-  position:absolute; top:.25rem; right:.25rem;
-  background:none; border:none; cursor:pointer;
+.task-title {
+  font-weight: 600;
+  padding-right: 1.5rem;
+  word-break: break-word;
+  white-space: normal;
 }
-.task-delete img{ width:.8rem; height:.8rem; }
+
+.task-delete{
+  position: absolute;
+  top: 50%;
+  right: .5rem;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  opacity: 0;
+  transition: opacity 0.2s, background-color 0.2s;
+}
+
+.task-card:hover .task-delete {
+  opacity: 1;
+}
+
+.task-delete:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.task-delete img{
+  width: .8rem;
+  height: .8rem;
+}

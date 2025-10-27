@@ -12,9 +12,16 @@ import {
 } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
+import { UpdateTaskDto } from './dto/update-task.dto';
+import { CreateTaskListDto } from './dto/create-task-list.dto';
+import { UpdateTaskListDto } from './dto/update-task-list.dto';
+import { CreateTaskListItemDto } from './dto/create-task-list-item.dto';
+import { UpdateTaskListItemDto } from './dto/update-task-list-item.dto';
 import { UpdateTaskOrdersDto } from './dto/update-task-orders.dto';
 import { MoveTaskDto } from './dto/move-task.dto';
 import { Task } from './task.entity';
+import { TaskList } from './task-list.entity';
+import { TaskListItem } from './task-list-item.entity';
 import { JwtAuthGuard } from '../users/jwt-auth.guard';
 import { BoardAccessService } from '../boards/board-access.service';
 import { GetUser } from '../users/get-user.decorator';
@@ -58,6 +65,17 @@ export class TasksController {
     return this.tasksService.createTask(createTaskDto);
   }
 
+  @Patch('/:id')
+  async updateTask(
+    @Param('id') id: string,
+    @Body() updateTaskDto: UpdateTaskDto,
+    @GetUser() user: JwtUserPayload,
+  ): Promise<Task> {
+    const boardId = await this.tasksService.getBoardIdFromTaskId(id);
+    await this.boardAccessService.verifyWriteAccess(boardId, user.id);
+    return this.tasksService.updateTask(id, updateTaskDto);
+  }
+
   @Delete('/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteTaskById(
@@ -95,5 +113,95 @@ export class TasksController {
       throw new Error('Cannot move task to a group in a different board');
     }
     return this.tasksService.moveTaskToGroup(taskId, dto.targetGroupId, dto.newOrder);
+  }
+
+  // Task List endpoints
+  @Post('lists')
+  async createTaskList(
+    @Body() dto: CreateTaskListDto,
+    @GetUser() user: JwtUserPayload,
+  ): Promise<TaskList> {
+    const boardId = await this.tasksService.getBoardIdFromTaskId(dto.taskId);
+    await this.boardAccessService.verifyWriteAccess(boardId, user.id);
+    return this.tasksService.createTaskList(dto);
+  }
+
+  @Patch('lists/:id')
+  async updateTaskList(
+    @Param('id') id: string,
+    @Body() dto: UpdateTaskListDto,
+    @GetUser() user: JwtUserPayload,
+  ): Promise<TaskList> {
+    const taskList = await this.tasksService['taskListsRepository'].findOne({
+      where: { id },
+      relations: ['task', 'task.taskGroup', 'task.taskGroup.board'],
+    });
+    if (!taskList) throw new Error('Task list not found');
+    const boardId = taskList.task.taskGroup.board.id;
+    await this.boardAccessService.verifyWriteAccess(boardId, user.id);
+    return this.tasksService.updateTaskList(id, dto);
+  }
+
+  @Delete('lists/:id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteTaskList(
+    @Param('id') id: string,
+    @GetUser() user: JwtUserPayload,
+  ): Promise<void> {
+    const taskList = await this.tasksService['taskListsRepository'].findOne({
+      where: { id },
+      relations: ['task', 'task.taskGroup', 'task.taskGroup.board'],
+    });
+    if (!taskList) throw new Error('Task list not found');
+    const boardId = taskList.task.taskGroup.board.id;
+    await this.boardAccessService.verifyWriteAccess(boardId, user.id);
+    return this.tasksService.deleteTaskList(id);
+  }
+
+  @Post('lists/items')
+  async createTaskListItem(
+    @Body() dto: CreateTaskListItemDto,
+    @GetUser() user: JwtUserPayload,
+  ): Promise<TaskListItem> {
+    const taskList = await this.tasksService['taskListsRepository'].findOne({
+      where: { id: dto.taskListId },
+      relations: ['task', 'task.taskGroup', 'task.taskGroup.board'],
+    });
+    if (!taskList) throw new Error('Task list not found');
+    const boardId = taskList.task.taskGroup.board.id;
+    await this.boardAccessService.verifyWriteAccess(boardId, user.id);
+    return this.tasksService.createTaskListItem(dto);
+  }
+
+  @Patch('lists/items/:id')
+  async updateTaskListItem(
+    @Param('id') id: string,
+    @Body() dto: UpdateTaskListItemDto,
+    @GetUser() user: JwtUserPayload,
+  ): Promise<TaskListItem> {
+    const item = await this.tasksService['taskListItemsRepository'].findOne({
+      where: { id },
+      relations: ['taskList', 'taskList.task', 'taskList.task.taskGroup', 'taskList.task.taskGroup.board'],
+    });
+    if (!item) throw new Error('Task list item not found');
+    const boardId = item.taskList.task.taskGroup.board.id;
+    await this.boardAccessService.verifyWriteAccess(boardId, user.id);
+    return this.tasksService.updateTaskListItem(id, dto);
+  }
+
+  @Delete('lists/items/:id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteTaskListItem(
+    @Param('id') id: string,
+    @GetUser() user: JwtUserPayload,
+  ): Promise<void> {
+    const item = await this.tasksService['taskListItemsRepository'].findOne({
+      where: { id },
+      relations: ['taskList', 'taskList.task', 'taskList.task.taskGroup', 'taskList.task.taskGroup.board'],
+    });
+    if (!item) throw new Error('Task list item not found');
+    const boardId = item.taskList.task.taskGroup.board.id;
+    await this.boardAccessService.verifyWriteAccess(boardId, user.id);
+    return this.tasksService.deleteTaskListItem(id);
   }
 }

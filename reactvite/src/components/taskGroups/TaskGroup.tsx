@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { useDroppable, useDndContext } from '@dnd-kit/core';
 
 import CreateTaskModal from './CreateTaskModal';
 import DeleteTaskGroupModal from './DeleteTaskGroupModal';
-import RenameTaskGroupModal from './RenameTaskGroupModal';
+import TaskDetailModal from './TaskDetailModal';
 import TaskCardSortable from './TaskCardSortable';
 import TaskGroupEndZone from './TaskGroupEndZone';
 import { useCreateTask } from '../../hooks/taskGroups/useCreateTask';
@@ -45,15 +45,43 @@ export default function TaskGroup({ boardId, group, onTaskAdded, onTaskDeleted, 
   );
   const [modalOpen,setModalOpen]=useState(false);
   const [renameOpen, setRenameOpen] = useState(false);
+  const [taskDetailOpen, setTaskDetailOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [groupNameText, setGroupNameText] = useState(group.name);
+  const renameContainerRef = useRef<HTMLDivElement>(null);
   const { rename } = useRenameTaskGroup(boardId);
-  const handleRename = async (newName: string) => {
+
+  const handleRename = async () => {
+    if (!groupNameText.trim()) return;
     try {
-      await rename(group.id, newName);
+      await rename(group.id, groupNameText);
       onGroupRenamed?.();
       setRenameOpen(false);
     } catch {
     }
   };
+
+  const handleCancelRename = () => {
+    setGroupNameText(group.name);
+    setRenameOpen(false);
+  };
+
+  
+  // Handle click outside to close rename
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (renameOpen && renameContainerRef.current && !renameContainerRef.current.contains(event.target as Node)) {
+        handleCancelRename();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [renameOpen]);
+
+
   const handleDelete = async () => {
     try {
       await remove(group.id);
@@ -85,17 +113,89 @@ export default function TaskGroup({ boardId, group, onTaskAdded, onTaskDeleted, 
   // Only show indicator when over the group container itself, not over any task
   const showDropIndicator = isOverGroup && isTaskBeingDragged && !isOverAnyTask;
 
+  const handleTaskClick = (task: Task) => {
+    setSelectedTask(task);
+    setTaskDetailOpen(true);
+  };
+
+  const handleTaskUpdated = (updatedTask: Task) => {
+    // Update the task in the group's tasks array
+    const updatedTasks = group.tasks.map(t => t.id === updatedTask.id ? updatedTask : t);
+    group.tasks = updatedTasks;
+    setSelectedTask(updatedTask);
+  };
+
   return (
     <div className={`task-group ${!hasTasks ? 'task-group--empty' : ''}`}>
       <header className="group-header" style={{ position:'relative' }} {...dragHandleProps}>
-        <span
-          className="group-name"
-          onClick={canEdit ? () => setRenameOpen(true) : undefined}
-          title={canEdit ? "Click to rename" : undefined}
-          style={{ cursor: canEdit ? 'pointer' : 'default' }}
-        >
-          {group.name}
-        </span>
+        {renameOpen ? (
+          <div
+            ref={renameContainerRef}
+            className="group-name-edit-container"
+            onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
+          >
+            <input
+              type="text"
+              className="group-name-input"
+              value={groupNameText}
+              onChange={(e) => setGroupNameText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleRename();
+                } else if (e.key === 'Escape') {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleCancelRename();
+                }
+              }}
+              autoFocus
+            />
+            <div className="group-name-actions">
+              <button
+                className="group-name-btn group-name-btn--save"
+                onClick={handleRename}
+                onMouseDown={(e) => e.stopPropagation()}
+              >
+                Save
+              </button>
+              <button
+                className="group-name-btn group-name-btn--cancel"
+                onClick={handleCancelRename}
+                onMouseDown={(e) => e.stopPropagation()}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        ) : (
+          <span
+            className="group-name"
+            onClick={(e) => {
+              if (canEdit) {
+                e.stopPropagation();
+                e.preventDefault();
+                setRenameOpen(true);
+              }
+            }}
+            onMouseDown={(e) => {
+              if (canEdit) {
+                e.stopPropagation();
+              }
+            }}
+            onPointerDown={(e) => {
+              if (canEdit) {
+                e.stopPropagation();
+              }
+            }}
+            style={{ cursor: canEdit ? 'pointer' : 'default' }}
+            title={canEdit ? "Click to rename" : undefined}
+          >
+            {group.name}
+          </span>
+        )}
         {canEdit && (
           <button className="group-delete"
             title="Delete group"
@@ -121,6 +221,7 @@ export default function TaskGroup({ boardId, group, onTaskAdded, onTaskDeleted, 
               onDelete={deleteTask}
               canEdit={canEdit}
               groupId={group.id}
+              onClick={() => handleTaskClick(task)}
             />
           ))}
           <TaskGroupEndZone groupId={group.id} />
@@ -138,7 +239,7 @@ export default function TaskGroup({ boardId, group, onTaskAdded, onTaskDeleted, 
 
       {canEdit && (
         <button className="add-task-btn" onClick={()=>setModalOpen(true)}>
-          <img src={plus} alt="add"/>  Add new task
+          <img src={plus} alt="add"/> Add task
         </button>
       )}
 
@@ -148,19 +249,21 @@ export default function TaskGroup({ boardId, group, onTaskAdded, onTaskDeleted, 
         onCreate={(title)=>createTask(title)}
       />
 
-      <RenameTaskGroupModal
-        isOpen={renameOpen}
-        onClose={()=>setRenameOpen(false)}
-        currentName={group.name}
-        onRename={handleRename}
-      />
-
       <DeleteTaskGroupModal
         isOpen={deleteOpen}
         onClose={() => setDeleteOpen(false)}
         name={group.name}
         onConfirm={handleDelete}
       />
+
+      {selectedTask && (
+        <TaskDetailModal
+          isOpen={taskDetailOpen}
+          onClose={() => setTaskDetailOpen(false)}
+          task={selectedTask}
+          onTaskUpdated={handleTaskUpdated}
+        />
+      )}
     </div>
   );
 }

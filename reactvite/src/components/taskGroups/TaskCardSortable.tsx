@@ -9,11 +9,13 @@ export default function TaskCardSortable({
   onDelete,
   canEdit,
   groupId,
+  onClick,
 }: {
   task: Task;
   onDelete: (id: string) => void;
   canEdit: boolean;
   groupId: string;
+  onClick?: () => void;
 }) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [cardHeight, setCardHeight] = useState<number>(0);
@@ -79,7 +81,7 @@ export default function TaskCardSortable({
         height: isDragging ? 0 : 'auto',
         overflow: isDragging ? 'hidden' : 'visible',
       }}>
-        <TaskCard task={task} onDelete={onDelete} canEdit={canEdit} />
+        <TaskCard task={task} onDelete={onDelete} canEdit={canEdit} onClick={onClick} />
       </div>
     </div>
   );

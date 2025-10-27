@@ -8,6 +8,11 @@
   --color-text:             #0B192C;
   --color-overlay-bg:       rgba(134, 126, 126, 0.5);
   --color-transparent:      rgba(255, 255, 255, 0);
+  --color-white-overlay-01: rgba(255, 255, 255, 0.1);
+  --color-white-overlay-02: rgba(255, 255, 255, 0.2);
+  --color-white-overlay-03: rgba(255, 255, 255, 0.3);
+
+  --opacity-empty-state:    0.6;
 
   --button-width:           280px;
 

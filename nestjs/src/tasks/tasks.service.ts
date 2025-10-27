@@ -1,6 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateTaskDto } from './dto/create-task.dto';
+import { UpdateTaskDto } from './dto/update-task.dto';
+import { CreateTaskListDto } from './dto/create-task-list.dto';
+import { UpdateTaskListDto } from './dto/update-task-list.dto';
+import { CreateTaskListItemDto } from './dto/create-task-list-item.dto';
+import { UpdateTaskListItemDto } from './dto/update-task-list-item.dto';
 import { Task } from './task.entity';
+import { TaskList } from './task-list.entity';
+import { TaskListItem } from './task-list-item.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { TaskGroup } from 'src/task-groups/task-group.entity';
@@ -10,6 +17,8 @@ export class TasksService {
   // whenever you interact with database its asynchronous operation
   constructor(
     @InjectRepository(Task) private tasksRepository: Repository<Task>,
+    @InjectRepository(TaskList) private taskListsRepository: Repository<TaskList>,
+    @InjectRepository(TaskListItem) private taskListItemsRepository: Repository<TaskListItem>,
     @InjectRepository(TaskGroup) private readonly groupRepository: Repository<TaskGroup>,
   ) {}
 
@@ -27,10 +36,20 @@ export class TasksService {
   async getTaskById(id: string): Promise<Task> {
     const found = await this.tasksRepository.findOne({
       where: { id },
-      relations: ['taskGroup', 'taskGroup.board'],
+      relations: ['taskGroup', 'taskGroup.board', 'taskLists', 'taskLists.items'],
     });
     if (!found) {
       throw new NotFoundException(`Task with ID "${id}" not found`);
+    }
+
+    // Sort task lists and their items by order
+    if (found.taskLists) {
+      found.taskLists.sort((a, b) => a.order - b.order);
+      found.taskLists.forEach(list => {
+        if (list.items) {
+          list.items.sort((a, b) => a.order - b.order);
+        }
+      });
     }
 
     return found;
@@ -77,6 +96,20 @@ export class TasksService {
       taskGroup: group,
       order: nextOrder,
     });
+    await this.tasksRepository.save(task);
+    return task;
+  }
+
+  async updateTask(id: string, updateTaskDto: UpdateTaskDto): Promise<Task> {
+    const task = await this.getTaskById(id);
+
+    if (updateTaskDto.title !== undefined) {
+      task.title = updateTaskDto.title;
+    }
+    if (updateTaskDto.description !== undefined) {
+      task.description = updateTaskDto.description;
+    }
+
     await this.tasksRepository.save(task);
     return task;
   }
@@ -162,5 +195,92 @@ export class TasksService {
         }
       }
     });
+  }
+
+  // Task List methods
+  async createTaskList(createTaskListDto: CreateTaskListDto): Promise<TaskList> {
+    const { name, taskId } = createTaskListDto;
+
+    const task = await this.tasksRepository.findOne({ where: { id: taskId } });
+    if (!task) throw new NotFoundException('Task not found');
+
+    const maxRaw = await this.taskListsRepository
+      .createQueryBuilder('tl')
+      .select('MAX(tl.order)', 'max')
+      .where('tl.taskId = :taskId', { taskId })
+      .getRawOne<{ max: number }>();
+    const nextOrder = (maxRaw?.max ?? -1) + 1;
+
+    const taskList = this.taskListsRepository.create({
+      name,
+      task,
+      order: nextOrder,
+    });
+    await this.taskListsRepository.save(taskList);
+    taskList.items = [];
+    return taskList;
+  }
+
+  async createTaskListItem(createTaskListItemDto: CreateTaskListItemDto): Promise<TaskListItem> {
+    const { content, taskListId } = createTaskListItemDto;
+
+    const taskList = await this.taskListsRepository.findOne({ where: { id: taskListId } });
+    if (!taskList) throw new NotFoundException('Task list not found');
+
+    const maxRaw = await this.taskListItemsRepository
+      .createQueryBuilder('tli')
+      .select('MAX(tli.order)', 'max')
+      .where('tli.taskListId = :taskListId', { taskListId })
+      .getRawOne<{ max: number }>();
+    const nextOrder = (maxRaw?.max ?? -1) + 1;
+
+    const item = this.taskListItemsRepository.create({
+      content,
+      taskList,
+      order: nextOrder,
+    });
+    await this.taskListItemsRepository.save(item);
+    return item;
+  }
+
+  async updateTaskList(id: string, updateDto: UpdateTaskListDto): Promise<TaskList> {
+    const taskList = await this.taskListsRepository.findOne({ where: { id } });
+    if (!taskList) throw new NotFoundException('Task list not found');
+
+    if (updateDto.name !== undefined) {
+      taskList.name = updateDto.name;
+    }
+
+    await this.taskListsRepository.save(taskList);
+    return taskList;
+  }
+
+  async updateTaskListItem(id: string, updateDto: UpdateTaskListItemDto): Promise<TaskListItem> {
+    const item = await this.taskListItemsRepository.findOne({ where: { id } });
+    if (!item) throw new NotFoundException('Task list item not found');
+
+    if (updateDto.content !== undefined) {
+      item.content = updateDto.content;
+    }
+    if (updateDto.completed !== undefined) {
+      item.completed = updateDto.completed;
+    }
+
+    await this.taskListItemsRepository.save(item);
+    return item;
+  }
+
+  async deleteTaskList(id: string): Promise<void> {
+    const result = await this.taskListsRepository.delete(id);
+    if (result.affected === 0) {
+      throw new NotFoundException(`Task list with ID "${id}" not found`);
+    }
+  }
+
+  async deleteTaskListItem(id: string): Promise<void> {
+    const result = await this.taskListItemsRepository.delete(id);
+    if (result.affected === 0) {
+      throw new NotFoundException(`Task list item with ID "${id}" not found`);
+    }
   }
 }

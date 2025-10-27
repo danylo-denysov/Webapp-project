@@ -3,32 +3,27 @@ import { safe_fetch } from '../../utils/api';
 import { handleApiError } from '../../utils/errorHandler';
 import { toastError, toastSuccess } from '../../utils/toast';
 
-export function useCreateTask(
-  groupId: string,
-  onAdded?: (task: Task) => void
-) {
-  const createTask = async (title: string) => {
-    if (!title.trim()) {
-      return toastError('Task name is required');
-    }
-
+export function useUpdateTask(onUpdated?: (task: Task) => void) {
+  const updateTask = async (taskId: string, updates: { title?: string; description?: string }) => {
     try {
-      const res = await safe_fetch('/api/tasks', {
-        method: 'POST',
+      const res = await safe_fetch(`/api/tasks/${taskId}`, {
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, groupId }),
+        body: JSON.stringify(updates),
       });
       if (!res.ok) {
         await handleApiError(res);
       }
       const data = await res.json();
-      toastSuccess('Task added');
-      onAdded?.(data as Task);
+      toastSuccess('Task updated');
+      onUpdated?.(data as Task);
+      return data as Task;
     } catch (err) {
       const error = err as Error;
       toastError(error.message);
+      throw error;
     }
   };
 
-  return { createTask };
+  return { updateTask };
 }

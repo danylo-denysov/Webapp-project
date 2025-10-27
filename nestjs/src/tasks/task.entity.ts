@@ -1,5 +1,6 @@
-import { Column, Entity, Index, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, Index, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { TaskGroup } from 'src/task-groups/task-group.entity';
+import { TaskList } from './task-list.entity';
 
 @Entity()
 export class Task {
@@ -9,7 +10,7 @@ export class Task {
   @Column()
   title: string;
 
-  @Column()
+  @Column({ default: '' })
   description: string;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
@@ -23,4 +24,9 @@ export class Task {
     onDelete: 'CASCADE',
   })
   taskGroup: TaskGroup;
+
+  @OneToMany(() => TaskList, (taskList) => taskList.task, {
+    cascade: true,
+  })
+  taskLists: TaskList[];
 }

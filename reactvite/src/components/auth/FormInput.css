@@ -3,12 +3,25 @@
   margin-bottom: 0.25rem;
   color: var(--color-text);
 }
+
 .form-input input {
   width: 100%;
   padding: 0.75rem;
   border: 2px solid var(--color-input-border);
   border-radius: 8px;
   font-size: 1rem;
-  background: var(--color-cards);
+  background: var(--color-cards-light);
+  color: var(--color-text);
   outline: none;
+  transition: border-color 0.2s ease;
+  font-family: inherit;
+}
+
+.form-input input:focus {
+  border-color: var(--color-gradient-start);
+}
+
+.form-input input::placeholder {
+  color: var(--color-text);
+  opacity: var(--opacity-empty-state);
 }
