@@ -382,24 +382,32 @@ export default function TasksPage() {
           strategy={horizontalListSortingStrategy}
         >
           <div className="groups-row">
-            <div className="groups-row__inner-wrapper">
-              {localOrder.map(id => {
-                const g = groups.find(grp => grp.id === id);
-                if (!g) return null;
-                return (
-                  <TaskGroupSortable
-                    key={g.id}
-                    boardId={boardId!}
-                    group={g}
-                    onTaskAdded={() => refresh()}
-                    onTaskDeleted={() => refresh()}
-                    onGroupRenamed={refresh}
-                    onGroupDeleted={refresh}
-                    userRole={userRole}
-                  />
-                );
-              })}
-            </div>
+            {groups.length === 0 ? (
+              <div className="tasks-empty-state">
+                <p className="tasks-empty-state__text">
+                  No task groups created yet. Click "New group" to get started!
+                </p>
+              </div>
+            ) : (
+              <div className="groups-row__inner-wrapper">
+                {localOrder.map(id => {
+                  const g = groups.find(grp => grp.id === id);
+                  if (!g) return null;
+                  return (
+                    <TaskGroupSortable
+                      key={g.id}
+                      boardId={boardId!}
+                      group={g}
+                      onTaskAdded={() => refresh()}
+                      onTaskDeleted={() => refresh()}
+                      onGroupRenamed={refresh}
+                      onGroupDeleted={refresh}
+                      userRole={userRole}
+                    />
+                  );
+                })}
+              </div>
+            )}
           </div>
         </SortableContext>
 

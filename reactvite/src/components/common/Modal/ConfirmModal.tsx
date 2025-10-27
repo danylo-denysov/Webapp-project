@@ -24,8 +24,16 @@ export default function ConfirmModal({
   isLoading = false,
   loadingText = 'Processing...',
 }: ConfirmModalProps) {
-  const handleConfirm = async () => {
+  const handleConfirm = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     await onConfirm();
+  };
+
+  const handleCancel = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onClose();
   };
 
   return (
@@ -36,7 +44,7 @@ export default function ConfirmModal({
         <button className="modal-btn" onClick={handleConfirm} disabled={isLoading}>
           {isLoading ? loadingText : confirmText}
         </button>
-        <button className="modal-btn" onClick={onClose} disabled={isLoading}>
+        <button className="modal-btn" onClick={handleCancel} disabled={isLoading}>
           {cancelText}
         </button>
       </div>

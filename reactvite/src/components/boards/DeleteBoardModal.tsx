@@ -23,6 +23,7 @@ export function DeleteBoardModal({
     try {
       const res = await safe_fetch(`/api/boards/${boardId}/user`, {
         method: 'DELETE',
+        credentials: 'include',
       });
       if (!res.ok) throw new Error('Failed to delete board');
       toastSuccess('Board deleted');
@@ -30,7 +31,10 @@ export function DeleteBoardModal({
       onClose();
     } catch (err) {
       const error = err as Error;
-      toastError(error.message || 'Failed to delete board');
+      // Don't show error toast if session expired (safe_fetch already redirects)
+      if (error.message !== 'Session expired') {
+        toastError(error.message || 'Failed to delete board');
+      }
     } finally {
       setIsDeleting(false);
     }

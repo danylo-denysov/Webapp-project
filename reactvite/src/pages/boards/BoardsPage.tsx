@@ -134,11 +134,21 @@ export default function BoardsPage() {
         </div>
 
         <div className="boards-scroll-container">
-          <BoardsList
-            boards={filteredAndSorted}
-            refresh={refresh}
-            currentUserId={currentUser?.id || null}
-          />
+          {filteredAndSorted.length === 0 ? (
+            <div className="boards-empty-state">
+              <p className="boards-empty-state__text">
+                {searchTerm
+                  ? 'No boards found matching your search'
+                  : 'No boards created yet. Click "Create Board" to get started!'}
+              </p>
+            </div>
+          ) : (
+            <BoardsList
+              boards={filteredAndSorted}
+              refresh={refresh}
+              currentUserId={currentUser?.id || null}
+            />
+          )}
         </div>
       </div>
     </div>

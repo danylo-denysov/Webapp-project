@@ -73,3 +73,19 @@
 .boards-scroll-container::-webkit-scrollbar-thumb:hover {
   background: var(--color-input-border);
 }
+
+.boards-empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 2rem;
+}
+
+.boards-empty-state__text {
+  text-align: center;
+  color: var(--color-text);
+  opacity: var(--opacity-empty-state);
+  font-size: 1.125rem;
+  margin: 0;
+}
