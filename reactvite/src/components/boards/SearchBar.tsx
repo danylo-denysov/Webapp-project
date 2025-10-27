@@ -4,9 +4,10 @@ import './SearchBar.css';
 interface SearchBarProps {
   value: string;
   onChange: (val: string) => void;
+  autoFocus?: boolean;
 }
 
-export default function SearchBar({ value, onChange }: SearchBarProps) {
+export default function SearchBar({ value, onChange, autoFocus }: SearchBarProps) {
   return (
     <div className="search-bar">
       <img src={searchIcon} alt="Search" />
@@ -15,6 +16,7 @@ export default function SearchBar({ value, onChange }: SearchBarProps) {
         placeholder=""
         value={value}
         onChange={e => onChange(e.target.value)}
+        autoFocus={autoFocus}
       />
     </div>
   );

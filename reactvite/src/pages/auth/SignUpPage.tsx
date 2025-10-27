@@ -39,7 +39,10 @@ export default function SignUpPage() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message[0] || 'Failed to sign up');
+        const errorMessage = Array.isArray(errorData.message)
+          ? errorData.message.join(', ')
+          : (errorData.message || 'Failed to sign up');
+        throw new Error(errorMessage);
       }
 
       toastSuccess('Account created');

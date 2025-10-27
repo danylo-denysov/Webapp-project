@@ -152,7 +152,7 @@ export default function TeamModal({ isOpen, onClose, boardId, isOwner }: TeamMod
 
           {activeTab === 'invite' && isOwner && (
             <div className="team-modal__invite-tab">
-              <SearchBar value={searchQuery} onChange={setSearchQuery} />
+              <SearchBar value={searchQuery} onChange={setSearchQuery} autoFocus={true} />
 
               {searchLoading ? (
                 <div className="team-modal__loading">Searching...</div>

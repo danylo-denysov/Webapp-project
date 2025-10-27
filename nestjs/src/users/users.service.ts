@@ -24,6 +24,18 @@ export class UsersService {
   async createUser(createUserDto: CreateUserDto): Promise<Partial<User>> {
     const { username, email, password } = createUserDto;
 
+    // Check if email already exists
+    const existingEmail = await this.usersRepository.findOne({ where: { email } });
+    if (existingEmail) {
+      throw new ConflictException('Email already exists');
+    }
+
+    // Check if username already exists
+    const existingUsername = await this.usersRepository.findOne({ where: { username } });
+    if (existingUsername) {
+      throw new ConflictException('Username already exists');
+    }
+
     const salt = await bcrypt.genSalt(); // Generate a salt for hashing
     const hashedPassword = await bcrypt.hash(password, salt); // Hash the password with the salt
 

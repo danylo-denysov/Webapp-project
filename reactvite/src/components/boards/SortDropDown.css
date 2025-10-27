@@ -1,11 +1,15 @@
+.sort-dropdown-container {
+  display: flex;
+  align-items: center;
+}
+
 .sort-dropdown {
   position: relative;
   display: inline-block;
-  width: 8rem;
 }
 
 .sort-button {
-  width: 10rem;
+  width: fit-content;
   text-align: left;
   background: transparent;
   border: none;
@@ -15,7 +19,14 @@
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  margin-top: 0.5rem;;
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.sort-button:hover {
+  background-color: rgba(0, 0, 0, 0.05);
 }
 
 .sort-button:focus {
@@ -24,6 +35,12 @@
 
 .arrow {
   font-size: 0.75rem;
+  transition: transform 0.2s ease;
+  display: inline-block;
+}
+
+.arrow--open {
+  transform: rotate(180deg);
 }
 
 .sort-menu {
@@ -61,4 +78,40 @@
 
 .sort-menu li:hover::after {
   opacity: 1;
+}
+
+.sort-order-button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+  margin-top: 0.5rem;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.sort-order-button:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.sort-order-button img {
+  width: 32px;
+  height: 32px;
+  display: block;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transition: transform 0.2s ease;
+}
+
+.sort-icon-up {
+  transform: translate(-50%, -50%) rotate(180deg);
+}
+
+.sort-icon-down {
+  transform: translate(-50%, -50%) rotate(0deg);
 }

@@ -124,8 +124,9 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s;
   padding: 0;
+  border-radius: 4px;
+  transition: background-color 0.2s;
 }
 
 .team-modal__add-button img {
@@ -135,7 +136,7 @@
 }
 
 .team-modal__add-button:hover {
-  transform: scale(1.15);
+  background-color: rgba(0, 0, 0, 0.05);
 }
 
 .team-modal__loading,

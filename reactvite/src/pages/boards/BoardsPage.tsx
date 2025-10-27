@@ -29,7 +29,8 @@ const cmp = <T, K extends keyof T>(a: T, b: T, key: K) => {
 export default function BoardsPage() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState<'Name' | 'Owner' | 'Date'>('Name');
+  const [sortBy, setSortBy] = useState<'Name' | 'Owner' | 'Date'>('Date');
+  const [ascending, setAscending] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const { boards, loading, error: loadError, refresh } = useBoards();
@@ -56,18 +57,23 @@ export default function BoardsPage() {
         b.name.toLowerCase().includes(searchTerm.toLowerCase()),
       )
       .sort((a, b) => {
+        let result = 0;
         switch (sortBy) {
           case 'Name':
-            return cmp(a, b, 'name');
+            result = cmp(a, b, 'name');
+            break;
           case 'Owner':
-            return cmp(a, b, 'owner');
+            result = cmp(a, b, 'owner');
+            break;
           case 'Date':
-            return cmp(a, b, 'created_at');
+            result = cmp(a, b, 'created_at');
+            break;
           default:
-            return 0;
+            result = 0;
         }
+        return ascending ? result : -result;
       });
-  }, [boards, searchTerm, sortBy]);
+  }, [boards, searchTerm, sortBy, ascending]);
 
   const handleOpenModal = useCallback(() => setIsModalOpen(true), []);
   const handleCloseModal = useCallback(() => setIsModalOpen(false), []);
@@ -78,6 +84,10 @@ export default function BoardsPage() {
 
   const handleSortChange = useCallback((opt: string) => {
     setSortBy(opt as 'Name' | 'Owner' | 'Date');
+  }, []);
+
+  const handleToggleOrder = useCallback(() => {
+    setAscending(prev => !prev);
   }, []);
 
   if (loading) {
@@ -112,6 +122,8 @@ export default function BoardsPage() {
               options={['Name', 'Owner', 'Date']}
               selected={sortBy}
               onSelect={handleSortChange}
+              ascending={ascending}
+              onToggleOrder={handleToggleOrder}
             />
           </div>
 
