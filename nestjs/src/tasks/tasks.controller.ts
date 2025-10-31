@@ -19,6 +19,9 @@ import { CreateTaskListItemDto } from './dto/create-task-list-item.dto';
 import { UpdateTaskListItemDto } from './dto/update-task-list-item.dto';
 import { UpdateTaskOrdersDto } from './dto/update-task-orders.dto';
 import { MoveTaskDto } from './dto/move-task.dto';
+import { UpdateListOrdersDto } from './dto/update-list-orders.dto';
+import { UpdateListItemOrdersDto } from './dto/update-list-item-orders.dto';
+import { MoveListItemDto } from './dto/move-list-item.dto';
 import { Task } from './task.entity';
 import { TaskList } from './task-list.entity';
 import { TaskListItem } from './task-list-item.entity';
@@ -203,5 +206,45 @@ export class TasksController {
     const boardId = item.taskList.task.taskGroup.board.id;
     await this.boardAccessService.verifyWriteAccess(boardId, user.id);
     return this.tasksService.deleteTaskListItem(id);
+  }
+
+  @Patch(':taskId/lists/reorder')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async reorderTaskLists(
+    @Param('taskId') taskId: string,
+    @Body() dto: UpdateListOrdersDto,
+    @GetUser() user: JwtUserPayload,
+  ): Promise<void> {
+    const boardId = await this.tasksService.getBoardIdFromTaskId(taskId);
+    await this.boardAccessService.verifyWriteAccess(boardId, user.id);
+    return this.tasksService.reorderTaskLists(taskId, dto.ids);
+  }
+
+  @Patch('lists/:listId/items/reorder')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async reorderListItems(
+    @Param('listId') listId: string,
+    @Body() dto: UpdateListItemOrdersDto,
+    @GetUser() user: JwtUserPayload,
+  ): Promise<void> {
+    const boardId = await this.tasksService.getBoardIdFromTaskListId(listId);
+    await this.boardAccessService.verifyWriteAccess(boardId, user.id);
+    return this.tasksService.reorderTaskListItems(listId, dto.ids);
+  }
+
+  @Patch('lists/items/:itemId/move')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async moveListItem(
+    @Param('itemId') itemId: string,
+    @Body() dto: MoveListItemDto,
+    @GetUser() user: JwtUserPayload,
+  ): Promise<void> {
+    const boardId = await this.tasksService.getBoardIdFromListItemId(itemId);
+    await this.boardAccessService.verifyWriteAccess(boardId, user.id);
+    const targetBoardId = await this.tasksService.getBoardIdFromTaskListId(dto.targetListId);
+    if (boardId !== targetBoardId) {
+      throw new Error('Cannot move item to a list in a different task');
+    }
+    return this.tasksService.moveListItemToList(itemId, dto.targetListId, dto.newOrder);
   }
 }

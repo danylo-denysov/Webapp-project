@@ -283,4 +283,122 @@ export class TasksService {
       throw new NotFoundException(`Task list item with ID "${id}" not found`);
     }
   }
+
+  async reorderTaskLists(taskId: string, ids: string[]): Promise<void> {
+    const existing = await this.taskListsRepository.find({
+      where: { task: { id: taskId } },
+      select: ['id'],
+    });
+    const existingIds = new Set(existing.map((tl) => tl.id));
+    if (ids.some((id) => !existingIds.has(id))) {
+      throw new NotFoundException('One or more task lists not found in this task');
+    }
+
+    await this.taskListsRepository.manager.transaction(async (manager) => {
+      for (let i = 0; i < ids.length; i++) {
+        await manager.update(TaskList, { id: ids[i] }, { order: i });
+      }
+    });
+  }
+
+  async reorderTaskListItems(listId: string, ids: string[]): Promise<void> {
+    const existing = await this.taskListItemsRepository.find({
+      where: { taskList: { id: listId } },
+      select: ['id'],
+    });
+    const existingIds = new Set(existing.map((item) => item.id));
+    if (ids.some((id) => !existingIds.has(id))) {
+      throw new NotFoundException('One or more list items not found in this list');
+    }
+
+    await this.taskListItemsRepository.manager.transaction(async (manager) => {
+      for (let i = 0; i < ids.length; i++) {
+        await manager.update(TaskListItem, { id: ids[i] }, { order: i });
+      }
+    });
+  }
+
+  async moveListItemToList(itemId: string, targetListId: string, newOrder: number): Promise<void> {
+    const item = await this.taskListItemsRepository.findOne({
+      where: { id: itemId },
+      relations: ['taskList'],
+    });
+    if (!item) {
+      throw new NotFoundException(`List item with ID "${itemId}" not found`);
+    }
+
+    const targetList = await this.taskListsRepository.findOne({
+      where: { id: targetListId },
+    });
+    if (!targetList) {
+      throw new NotFoundException(`Target list with ID "${targetListId}" not found`);
+    }
+
+    const sourceListId = item.taskList.id;
+
+    await this.taskListItemsRepository.manager.transaction(async (manager) => {
+      if (sourceListId === targetListId) {
+        // Moving within the same list
+        const itemsInList = await manager.find(TaskListItem, {
+          where: { taskList: { id: targetListId } },
+          order: { order: 'ASC' },
+        });
+
+        const oldIndex = itemsInList.findIndex((i) => i.id === itemId);
+        if (oldIndex === -1) return;
+
+        itemsInList.splice(oldIndex, 1);
+        itemsInList.splice(newOrder, 0, item);
+
+        for (let i = 0; i < itemsInList.length; i++) {
+          await manager.update(TaskListItem, { id: itemsInList[i].id }, { order: i });
+        }
+      } else {
+        // Moving to a different list
+        const itemsInTargetList = await manager.find(TaskListItem, {
+          where: { taskList: { id: targetListId } },
+          order: { order: 'ASC' },
+        });
+
+        await manager.update(TaskListItem, { id: itemId }, { taskList: targetList });
+
+        itemsInTargetList.splice(newOrder, 0, item);
+
+        for (let i = 0; i < itemsInTargetList.length; i++) {
+          await manager.update(TaskListItem, { id: itemsInTargetList[i].id }, { order: i });
+        }
+
+        // Reorder remaining items in source list
+        const itemsInSourceList = await manager.find(TaskListItem, {
+          where: { taskList: { id: sourceListId } },
+          order: { order: 'ASC' },
+        });
+        for (let i = 0; i < itemsInSourceList.length; i++) {
+          await manager.update(TaskListItem, { id: itemsInSourceList[i].id }, { order: i });
+        }
+      }
+    });
+  }
+
+  async getBoardIdFromTaskListId(listId: string): Promise<string> {
+    const taskList = await this.taskListsRepository.findOne({
+      where: { id: listId },
+      relations: ['task', 'task.taskGroup', 'task.taskGroup.board'],
+    });
+    if (!taskList) {
+      throw new NotFoundException(`Task list with ID "${listId}" not found`);
+    }
+    return taskList.task.taskGroup.board.id;
+  }
+
+  async getBoardIdFromListItemId(itemId: string): Promise<string> {
+    const item = await this.taskListItemsRepository.findOne({
+      where: { id: itemId },
+      relations: ['taskList', 'taskList.task', 'taskList.task.taskGroup', 'taskList.task.taskGroup.board'],
+    });
+    if (!item) {
+      throw new NotFoundException(`List item with ID "${itemId}" not found`);
+    }
+    return item.taskList.task.taskGroup.board.id;
+  }
 }

@@ -1,6 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 import TaskCard from './TaskCard';
 import type { Task } from '../../types/task';
 
@@ -24,8 +23,6 @@ export default function TaskCardSortable({
     attributes,
     listeners,
     setNodeRef,
-    transform,
-    transition,
     isDragging,
     over,
     active,

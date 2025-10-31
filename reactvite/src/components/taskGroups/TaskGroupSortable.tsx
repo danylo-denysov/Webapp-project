@@ -29,8 +29,8 @@ export default function TaskGroupSortable(props: TaskGroupSortableProps) {
   }
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes}>
-      <TaskGroup {...props} dragHandleProps={listeners} />
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+      <TaskGroup {...props} />
     </div>
   )
 }

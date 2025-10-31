@@ -1,0 +1,80 @@
+.list-ghost {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-height: 400px;
+  overflow: hidden;
+  background: var(--color-cards);
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  opacity: 0.95;
+  cursor: grabbing;
+  transform: rotate(2deg);
+  pointer-events: none;
+}
+
+.list-ghost__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.list-ghost__info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.list-ghost__progress {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  padding: 0.15rem 0.5rem;
+  background: var(--color-cards-light);
+  border-radius: 4px;
+}
+
+.list-ghost__name {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.list-ghost__items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.list-ghost__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: var(--color-cards-light);
+  border-radius: 6px;
+  box-shadow:
+    0 var(--button-shadow-y)
+      var(--button-shadow-blur)
+      var(--button-shadow-color);
+}
+
+.list-ghost__item-content {
+  flex: 1;
+  color: var(--color-text);
+  line-height: 1.4;
+}
+
+.list-ghost__item-content--completed {
+  text-decoration: line-through;
+  opacity: 0.5;
+}
+
+.list-ghost__more {
+  text-align: center;
+  padding: 0.5rem;
+  opacity: 0.6;
+  font-size: 0.9rem;
+}

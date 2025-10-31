@@ -287,6 +287,11 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 12px;
+  cursor: grab;
+}
+
+.task-detail-modal__list-header:active {
+  cursor: grabbing;
 }
 
 .task-detail-modal__list-info {

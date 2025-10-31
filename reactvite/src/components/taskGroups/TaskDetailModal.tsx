@@ -1,11 +1,21 @@
 import { useState, useEffect } from 'react';
+import { DndContext, closestCorners, PointerSensor, useSensor, useSensors, DragEndEvent, DragStartEvent, DragOverlay, CollisionDetection, pointerWithin } from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import Modal from '../common/Modal/Modal';
 import { useUpdateTask } from '../../hooks/taskGroups/useUpdateTask';
 import { useTaskLists } from '../../hooks/taskGroups/useTaskLists';
 import { useUpdateTaskList } from '../../hooks/taskGroups/useUpdateTaskList';
+import { useMoveListItem } from '../../hooks/taskGroups/useMoveListItem';
+import { useReorderTaskLists } from '../../hooks/taskGroups/useReorderTaskLists';
 import { safe_fetch } from '../../utils/api';
 import { handleApiError } from '../../utils/errorHandler';
+import { toastError } from '../../utils/toast';
 import type { Task, TaskList, TaskListItem } from '../../types/task';
+import ListItemSortable from './ListItemSortable';
+import ListItemEndZone from './ListItemEndZone';
+import ListSortable from './ListSortable';
+import ListEndZone from './ListEndZone';
+import ListGhost from './ListGhost';
 import closeIcon from '../../assets/close.svg';
 import plusIcon from '../../assets/plus.svg';
 import './TaskDetailModal.css';
@@ -31,12 +41,13 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated }
   const [creatingItemForList, setCreatingItemForList] = useState<string | null>(null);
   const [newItemContent, setNewItemContent] = useState('');
   const [loading, setLoading] = useState(true);
-  const [fullTask, setFullTask] = useState<Task | null>(null);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [titleText, setTitleText] = useState(task.title || '');
   const [currentTitle, setCurrentTitle] = useState(task.title || '');
   const [editingListId, setEditingListId] = useState<string | null>(null);
   const [editingListName, setEditingListName] = useState('');
+  const [activeItem, setActiveItem] = useState<TaskListItem | null>(null);
+  const [activeList, setActiveList] = useState<TaskList | null>(null);
 
   const { updateTask } = useUpdateTask((updatedTask) => {
     setCurrentDescription(updatedTask.description || '');
@@ -46,6 +57,41 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated }
 
   const { createList, deleteList, createItem, toggleItem, deleteItem } = useTaskLists();
   const { updateTaskList } = useUpdateTaskList();
+  const { moveItem } = useMoveListItem();
+  const { reorderLists } = useReorderTaskLists();
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    })
+  );
+
+  // Custom collision detection that filters out the actively dragged item
+  const collisionDetectionStrategy: CollisionDetection = (args) => {
+    const activeData = args.active?.data.current;
+
+    // If dragging a list, use pointerWithin for more lenient detection (same as groups)
+    if (activeData?.type === 'list') {
+      const allCollisions = pointerWithin(args);
+      const listCollisions = allCollisions.filter((collision) => {
+        const container = args.droppableContainers.find(c => c.id === collision.id);
+        const overData = container?.data.current;
+        return (overData?.type === 'list' || overData?.type === 'list-end-zone') && collision.id !== args.active.id;
+      });
+      return listCollisions.length > 0 ? listCollisions : [];
+    }
+
+    // For list items, use closestCorners
+    const allCollisions = closestCorners(args);
+    return allCollisions.filter((collision) => {
+      if (args.active && collision.id === args.active.id) {
+        return false;
+      }
+      return true;
+    });
+  };
 
   // Fetch full task details including lists
   useEffect(() => {
@@ -56,7 +102,6 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated }
           const res = await safe_fetch(`/api/tasks/${task.id}`);
           if (res.ok) {
             const data = await res.json() as Task;
-            setFullTask(data);
             setTaskLists(data.taskLists || []);
           } else {
             await handleApiError(res);
@@ -229,11 +274,174 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated }
     closeEditingStates();
   };
 
+  const handleDragStart = (event: DragStartEvent) => {
+    const { active } = event;
+    const activeData = active.data.current;
+
+    if (activeData?.type === 'list-item') {
+      // Find the item being dragged
+      for (const list of taskLists) {
+        const item = list.items.find(i => i.id === active.id);
+        if (item) {
+          setActiveItem(item);
+          break;
+        }
+      }
+    } else if (activeData?.type === 'list') {
+      // Find the list being dragged
+      const list = taskLists.find(l => l.id === active.id);
+      if (list) {
+        setActiveList(list);
+      }
+    }
+  };
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    setActiveItem(null);
+    setActiveList(null);
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const activeData = active.data.current;
+    const overData = over.data.current;
+
+    // Handle list item dragging
+    if (activeData?.type === 'list-item') {
+      const itemId = active.id as string;
+      const sourceListId = activeData.listId;
+      let targetListId: string | undefined;
+      let newOrder: number | undefined;
+
+      // Check if dropped on end zone (after all items)
+      if (overData?.type === 'list-end-zone') {
+        targetListId = overData.listId;
+        const targetList = taskLists.find(l => l.id === targetListId);
+
+        if (targetList) {
+          if (sourceListId === targetListId) {
+            // Moving within same list to the end
+            // After removal, length decreases by 1, so we want length - 1
+            newOrder = targetList.items.length - 1;
+          } else {
+            // Moving to different list - add at the end
+            newOrder = targetList.items.length;
+          }
+        } else {
+          newOrder = 0;
+        }
+      }
+      // Check if dropped on another item
+      else if (overData?.type === 'list-item') {
+        targetListId = overData.listId;
+        const targetList = taskLists.find(l => l.id === targetListId);
+
+        if (targetList) {
+          const overItemIndex = targetList.items.findIndex(i => i.id === over.id);
+
+          if (overItemIndex >= 0) {
+            if (sourceListId === targetListId) {
+              const sourceItemIndex = targetList.items.findIndex(i => i.id === itemId);
+              // If dragging down, account for removal shifting indices
+              if (sourceItemIndex < overItemIndex) {
+                newOrder = overItemIndex - 1;
+              } else {
+                newOrder = overItemIndex;
+              }
+            } else {
+              // Different list - insert at the hovered item position
+              newOrder = overItemIndex;
+            }
+          } else {
+            newOrder = targetList.items.length;
+          }
+        }
+      }
+
+      if (targetListId !== undefined && newOrder !== undefined) {
+        // Save current state for rollback
+        const previousLists = [...taskLists];
+
+        // Optimistically update UI
+        const updatedLists = taskLists.map(l => ({ ...l, items: [...l.items] }));
+        const sourceList = updatedLists.find(l => l.id === sourceListId);
+        const targetList = updatedLists.find(l => l.id === targetListId);
+
+        if (sourceList && targetList) {
+          // Remove item from source list
+          const itemIndex = sourceList.items.findIndex(i => i.id === itemId);
+          if (itemIndex >= 0) {
+            const [movedItem] = sourceList.items.splice(itemIndex, 1);
+
+            // Add item to target list at specified position
+            targetList.items.splice(newOrder, 0, movedItem);
+
+            // Update UI immediately
+            setTaskLists(updatedLists);
+
+            // Send request to backend
+            try {
+              await moveItem(itemId, targetListId, newOrder);
+            } catch (e) {
+              console.error('Failed to move list item:', e);
+              toastError('Failed to move list item');
+              // Rollback on error
+              setTaskLists(previousLists);
+            }
+          }
+        }
+      }
+    }
+    // Handle list dragging
+    else if (activeData?.type === 'list') {
+      const activeListId = active.id as string;
+      const oldIndex = taskLists.findIndex(l => l.id === activeListId);
+      let newIndex: number;
+
+      // Check if dropped on end zone
+      if (overData?.type === 'list-end-zone') {
+        newIndex = taskLists.length - 1;
+      } else if (overData?.type === 'list') {
+        const overListId = over.id as string;
+        newIndex = taskLists.findIndex(l => l.id === overListId);
+      } else {
+        return;
+      }
+
+      if (oldIndex !== newIndex) {
+        // Save current state for rollback
+        const previousLists = [...taskLists];
+
+        // Reorder lists optimistically
+        const reorderedLists = [...taskLists];
+        const [movedList] = reorderedLists.splice(oldIndex, 1);
+        reorderedLists.splice(newIndex, 0, movedList);
+
+        setTaskLists(reorderedLists);
+
+        // Send request to backend
+        try {
+          await reorderLists(task.id, reorderedLists.map(l => l.id));
+        } catch (e) {
+          console.error('Failed to reorder lists:', e);
+          toastError('Failed to reorder lists');
+          // Rollback on error
+          setTaskLists(previousLists);
+        }
+      }
+    }
+  };
+
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
-      <div className="task-detail-modal">
-        {/* Left side - Task details */}
-        <div className="task-detail-modal__left" onClick={handleContainerClick}>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={collisionDetectionStrategy}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="task-detail-modal">
+          {/* Left side - Task details */}
+          <div className="task-detail-modal__left" onClick={handleContainerClick}>
           {/* Task Title Section */}
           <div className="task-detail-modal__header" onClick={(e) => e.stopPropagation()}>
             {isEditingTitle ? (
@@ -359,10 +567,15 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated }
                 </div>
               )}
 
-              {taskLists.map((list) => {
-                const { completed, total } = getCompletionCount(list);
-                return (
-                  <div key={list.id} className="task-detail-modal__list">
+              <SortableContext
+                items={[...taskLists.map(l => l.id), 'list-end-zone']}
+                strategy={verticalListSortingStrategy}
+              >
+                {taskLists.map((list) => {
+                  const { completed, total } = getCompletionCount(list);
+                  return (
+                    <ListSortable key={list.id} listId={list.id}>
+                      <div className="task-detail-modal__list">
                     <div className="task-detail-modal__list-header">
                       <div className="task-detail-modal__list-info">
                         <span className="task-detail-modal__list-progress">
@@ -425,33 +638,22 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated }
                     </div>
 
                     <div className="task-detail-modal__list-items">
-                      {list.items.map((item) => (
-                        <div key={item.id} className="task-detail-modal__list-item">
-                          <label
-                            className="task-detail-modal__checkbox-container"
-                            onClick={closeEditingStates}
-                          >
-                            <input
-                              type="checkbox"
-                              checked={item.completed}
-                              onChange={(e) => handleToggleItem(list.id, item.id, e.target.checked)}
-                            />
-                            <span className="task-detail-modal__checkbox-custom"></span>
-                          </label>
-                          <span className={`task-detail-modal__item-content ${item.completed ? 'task-detail-modal__item-content--completed' : ''}`}>
-                            {item.content}
-                          </span>
-                          <button
-                            className="task-detail-modal__item-delete"
-                            onClick={() => {
-                              closeEditingStates();
-                              handleDeleteItem(list.id, item.id);
-                            }}
-                          >
-                            <img src={closeIcon} alt="Delete" />
-                          </button>
-                        </div>
-                      ))}
+                      <SortableContext
+                        items={[...list.items.map(item => item.id), `list-end-zone-${list.id}`]}
+                        strategy={verticalListSortingStrategy}
+                      >
+                        {list.items.map((item) => (
+                          <ListItemSortable
+                            key={item.id}
+                            item={item}
+                            listId={list.id}
+                            onToggle={(itemId, completed) => handleToggleItem(list.id, itemId, completed)}
+                            onDelete={(itemId) => handleDeleteItem(list.id, itemId)}
+                            closeEditingStates={closeEditingStates}
+                          />
+                        ))}
+                        <ListItemEndZone listId={list.id} />
+                      </SortableContext>
 
                       {creatingItemForList === list.id ? (
                         <div className="task-detail-modal__create-item">
@@ -506,22 +708,51 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated }
                       )}
                     </div>
                   </div>
-                );
-              })}
+                    </ListSortable>
+                  );
+                })}
+                <ListEndZone />
+              </SortableContext>
             </div>
           )}
         </div>
 
-        {/* Right side - Comments */}
-        <div className="task-detail-modal__right">
-          <h3 className="task-detail-modal__section-title">Comments</h3>
-          <div className="task-detail-modal__comments-list">
-            <div className="task-detail-modal__empty-state">
-              No comments yet
+          {/* Right side - Comments */}
+          <div className="task-detail-modal__right">
+            <h3 className="task-detail-modal__section-title">Comments</h3>
+            <div className="task-detail-modal__comments-list">
+              <div className="task-detail-modal__empty-state">
+                No comments yet
+              </div>
             </div>
           </div>
         </div>
-      </div>
+
+        <DragOverlay zIndex={9999} dropAnimation={null}>
+          {activeItem ? (
+            <div style={{
+              width: '400px',
+              opacity: 0.95,
+              cursor: 'grabbing',
+              transform: 'rotate(2deg)',
+              boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+              pointerEvents: 'none',
+            }}>
+              <div className="task-detail-modal__list-item">
+                <label className="task-detail-modal__checkbox-container">
+                  <input type="checkbox" checked={activeItem.completed} readOnly />
+                  <span className="task-detail-modal__checkbox-custom"></span>
+                </label>
+                <span className={`task-detail-modal__item-content ${activeItem.completed ? 'task-detail-modal__item-content--completed' : ''}`}>
+                  {activeItem.content}
+                </span>
+              </div>
+            </div>
+          ) : activeList ? (
+            <ListGhost list={activeList} />
+          ) : null}
+        </DragOverlay>
+      </DndContext>
     </Modal>
   );
 }
