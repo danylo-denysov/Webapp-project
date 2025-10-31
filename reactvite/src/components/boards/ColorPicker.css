@@ -1,0 +1,119 @@
+.color-picker {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 0.5rem;
+  background: var(--color-cards);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  padding: 1rem;
+  z-index: 1000;
+  min-width: 280px;
+}
+
+.color-picker-presets {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.color-preset {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 6px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.color-preset:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.color-preset.active {
+  border-color: var(--color-text);
+}
+
+.color-picker-custom {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.color-picker-custom input {
+  flex: 1;
+  padding: 0.5rem;
+  border-radius: 4px;
+  border: 1px solid var(--color-input-border);
+  background: var(--color-cards-light);
+  color: var(--color-text);
+  font-size: 1rem;
+  font-family: monospace;
+  transition: border-color 0.2s ease;
+}
+
+.color-picker-custom input:focus {
+  outline: none;
+  border-color: var(--color-gradient-start);
+}
+
+.color-preview-box {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  flex-shrink: 0;
+}
+
+.color-picker-actions {
+  display: flex;
+  gap: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.color-picker-btn {
+  flex: 1;
+  background: var(--color-cards-light);
+  color: var(--color-text);
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow:
+    0 var(--button-shadow-y)
+      var(--button-shadow-blur)
+      var(--button-shadow-color);
+  transition:
+    transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+    box-shadow 0.2s ease;
+}
+
+.color-picker-btn:hover {
+  transform: scale(1.05);
+  box-shadow:
+    0 var(--button-hover-y)
+      var(--button-hover-blur)
+      var(--button-hover-color);
+  filter: brightness(1.02);
+}
+
+.board-color-wrapper {
+  position: relative;
+}
+
+.board-color {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.board-color:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}

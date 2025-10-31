@@ -39,10 +39,24 @@
   padding-left: 1.5rem;
 }
 
+.board-color-wrapper {
+  position: relative;
+}
+
 .board-color {
   width: 2rem;
   height: 2rem;
   border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.board-color--clickable {
+  cursor: pointer;
+}
+
+.board-color--clickable:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .board-name {

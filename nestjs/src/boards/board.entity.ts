@@ -17,6 +17,9 @@ export class Board {
   @Column()
   name: string;
 
+  @Column({ type: 'varchar', length: 7, nullable: true })
+  color: string;
+
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;
 

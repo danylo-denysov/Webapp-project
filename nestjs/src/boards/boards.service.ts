@@ -120,6 +120,19 @@ export class BoardsService {
     return board;
   }
 
+  async updateBoardColor(boardId: string, color: string, ownerId: string): Promise<Board> {
+    const board = await this.boardsRepository.findOne({
+      where: { id: boardId, owner: { id: ownerId } },
+      relations: ['owner'],
+    });
+    if (!board) {
+      throw new NotFoundException(`Board with ID "${boardId}" not found or you don't have access`);
+    }
+    board.color = color;
+    await this.boardsRepository.save(board);
+    return board;
+  }
+
   async addUserToBoard(
     boardId: string,
     userId: string,

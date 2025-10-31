@@ -13,6 +13,7 @@ import {
 import { BoardsService } from './boards.service';
 import { CreateBoardDto } from './dto/create-board.dto';
 import { RenameBoardDto } from './dto/rename-board.dto';
+import { UpdateBoardColorDto } from './dto/update-board-color.dto';
 import { UpdateBoardUserRoleDto } from './dto/update-board-user-role.dto';
 import { Board } from './board.entity';
 import { BoardUser } from './board-user.entity';
@@ -64,6 +65,19 @@ export class BoardsController {
     return this.boardsService.renameBoard(
       boardId,
       renameBoardDto.name,
+      user.id,
+    );
+  }
+
+  @Patch('/:boardId/color')
+  updateBoardColor(
+    @Param('boardId') boardId: string,
+    @Body() updateBoardColorDto: UpdateBoardColorDto,
+    @GetUser() user: JwtUserPayload,
+  ): Promise<Board> {
+    return this.boardsService.updateBoardColor(
+      boardId,
+      updateBoardColorDto.color,
       user.id,
     );
   }
