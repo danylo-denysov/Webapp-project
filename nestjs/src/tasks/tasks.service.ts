@@ -5,12 +5,15 @@ import { CreateTaskListDto } from './dto/create-task-list.dto';
 import { UpdateTaskListDto } from './dto/update-task-list.dto';
 import { CreateTaskListItemDto } from './dto/create-task-list-item.dto';
 import { UpdateTaskListItemDto } from './dto/update-task-list-item.dto';
+import { CreateCommentDto } from './dto/create-comment.dto';
 import { Task } from './task.entity';
 import { TaskList } from './task-list.entity';
 import { TaskListItem } from './task-list-item.entity';
+import { TaskComment } from './task-comment.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { TaskGroup } from 'src/task-groups/task-group.entity';
+import { User } from 'src/users/user.entity';
 
 @Injectable()
 export class TasksService {
@@ -19,7 +22,9 @@ export class TasksService {
     @InjectRepository(Task) private tasksRepository: Repository<Task>,
     @InjectRepository(TaskList) private taskListsRepository: Repository<TaskList>,
     @InjectRepository(TaskListItem) private taskListItemsRepository: Repository<TaskListItem>,
+    @InjectRepository(TaskComment) private taskCommentsRepository: Repository<TaskComment>,
     @InjectRepository(TaskGroup) private readonly groupRepository: Repository<TaskGroup>,
+    @InjectRepository(User) private readonly userRepository: Repository<User>,
   ) {}
 
   async getTasks(groupId?: string): Promise<Task[]> {
@@ -36,7 +41,7 @@ export class TasksService {
   async getTaskById(id: string): Promise<Task> {
     const found = await this.tasksRepository.findOne({
       where: { id },
-      relations: ['taskGroup', 'taskGroup.board', 'taskLists', 'taskLists.items'],
+      relations: ['taskGroup', 'taskGroup.board', 'taskLists', 'taskLists.items', 'comments', 'comments.user'],
     });
     if (!found) {
       throw new NotFoundException(`Task with ID "${id}" not found`);
@@ -50,6 +55,11 @@ export class TasksService {
           list.items.sort((a, b) => a.order - b.order);
         }
       });
+    }
+
+    // Sort comments by created_at (newest first)
+    if (found.comments) {
+      found.comments.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     }
 
     return found;
@@ -400,5 +410,60 @@ export class TasksService {
       throw new NotFoundException(`List item with ID "${itemId}" not found`);
     }
     return item.taskList.task.taskGroup.board.id;
+  }
+
+  // Comment methods
+  async createComment(createCommentDto: CreateCommentDto, taskId: string, userId: string): Promise<TaskComment> {
+    const task = await this.tasksRepository.findOne({ where: { id: taskId } });
+    if (!task) throw new NotFoundException('Task not found');
+
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User not found');
+
+    const comment = this.taskCommentsRepository.create({
+      content: createCommentDto.content,
+      task,
+      user,
+    });
+    await this.taskCommentsRepository.save(comment);
+    return comment;
+  }
+
+  async getComments(taskId: string): Promise<TaskComment[]> {
+    const comments = await this.taskCommentsRepository.find({
+      where: { task: { id: taskId } },
+      relations: ['user'],
+      order: { created_at: 'DESC' },
+    });
+    return comments;
+  }
+
+  async deleteComment(commentId: string, userId: string): Promise<void> {
+    const comment = await this.taskCommentsRepository.findOne({
+      where: { id: commentId },
+      relations: ['user'],
+    });
+
+    if (!comment) {
+      throw new NotFoundException(`Comment with ID "${commentId}" not found`);
+    }
+
+    // Only the comment owner can delete their comment
+    if (comment.user.id !== userId) {
+      throw new NotFoundException(`Comment with ID "${commentId}" not found`);
+    }
+
+    await this.taskCommentsRepository.delete(commentId);
+  }
+
+  async getBoardIdFromCommentId(commentId: string): Promise<string> {
+    const comment = await this.taskCommentsRepository.findOne({
+      where: { id: commentId },
+      relations: ['task', 'task.taskGroup', 'task.taskGroup.board'],
+    });
+    if (!comment) {
+      throw new NotFoundException(`Comment with ID "${commentId}" not found`);
+    }
+    return comment.task.taskGroup.board.id;
   }
 }

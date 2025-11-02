@@ -1,6 +1,7 @@
 import { Column, Entity, Index, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { TaskGroup } from 'src/task-groups/task-group.entity';
 import { TaskList } from './task-list.entity';
+import { TaskComment } from './task-comment.entity';
 
 @Entity()
 export class Task {
@@ -29,4 +30,9 @@ export class Task {
     cascade: true,
   })
   taskLists: TaskList[];
+
+  @OneToMany(() => TaskComment, (taskComment) => taskComment.task, {
+    cascade: true,
+  })
+  comments: TaskComment[];
 }

@@ -2,15 +2,18 @@ import { useState, useEffect } from 'react';
 import { DndContext, closestCorners, PointerSensor, useSensor, useSensors, DragEndEvent, DragStartEvent, DragOverlay, CollisionDetection, pointerWithin } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import Modal from '../common/Modal/Modal';
+import Avatar from '../common/Avatar';
 import { useUpdateTask } from '../../hooks/taskGroups/useUpdateTask';
 import { useTaskLists } from '../../hooks/taskGroups/useTaskLists';
 import { useUpdateTaskList } from '../../hooks/taskGroups/useUpdateTaskList';
 import { useMoveListItem } from '../../hooks/taskGroups/useMoveListItem';
 import { useReorderTaskLists } from '../../hooks/taskGroups/useReorderTaskLists';
+import { useTaskComments } from '../../hooks/taskGroups/useTaskComments';
+import { useCurrentUser } from '../../hooks/auth/useCurrentUser';
 import { safe_fetch } from '../../utils/api';
 import { handleApiError } from '../../utils/errorHandler';
 import { toastError } from '../../utils/toast';
-import type { Task, TaskList, TaskListItem } from '../../types/task';
+import type { Task, TaskList, TaskListItem, TaskComment } from '../../types/task';
 import ListItemSortable from './ListItemSortable';
 import ListItemEndZone from './ListItemEndZone';
 import ListSortable from './ListSortable';
@@ -48,7 +51,11 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated }
   const [editingListName, setEditingListName] = useState('');
   const [activeItem, setActiveItem] = useState<TaskListItem | null>(null);
   const [activeList, setActiveList] = useState<TaskList | null>(null);
+  const [comments, setComments] = useState<TaskComment[]>([]);
+  const [newCommentText, setNewCommentText] = useState('');
+  const [isWritingComment, setIsWritingComment] = useState(false);
 
+  const { user: currentUser } = useCurrentUser();
   const { updateTask } = useUpdateTask((updatedTask) => {
     setCurrentDescription(updatedTask.description || '');
     setCurrentTitle(updatedTask.title || '');
@@ -59,6 +66,7 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated }
   const { updateTaskList } = useUpdateTaskList();
   const { moveItem } = useMoveListItem();
   const { reorderLists } = useReorderTaskLists();
+  const { createComment, deleteComment } = useTaskComments();
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -93,7 +101,15 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated }
     });
   };
 
-  // Fetch full task details including lists
+  // Sync state with task prop when task changes
+  useEffect(() => {
+    setCurrentTitle(task.title || '');
+    setTitleText(task.title || '');
+    setCurrentDescription(task.description || '');
+    setDescriptionText(task.description || '');
+  }, [task.id, task.title, task.description]);
+
+  // Fetch full task details including lists and comments
   useEffect(() => {
     if (isOpen && task.id) {
       const fetchTaskDetails = async () => {
@@ -103,6 +119,7 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated }
           if (res.ok) {
             const data = await res.json() as Task;
             setTaskLists(data.taskLists || []);
+            setComments(data.comments || []);
           } else {
             await handleApiError(res);
           }
@@ -120,6 +137,8 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated }
       setEditingListId(null);
       setIsCreatingList(false);
       setCreatingItemForList(null);
+      setNewCommentText('');
+      setIsWritingComment(false);
     }
   }, [isOpen, task.id]);
 
@@ -127,6 +146,10 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated }
     // Close any other editing states
     setIsEditingTitle(false);
     setEditingListId(null);
+    setIsCreatingList(false);
+    setCreatingItemForList(null);
+    setIsWritingComment(false);
+    setNewCommentText('');
     setIsEditingDescription(true);
     setDescriptionText(currentDescription);
   };
@@ -215,6 +238,10 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated }
     // Close any other editing states
     setEditingListId(null);
     setIsEditingDescription(false);
+    setIsCreatingList(false);
+    setCreatingItemForList(null);
+    setIsWritingComment(false);
+    setNewCommentText('');
     setIsEditingTitle(true);
     setTitleText(currentTitle);
   };
@@ -239,6 +266,10 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated }
     // Close any other editing states
     setIsEditingTitle(false);
     setIsEditingDescription(false);
+    setIsCreatingList(false);
+    setCreatingItemForList(null);
+    setIsWritingComment(false);
+    setNewCommentText('');
     setEditingListId(list.id);
     setEditingListName(list.name);
   };
@@ -268,10 +299,45 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated }
     setEditingListId(null);
     setIsCreatingList(false);
     setCreatingItemForList(null);
+    setIsWritingComment(false);
+    setNewCommentText('');
   };
 
   const handleContainerClick = () => {
     closeEditingStates();
+  };
+
+  const handleCommentClick = () => {
+    // Close any other editing states
+    setIsEditingTitle(false);
+    setIsEditingDescription(false);
+    setEditingListId(null);
+    setIsCreatingList(false);
+    setCreatingItemForList(null);
+    setIsWritingComment(true);
+  };
+
+  const handleCommentSave = async () => {
+    if (!newCommentText.trim()) return;
+
+    const newComment = await createComment(task.id, newCommentText);
+    if (newComment) {
+      setComments([newComment, ...comments]);
+      setNewCommentText('');
+      setIsWritingComment(false);
+    }
+  };
+
+  const handleCommentCancel = () => {
+    setNewCommentText('');
+    setIsWritingComment(false);
+  };
+
+  const handleDeleteComment = async (commentId: string) => {
+    const success = await deleteComment(commentId);
+    if (success) {
+      setComments(comments.filter(c => c.id !== commentId));
+    }
   };
 
   const handleDragStart = (event: DragStartEvent) => {
@@ -486,7 +552,16 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated }
           <div className="task-detail-modal__actions" onClick={(e) => e.stopPropagation()}>
             <button
               className="task-detail-modal__action-btn"
-              onClick={() => setIsCreatingList(true)}
+              onClick={() => {
+                // Close any other editing states
+                setIsEditingTitle(false);
+                setIsEditingDescription(false);
+                setEditingListId(null);
+                setCreatingItemForList(null);
+                setIsWritingComment(false);
+                setNewCommentText('');
+                setIsCreatingList(true);
+              }}
             >
               Add List
             </button>
@@ -699,6 +774,13 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated }
                           className="task-detail-modal__add-item-btn"
                           onClick={(e) => {
                             e.stopPropagation();
+                            // Close any other editing states
+                            setIsEditingTitle(false);
+                            setIsEditingDescription(false);
+                            setEditingListId(null);
+                            setIsCreatingList(false);
+                            setIsWritingComment(false);
+                            setNewCommentText('');
                             setCreatingItemForList(list.id);
                           }}
                         >
@@ -720,10 +802,84 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated }
           {/* Right side - Comments */}
           <div className="task-detail-modal__right">
             <h3 className="task-detail-modal__section-title">Comments</h3>
+
+            {/* Comment input */}
+            <div className="task-detail-modal__comment-section">
+              {isWritingComment ? (
+                <div className="task-detail-modal__comment-edit">
+                  <textarea
+                    className="task-detail-modal__comment-textarea"
+                    value={newCommentText}
+                    onChange={(e) => setNewCommentText(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Escape') {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleCommentCancel();
+                      }
+                    }}
+                    placeholder="Write a comment..."
+                    autoFocus
+                  />
+                  <div className="task-detail-modal__description-actions">
+                    <button className="task-detail-modal__action-btn" onClick={handleCommentSave}>
+                      Save
+                    </button>
+                    <button className="task-detail-modal__action-btn" onClick={handleCommentCancel}>
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div
+                  className="task-detail-modal__comment-placeholder"
+                  onClick={handleCommentClick}
+                >
+                  <span className="task-detail-modal__empty-state">Write a comment...</span>
+                </div>
+              )}
+            </div>
+
+            {/* Comments list */}
             <div className="task-detail-modal__comments-list">
-              <div className="task-detail-modal__empty-state">
-                No comments yet
-              </div>
+              {comments.length === 0 ? (
+                <div className="task-detail-modal__empty-state">
+                  No comments yet
+                </div>
+              ) : (
+                comments.map((comment) => (
+                  <div key={comment.id} className="task-detail-modal__comment">
+                    <div className="task-detail-modal__comment-header">
+                      <Avatar size={32} profilePicture={comment.user.profile_picture} />
+                      <div className="task-detail-modal__comment-info">
+                        <span className="task-detail-modal__comment-username">
+                          {comment.user.username}
+                        </span>
+                        <span className="task-detail-modal__comment-date">
+                          {new Date(comment.created_at).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </span>
+                      </div>
+                      {currentUser?.id === comment.user.id && (
+                        <button
+                          className="task-detail-modal__comment-delete"
+                          onClick={() => handleDeleteComment(comment.id)}
+                          title="Delete comment"
+                        >
+                          <img src={closeIcon} alt="Delete" />
+                        </button>
+                      )}
+                    </div>
+                    <div className="task-detail-modal__comment-content">
+                      {comment.content}
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>

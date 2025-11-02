@@ -5,12 +5,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Task } from './task.entity';
 import { TaskList } from './task-list.entity';
 import { TaskListItem } from './task-list-item.entity';
+import { TaskComment } from './task-comment.entity';
 import { TaskGroup } from '../task-groups/task-group.entity';
+import { User } from '../users/user.entity';
 import { BoardsModule } from '../boards/boards.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Task, TaskList, TaskListItem, TaskGroup]),
+    TypeOrmModule.forFeature([Task, TaskList, TaskListItem, TaskComment, TaskGroup, User]),
     BoardsModule,
   ],
   controllers: [TasksController],

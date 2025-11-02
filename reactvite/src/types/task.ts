@@ -18,6 +18,18 @@ export interface TaskList {
   items: TaskListItem[];
 }
 
+export interface TaskComment {
+  id: string;
+  content: string;
+  created_at: string;
+  user: {
+    id: string;
+    username: string;
+    email: string;
+    profile_picture?: string | null;
+  };
+}
+
 export interface Task {
   id: string;
   title: string;
@@ -25,6 +37,7 @@ export interface Task {
   created_at: string;
   order: number;
   taskLists?: TaskList[];
+  comments?: TaskComment[];
   taskGroup?: {
     id: string;
     name: string;

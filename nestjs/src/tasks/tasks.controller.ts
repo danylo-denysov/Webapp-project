@@ -17,6 +17,7 @@ import { CreateTaskListDto } from './dto/create-task-list.dto';
 import { UpdateTaskListDto } from './dto/update-task-list.dto';
 import { CreateTaskListItemDto } from './dto/create-task-list-item.dto';
 import { UpdateTaskListItemDto } from './dto/update-task-list-item.dto';
+import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateTaskOrdersDto } from './dto/update-task-orders.dto';
 import { MoveTaskDto } from './dto/move-task.dto';
 import { UpdateListOrdersDto } from './dto/update-list-orders.dto';
@@ -25,6 +26,7 @@ import { MoveListItemDto } from './dto/move-list-item.dto';
 import { Task } from './task.entity';
 import { TaskList } from './task-list.entity';
 import { TaskListItem } from './task-list-item.entity';
+import { TaskComment } from './task-comment.entity';
 import { JwtAuthGuard } from '../users/jwt-auth.guard';
 import { BoardAccessService } from '../boards/board-access.service';
 import { GetUser } from '../users/get-user.decorator';
@@ -246,5 +248,38 @@ export class TasksController {
       throw new Error('Cannot move item to a list in a different task');
     }
     return this.tasksService.moveListItemToList(itemId, dto.targetListId, dto.newOrder);
+  }
+
+  // Comment endpoints
+  @Post(':taskId/comments')
+  async createComment(
+    @Param('taskId') taskId: string,
+    @Body() dto: CreateCommentDto,
+    @GetUser() user: JwtUserPayload,
+  ): Promise<TaskComment> {
+    const boardId = await this.tasksService.getBoardIdFromTaskId(taskId);
+    await this.boardAccessService.verifyReadAccess(boardId, user.id);
+    return this.tasksService.createComment(dto, taskId, user.id);
+  }
+
+  @Get(':taskId/comments')
+  async getComments(
+    @Param('taskId') taskId: string,
+    @GetUser() user: JwtUserPayload,
+  ): Promise<TaskComment[]> {
+    const boardId = await this.tasksService.getBoardIdFromTaskId(taskId);
+    await this.boardAccessService.verifyReadAccess(boardId, user.id);
+    return this.tasksService.getComments(taskId);
+  }
+
+  @Delete('comments/:commentId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteComment(
+    @Param('commentId') commentId: string,
+    @GetUser() user: JwtUserPayload,
+  ): Promise<void> {
+    const boardId = await this.tasksService.getBoardIdFromCommentId(commentId);
+    await this.boardAccessService.verifyReadAccess(boardId, user.id);
+    return this.tasksService.deleteComment(commentId, user.id);
   }
 }
