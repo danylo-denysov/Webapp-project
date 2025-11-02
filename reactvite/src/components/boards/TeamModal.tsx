@@ -129,7 +129,7 @@ export default function TeamModal({ isOpen, onClose, boardId, isOwner }: TeamMod
                     )
                     .map((bu) => (
                       <div key={bu.id} className="team-modal__user-item">
-                        <Avatar size={40} />
+                        <Avatar size={40} profilePicture={bu.user.profile_picture} />
                         <span className="team-modal__username">{bu.user.username}</span>
                         <RoleDropdown
                           role={bu.role}
@@ -162,7 +162,7 @@ export default function TeamModal({ isOpen, onClose, boardId, isOwner }: TeamMod
                 <div className="team-modal__users-list">
                   {filteredSearchResults.map((user) => (
                     <div key={user.id} className="team-modal__user-item">
-                      <Avatar size={40} />
+                      <Avatar size={40} profilePicture={user.profile_picture} />
                       <span className="team-modal__username">{user.username}</span>
                       <button
                         className="team-modal__add-button"

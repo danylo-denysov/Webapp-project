@@ -29,6 +29,9 @@ export class User {
   @Column({ type: 'text', nullable: true })
   current_hashed_refresh_token: string | null;
 
+  @Column({ type: 'text', nullable: true })
+  profile_picture: string | null;
+
   @OneToMany(() => Board, (board) => board.owner, { cascade: true })
   boards: Board[];
 }

@@ -5,6 +5,7 @@ interface CurrentUser {
   id: string;
   username: string;
   email: string;
+  profile_picture?: string | null;
 }
 
 export function useCurrentUser() {

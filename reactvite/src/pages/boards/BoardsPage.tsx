@@ -101,7 +101,7 @@ export default function BoardsPage() {
           <>
             <CreateBoardButton onClick={handleOpenModal} />
             <Link to="/profile">
-              <Avatar />
+              <Avatar profilePicture={currentUser?.profile_picture} />
             </Link>
           </>
         }

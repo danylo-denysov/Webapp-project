@@ -17,7 +17,7 @@ export class UsersService {
   ) {}
 
   async getAllUsers(): Promise<Partial<User[]>> {
-    return this.usersRepository.find({ select: ['id', 'email', 'username'] }); // Fetch all users
+    return this.usersRepository.find({ select: ['id', 'email', 'username', 'profile_picture'] }); // Fetch all users
   }
 
   //Salt hashing technic used
@@ -223,11 +223,25 @@ export class UsersService {
   async searchUsers(query: string): Promise<Partial<User>[]> {
     const users = await this.usersRepository
       .createQueryBuilder('user')
-      .select(['user.id', 'user.username', 'user.email'])
+      .select(['user.id', 'user.username', 'user.email', 'user.profile_picture'])
       .where('LOWER(user.username) LIKE LOWER(:query)', { query: `%${query}%` })
       .limit(10)
       .getMany();
 
     return users;
+  }
+
+  async updateProfilePicture(userId: string, profilePictureData: string): Promise<void> {
+    const user = await this.usersRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    user.profile_picture = profilePictureData;
+    try {
+      await this.usersRepository.save(user);
+    } catch (err) {
+      throw new InternalServerErrorException('Failed to update profile picture');
+    }
   }
 }

@@ -2,17 +2,17 @@ import avatarSrc from '../../assets/avatar.svg';
 import './Avatar.css';
 
 interface AvatarProps {
-  /** width & height of the avatar circle in px */
   size?: number;
+  profilePicture?: string | null;
 }
 
-export default function Avatar({ size = 64 }: AvatarProps) {
+export default function Avatar({ size = 64, profilePicture }: AvatarProps) {
   return (
     <div
       className="avatar"
       style={{ width: size, height: size }}
     >
-      <img src={avatarSrc} alt="User avatar" />
+      <img src={profilePicture || avatarSrc} alt="User avatar" />
     </div>
   );
 }

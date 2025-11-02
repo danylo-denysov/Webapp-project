@@ -22,6 +22,7 @@ import { Response } from 'express';
 import { JwtAuthGuard } from 'src/users/jwt-auth.guard';
 import { ChangeNicknameDto } from './dto/change-nickname.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { UpdateProfilePictureDto } from './dto/update-profile-picture.dto';
 import { GetUser } from './get-user.decorator';
 import { JwtUserPayload, JwtRefreshPayload } from './jwt-user-payload.interface';
 
@@ -85,6 +86,16 @@ export class UsersController {
       dto.newPassword,
       dto.repeatPassword,
     );
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('/me/profile-picture')
+  @HttpCode(HttpStatus.OK)
+  async updateProfilePicture(
+    @GetUser() user: JwtUserPayload,
+    @Body() dto: UpdateProfilePictureDto,
+  ): Promise<void> {
+    return this.usersService.updateProfilePicture(user.id, dto.profilePicture);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -169,6 +180,7 @@ export class UsersController {
       username: found.username,
       email: found.email,
       created_at: found.created_at,
+      profile_picture: found.profile_picture,
     };
   }
 

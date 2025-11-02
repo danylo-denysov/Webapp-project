@@ -8,13 +8,19 @@
   box-sizing: border-box;
 }
 
+.profile-content {
+  display: flex;
+  gap: 2rem;
+  max-width: 1000px;
+  margin: 6rem auto 0;
+  align-items: flex-start;
+}
+
 .profile-card {
   background: var(--color-cards);
   border-radius: 12px;
   padding: 2rem;
-  max-width: 320px;
-  width: 100%;
-  margin: 6rem auto 0;
+  flex: 1;
   box-shadow: 0 var(--button-shadow-y) var(--button-shadow-blur) var(--button-shadow-color);
   display: flex;
   flex-direction: column;
@@ -86,7 +92,6 @@
   display: flex;
   align-items: center;
   cursor: pointer;
-  margin-right: 1rem;
 }
 
 .profile-logout-button img {
@@ -98,4 +103,48 @@
 .profile-logout-button:hover {
   transform: scale(1.15);
   transition: transform 0.2s;
+}
+
+.profile-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.profile-info__avatar {
+  display: flex;
+  justify-content: center;
+}
+
+.profile-info__details {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.profile-info__item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.profile-info__label {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary, #888);
+  font-weight: 500;
+}
+
+.profile-info__value {
+  font-size: 1rem;
+  color: var(--color-text);
+  word-break: break-word;
+}
+
+@media (max-width: 768px) {
+  .profile-content {
+    flex-direction: column;
+    margin-top: 4rem;
+  }
 }

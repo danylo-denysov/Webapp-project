@@ -14,6 +14,7 @@ import { useCreateTaskGroup } from '../../hooks/taskGroups/useCreateTaskGroup';
 import { useReorderTaskGroups } from '../../hooks/taskGroups/useReorderTaskGroups';
 import { useTaskGroups } from '../../hooks/taskGroups/useTaskGroups';
 import { useMoveTask } from '../../hooks/taskGroups/useMoveTask';
+import { useCurrentUser } from '../../hooks/auth/useCurrentUser';
 import { BoardUserRole } from '../../types/boardUser';
 import { safe_fetch } from '../../utils/api';
 import { toastError } from '../../utils/toast';
@@ -27,6 +28,7 @@ export default function TasksPage() {
   const { boardId } = useParams<{ boardId: string }>()
   const navigate = useNavigate()
   const [boardName, setBoardName] = useState('')
+  const { user: currentUser } = useCurrentUser();
   const { groups, setGroups, loading: groupsLoading, error: groupsError, refresh } = useTaskGroups(boardId);
   const [groupErrorToasted, setGroupErrorToasted] = useState(false);
   const [boardLoading, setBoardLoading] = useState(true);
@@ -364,7 +366,7 @@ export default function TasksPage() {
               <img src={listIcon} alt="Boards" /> Boards
             </Link>
             <Link to="/profile">
-              <Avatar />
+              <Avatar profilePicture={currentUser?.profile_picture} />
             </Link>
           </>
         }

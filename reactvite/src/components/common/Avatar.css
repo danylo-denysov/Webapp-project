@@ -6,10 +6,33 @@
   justify-content: center;
   overflow: hidden;
   margin-right: 0rem;
+  box-shadow:
+    0 var(--button-shadow-y)
+      var(--button-shadow-blur)
+      var(--button-shadow-color);
+
+  transition:
+    transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+    box-shadow 0.2s ease;
+}
+
+a:hover .avatar {
+  transform: scale(1.05);
+  box-shadow:
+    0 var(--button-hover-y)
+      var(--button-hover-blur)
+      var(--button-hover-color);
+  filter: brightness(1.02);
 }
 
 .avatar img {
-  /* scale the SVG down a bit so it has breathing room */
   width: 60%;
   height: 60%;
+  object-fit: contain;
+}
+
+.avatar img[src^="data:image"] {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }

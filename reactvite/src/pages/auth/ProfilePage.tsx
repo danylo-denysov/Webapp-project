@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import Header from '../../components/common/Header';
@@ -10,6 +10,7 @@ import './ProfilePage.css';
 
 import ChangeNicknameModal from '../../components/auth/ChangeNicknameModal';
 import ChangePasswordModal from '../../components/auth/ChangePasswordModal';
+import ChangeProfilePictureModal from '../../components/auth/ChangeProfilePictureModal';
 import DeleteAccountModal from '../../components/auth/DeleteAccountModal';
 import LogoutModal from '../../components/auth/LogoutModal';
 import { safe_fetch } from '../../utils/api';
@@ -21,11 +22,42 @@ export default function ProfilePage() {
 
   const [isNicknameModalOpen, setIsNicknameModalOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [isProfilePictureModalOpen, setIsProfilePictureModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [userData, setUserData] = useState<{
+    username: string;
+    email: string;
+    profile_picture: string | null;
+    created_at: string;
+  } | null>(null);
 
-  const handleChangeProfilePicture = () => {
-    console.log('Change profile picture…');
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const res = await safe_fetch('/api/users/me');
+        if (res.ok) {
+          const data = await res.json();
+          setUserData(data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch user data:', err);
+      }
+    };
+    fetchUserData();
+  }, []);
+
+  const handleChangeProfilePicture = async (newProfilePicture: string) => {
+    const res = await safe_fetch('/api/users/me/profile-picture', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ profilePicture: newProfilePicture }),
+    });
+    if (!res.ok) {
+      await handleApiError(res);
+    } else {
+      setUserData(prev => prev ? { ...prev, profile_picture: newProfilePicture } : null);
+    }
   };
 
   const handleChangeNickname = async (newNickname: string) => {
@@ -36,6 +68,8 @@ export default function ProfilePage() {
     });
     if (!res.ok) {
       await handleApiError(res);
+    } else {
+      setUserData(prev => prev ? { ...prev, username: newNickname } : null);
     }
   };
 
@@ -97,26 +131,54 @@ export default function ProfilePage() {
           </button>
         }
         right={
-          <>
-            <button
-              className="profile-logout-button"
-              onClick={() => setIsLogoutModalOpen(true)}
-              aria-label="Log out"
-            >
-              <img src={logoutIcon} alt="Logout" />
-            </button>
-
-            <Avatar />
-          </>
+          <button
+            className="profile-logout-button"
+            onClick={() => setIsLogoutModalOpen(true)}
+            aria-label="Log out"
+          >
+            <img src={logoutIcon} alt="Logout" />
+          </button>
         }
       />
 
-      <div className="profile-card">
-        <h2 className="profile-card__title">Account options</h2>
+      <div className="profile-content">
+        <div className="profile-card">
+          <h2 className="profile-card__title">Account information</h2>
+          <div className="profile-info">
+            <div className="profile-info__avatar">
+              <Avatar size={120} profilePicture={userData?.profile_picture} />
+            </div>
+            <div className="profile-info__details">
+              <div className="profile-info__item">
+                <span className="profile-info__label">Nickname</span>
+                <span className="profile-info__value">{userData?.username || '...'}</span>
+              </div>
+              <div className="profile-info__item">
+                <span className="profile-info__label">Email</span>
+                <span className="profile-info__value">{userData?.email || '...'}</span>
+              </div>
+              <div className="profile-info__item">
+                <span className="profile-info__label">Member since</span>
+                <span className="profile-info__value">
+                  {userData?.created_at
+                    ? new Date(userData.created_at).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })
+                    : '...'}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="profile-card">
+          <h2 className="profile-card__title">Account options</h2>
 
         <button
           className="profile-card__btn"
-          onClick={handleChangeProfilePicture}
+          onClick={() => setIsProfilePictureModalOpen(true)}
         >
           Change profile picture
         </button>
@@ -141,7 +203,15 @@ export default function ProfilePage() {
         >
           Delete account
         </button>
+        </div>
       </div>
+
+      <ChangeProfilePictureModal
+        isOpen={isProfilePictureModalOpen}
+        onClose={() => setIsProfilePictureModalOpen(false)}
+        onConfirm={handleChangeProfilePicture}
+        currentProfilePicture={userData?.profile_picture}
+      />
 
       <ChangeNicknameModal
         isOpen={isNicknameModalOpen}
