@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import TaskCard from './TaskCard';
 import type { Task } from '../../types/task';
+import { BoardUserRole } from '../../types/boardUser';
 
 export default function TaskCardSortable({
   task,
@@ -9,15 +10,18 @@ export default function TaskCardSortable({
   canEdit,
   groupId,
   onClick,
+  userRole,
 }: {
   task: Task;
   onDelete: (id: string) => void;
   canEdit: boolean;
   groupId: string;
   onClick?: () => void;
+  userRole: string | null;
 }) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [cardHeight, setCardHeight] = useState<number>(0);
+  const canDrag = userRole === BoardUserRole.OWNER || userRole === BoardUserRole.EDITOR;
 
   const {
     attributes,
@@ -34,6 +38,7 @@ export default function TaskCardSortable({
       groupId: groupId,
       cardHeight: cardHeight,
     },
+    disabled: !canDrag,
   });
 
   // Measure card height
@@ -59,10 +64,11 @@ export default function TaskCardSortable({
     width: '100%',
     position: 'relative',
     marginBottom: isDragging ? 0 : '0.5rem',
+    cursor: canDrag ? 'grab' : 'default',
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+    <div ref={setNodeRef} style={style} {...attributes} {...(canDrag ? listeners : {})}>
       {showPlaceholder && (
         <div style={{
           height: `${draggedTaskHeight}px`,

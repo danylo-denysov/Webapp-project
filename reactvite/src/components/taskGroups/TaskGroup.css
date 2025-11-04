@@ -25,6 +25,14 @@
   cursor: grabbing;
 }
 
+.group-header--no-drag {
+  cursor: default !important;
+}
+
+.group-header--no-drag:active {
+  cursor: default !important;
+}
+
 .group-name{
   display:inline-block;
   cursor:pointer;

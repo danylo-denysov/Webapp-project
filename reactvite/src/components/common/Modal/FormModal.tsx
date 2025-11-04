@@ -40,11 +40,17 @@ export default function FormModal({
 
   const handleSubmit = async (e?: FormEvent) => {
     e?.preventDefault();
+    e?.stopPropagation();
     const trimmed = value.trim();
     if (!trimmed) return;
 
     await onSubmit(trimmed);
     setValue('');
+  };
+
+  const handleCancelClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onClose();
   };
 
   return (
@@ -65,7 +71,7 @@ export default function FormModal({
             {isLoading ? loadingText : submitText}
           </button>
           {showCancel && (
-            <button type="button" className="modal-btn" onClick={onClose} disabled={isLoading}>
+            <button type="button" className="modal-btn" onClick={handleCancelClick} disabled={isLoading}>
               {cancelText}
             </button>
           )}

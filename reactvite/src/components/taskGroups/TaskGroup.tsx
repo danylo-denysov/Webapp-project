@@ -127,7 +127,7 @@ export default function TaskGroup({ boardId, group, onTaskAdded, onTaskDeleted, 
 
   return (
     <div className={`task-group ${!hasTasks ? 'task-group--empty' : ''}`}>
-      <header className="group-header" style={{ position:'relative' }} {...dragHandleProps}>
+      <header className={`group-header ${!canEdit ? 'group-header--no-drag' : ''}`} style={{ position:'relative' }} {...dragHandleProps}>
         {renameOpen ? (
           <div
             ref={renameContainerRef}
@@ -222,6 +222,7 @@ export default function TaskGroup({ boardId, group, onTaskAdded, onTaskDeleted, 
               canEdit={canEdit}
               groupId={group.id}
               onClick={() => handleTaskClick(task)}
+              userRole={userRole}
             />
           ))}
           <TaskGroupEndZone groupId={group.id} />

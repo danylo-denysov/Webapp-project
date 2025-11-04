@@ -2,12 +2,15 @@ import React from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import TaskGroup, { TaskGroupProps } from './TaskGroup'
+import { BoardUserRole } from '../../types/boardUser'
 
 export interface TaskGroupSortableProps extends TaskGroupProps {
   userRole: string | null;
 }
 
 export default function TaskGroupSortable(props: TaskGroupSortableProps) {
+  const canDrag = props.userRole === BoardUserRole.OWNER || props.userRole === BoardUserRole.EDITOR;
+
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({
       id: props.group.id,
@@ -15,6 +18,7 @@ export default function TaskGroupSortable(props: TaskGroupSortableProps) {
         type: 'group',
         groupId: props.group.id,
       },
+      disabled: !canDrag,
     })
 
   const style: React.CSSProperties = {
@@ -26,10 +30,11 @@ export default function TaskGroupSortable(props: TaskGroupSortableProps) {
     marginRight: '-1rem',
     paddingLeft: '1rem',
     paddingRight: '1rem',
+    cursor: canDrag ? 'grab' : 'default',
   }
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+    <div ref={setNodeRef} style={style} {...attributes} {...(canDrag ? listeners : {})}>
       <TaskGroup {...props} />
     </div>
   )

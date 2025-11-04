@@ -25,18 +25,56 @@ function setStoredColor(boardId: string, color: string): void {
 }
 
 export default function BoardCard({ board, refresh, currentUserId }: BoardCardProps) {
-  const randomColor = useMemo(() => getRandomColor(), [])
   const [showColorPicker, setShowColorPicker] = useState(false)
+  const [initialColorSet, setInitialColorSet] = useState(false)
   const [boardColor, setBoardColor] = useState<string>(() => {
-    return board.color || getStoredColor(board.id) || randomColor
+    // Check board color first, then localStorage, then generate and save random color
+    if (board.color) return board.color
+
+    const stored = getStoredColor(board.id)
+    if (stored) return stored
+
+    // Generate random color and save it immediately
+    const random = getRandomColor()
+    setStoredColor(board.id, random)
+    return random
   })
   const isOwner = currentUserId === board.owner.id
 
   useEffect(() => {
     if (board.color) {
       setBoardColor(board.color)
+      // Also update localStorage when board color is set from server
+      setStoredColor(board.id, board.color)
     }
-  }, [board.color])
+  }, [board.color, board.id])
+
+  // Save initial random color to database if it wasn't set
+  useEffect(() => {
+    const saveInitialColor = async () => {
+      if (!board.color && !initialColorSet && isOwner) {
+        setInitialColorSet(true)
+        try {
+          const res = await fetch(`/api/boards/${board.id}/color`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({ color: boardColor }),
+          })
+
+          if (!res.ok) {
+            console.error('Failed to save initial board color')
+          }
+        } catch (error) {
+          console.error('Error saving initial board color:', error)
+        }
+      }
+    }
+
+    saveInitialColor()
+  }, [board.id, board.color, boardColor, initialColorSet, isOwner])
 
   const formatDate = (iso: string) => {
     const d = new Date(iso)

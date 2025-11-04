@@ -30,7 +30,7 @@ export default function BoardsPage() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'Name' | 'Owner' | 'Date'>('Date');
-  const [ascending, setAscending] = useState(true);
+  const [ascending, setAscending] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const { boards, loading, error: loadError, refresh } = useBoards();
