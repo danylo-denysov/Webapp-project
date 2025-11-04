@@ -80,12 +80,29 @@ export default function TasksPage() {
 
     // For tasks, use closestCorners
     const allCollisions = closestCorners(args);
-    return allCollisions.filter((collision) => {
+    const filteredCollisions = allCollisions.filter((collision) => {
       if (args.active && collision.id === args.active.id) {
         return false;
       }
       return true;
     });
+
+    // Prioritize end-zone over group-container to prevent flickering in empty groups
+    const hasEndZone = filteredCollisions.some((collision) => {
+      const container = args.droppableContainers.find(c => c.id === collision.id);
+      return container?.data.current?.type === 'end-zone';
+    });
+
+    if (hasEndZone) {
+      // Remove group-container collisions if end-zone is present
+      return filteredCollisions.filter((collision) => {
+        const container = args.droppableContainers.find(c => c.id === collision.id);
+        const overData = container?.data.current;
+        return overData?.type !== 'group-container';
+      });
+    }
+
+    return filteredCollisions;
   };
 
   const { create: createGroup } = useCreateTaskGroup(boardId, ()=>refresh());

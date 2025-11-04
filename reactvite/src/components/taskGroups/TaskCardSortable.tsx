@@ -63,7 +63,9 @@ export default function TaskCardSortable({
     transition: 'none',
     width: '100%',
     position: 'relative',
-    marginBottom: isDragging ? 0 : '0.5rem',
+    maxHeight: isDragging ? 0 : undefined,
+    overflow: isDragging ? 'hidden' : 'visible',
+    marginTop: isDragging ? '-0.5rem' : undefined, // Compensate for parent's gap (0.5rem)
     cursor: canDrag ? 'grab' : 'default',
   };
 
@@ -81,8 +83,6 @@ export default function TaskCardSortable({
       )}
       <div ref={cardRef} style={{
         visibility: isDragging ? 'hidden' : 'visible',
-        height: isDragging ? 0 : 'auto',
-        overflow: isDragging ? 'hidden' : 'visible',
       }}>
         <TaskCard task={task} onDelete={onDelete} canEdit={canEdit} onClick={onClick} />
       </div>
