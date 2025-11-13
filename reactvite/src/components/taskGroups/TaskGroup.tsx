@@ -48,6 +48,7 @@ export default function TaskGroup({ boardId, group, onTaskAdded, onTaskDeleted, 
   const [taskDetailOpen, setTaskDetailOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [groupNameText, setGroupNameText] = useState(group.name);
+  const [updateKey, setUpdateKey] = useState(0);
   const renameContainerRef = useRef<HTMLDivElement>(null);
   const { rename } = useRenameTaskGroup(boardId);
 
@@ -120,9 +121,13 @@ export default function TaskGroup({ boardId, group, onTaskAdded, onTaskDeleted, 
 
   const handleTaskUpdated = (updatedTask: Task) => {
     // Update the task in the group's tasks array
-    const updatedTasks = group.tasks.map(t => t.id === updatedTask.id ? updatedTask : t);
-    group.tasks = updatedTasks;
+    const taskIndex = group.tasks.findIndex(t => t.id === updatedTask.id);
+    if (taskIndex !== -1) {
+      group.tasks[taskIndex] = updatedTask;
+    }
     setSelectedTask(updatedTask);
+    // Force re-render of task cards
+    setUpdateKey(prev => prev + 1);
   };
 
   return (
@@ -215,7 +220,7 @@ export default function TaskGroup({ boardId, group, onTaskAdded, onTaskDeleted, 
         >
           {group.tasks.map((task) => (
             <TaskCardSortable
-              key={task.id}
+              key={`${task.id}-${updateKey}`}
               task={task}
               onDelete={deleteTask}
               canEdit={canEdit}

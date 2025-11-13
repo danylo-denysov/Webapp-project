@@ -652,7 +652,7 @@
 .task-detail-modal__comment-textarea {
   width: 100%;
   padding: 12px;
-  background: var(--color-cards);
+  background: var(--color-cards-light);
   border: 2px solid var(--color-input-border);
   border-radius: 8px;
   color: var(--color-text);
@@ -682,11 +682,25 @@
 .task-detail-modal__comment {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0;
   padding: 12px;
   background: var(--color-cards);
   border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.task-detail-modal__comment:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.task-detail-modal__comment-separator {
+  height: 1px;
+  background: var(--color-text);
+  margin: 10px -5px;
 }
 
 .task-detail-modal__comment-header {
@@ -745,7 +759,6 @@
   line-height: 1.5;
   word-break: break-word;
   white-space: pre-wrap;
-  padding-left: 40px;
 }
 
 /* Responsive design */

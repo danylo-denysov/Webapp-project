@@ -41,12 +41,21 @@ export default function TaskCardSortable({
     disabled: !canDrag,
   });
 
-  // Measure card height
+  // Calculate total items count for dependency
+  const itemsCount = task.taskLists?.reduce((sum, list) => sum + list.items.length, 0) || 0;
+  const commentsCount = task.comments?.length || 0;
+
+  // Measure card height - remeasure on title, items count, or comments count change
   useEffect(() => {
     if (cardRef.current) {
-      setCardHeight(cardRef.current.offsetHeight);
+      // Use requestAnimationFrame to ensure layout is updated before measuring
+      requestAnimationFrame(() => {
+        if (cardRef.current) {
+          setCardHeight(cardRef.current.offsetHeight);
+        }
+      });
     }
-  }, [task.title, task.description]);
+  }, [task.title, itemsCount, commentsCount]);
 
   // Check if another task is being dragged over this one
   const isOverCurrent = over?.id === task.id;

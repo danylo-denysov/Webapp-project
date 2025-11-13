@@ -33,11 +33,83 @@
   white-space: normal;
 }
 
+.task-title:has(+ .task-indicators) {
+  margin-bottom: 0.5rem;
+}
+
+.task-indicators {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.task-items-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.875rem;
+  color: var(--color-text);
+}
+
+.task-comments-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.875rem;
+  color: var(--color-text);
+}
+
+.task-comments-indicator__icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.task-comments-indicator__count {
+  font-weight: 500;
+}
+
+.task-items-indicator__checkbox {
+  position: relative;
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--color-text);
+  border-radius: 3px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.task-items-indicator__checkbox::after {
+  content: '';
+  width: 10px;
+  height: 10px;
+  background-image: url('../../assets/tick.svg');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.task-items-indicator__checkbox--checked {
+  background-color: var(--color-gradient-start);
+  border-color: var(--color-gradient-start);
+}
+
+.task-items-indicator__checkbox--checked::after {
+  filter: brightness(0) invert(1);
+  opacity: 1;
+}
+
+.task-items-indicator__count {
+  font-weight: 500;
+}
+
 .task-delete{
   position: absolute;
-  top: 50%;
+  top: .5rem;
   right: .5rem;
-  transform: translateY(-50%);
   background: transparent;
   border: none;
   cursor: pointer;

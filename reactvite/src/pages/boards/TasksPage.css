@@ -77,14 +77,14 @@
 
 .groups-row{
   position:absolute;
-  top:7rem; 
-  left:3rem; 
-  right:3rem; 
+  top:7rem;
+  left:3rem;
+  right:3rem;
   bottom:0.25rem;
   display: flex;
   gap: 2rem;
   align-items: flex-start;
-  overflow-x: scroll;
+  overflow-x: auto;
   padding-bottom: 0.25rem;
 }
 

@@ -27,9 +27,14 @@ export class TaskGroupsService {
     const groupsWithSortedTasks = await this.groupsRepository
       .createQueryBuilder('g')
       .leftJoinAndSelect('g.tasks', 't')
+      .leftJoinAndSelect('t.taskLists', 'tl')
+      .leftJoinAndSelect('tl.items', 'i')
+      .leftJoinAndSelect('t.comments', 'c')
       .where('g.boardId = :boardId', { boardId })
       .orderBy('g.order', 'ASC')
       .addOrderBy('t.order', 'ASC')
+      .addOrderBy('tl.order', 'ASC')
+      .addOrderBy('i.order', 'ASC')
       .getMany();
 
     return groupsWithSortedTasks;

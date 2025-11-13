@@ -195,20 +195,33 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated, 
 
     const newItem = await createItem(listId, newItemContent);
     if (newItem) {
-      setTaskLists(taskLists.map(list =>
+      const updatedTaskLists = taskLists.map(list =>
         list.id === listId
           ? { ...list, items: [...list.items, newItem] }
           : list
-      ));
+      );
+      setTaskLists(updatedTaskLists);
       setNewItemContent('');
       setCreatingItemForList(null);
+
+      // Notify parent component with updated task including taskLists
+      if (onTaskUpdated) {
+        onTaskUpdated({
+          id: task.id,
+          title: currentTitle,
+          description: currentDescription,
+          created_at: '',
+          order: 0,
+          taskLists: updatedTaskLists,
+        });
+      }
     }
   };
 
   const handleToggleItem = async (listId: string, itemId: string, completed: boolean) => {
     const updatedItem = await toggleItem(itemId, completed);
     if (updatedItem) {
-      setTaskLists(taskLists.map(list =>
+      const updatedTaskLists = taskLists.map(list =>
         list.id === listId
           ? {
               ...list,
@@ -217,18 +230,44 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated, 
               ),
             }
           : list
-      ));
+      );
+      setTaskLists(updatedTaskLists);
+
+      // Notify parent component with updated task including taskLists
+      if (onTaskUpdated) {
+        onTaskUpdated({
+          id: task.id,
+          title: currentTitle,
+          description: currentDescription,
+          created_at: '',
+          order: 0,
+          taskLists: updatedTaskLists,
+        });
+      }
     }
   };
 
   const handleDeleteItem = async (listId: string, itemId: string) => {
     const success = await deleteItem(itemId);
     if (success) {
-      setTaskLists(taskLists.map(list =>
+      const updatedTaskLists = taskLists.map(list =>
         list.id === listId
           ? { ...list, items: list.items.filter(item => item.id !== itemId) }
           : list
-      ));
+      );
+      setTaskLists(updatedTaskLists);
+
+      // Notify parent component with updated task including taskLists
+      if (onTaskUpdated) {
+        onTaskUpdated({
+          id: task.id,
+          title: currentTitle,
+          description: currentDescription,
+          created_at: '',
+          order: 0,
+          taskLists: updatedTaskLists,
+        });
+      }
     }
   };
 
@@ -328,9 +367,23 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated, 
 
     const newComment = await createComment(task.id, newCommentText);
     if (newComment) {
-      setComments([newComment, ...comments]);
+      const updatedComments = [newComment, ...comments];
+      setComments(updatedComments);
       setNewCommentText('');
       setIsWritingComment(false);
+
+      // Notify parent component with updated task including comments
+      if (onTaskUpdated) {
+        onTaskUpdated({
+          id: task.id,
+          title: currentTitle,
+          description: currentDescription,
+          created_at: '',
+          order: 0,
+          taskLists,
+          comments: updatedComments,
+        });
+      }
     }
   };
 
@@ -342,7 +395,21 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated, 
   const handleDeleteComment = async (commentId: string) => {
     const success = await deleteComment(commentId);
     if (success) {
-      setComments(comments.filter(c => c.id !== commentId));
+      const updatedComments = comments.filter(c => c.id !== commentId);
+      setComments(updatedComments);
+
+      // Notify parent component with updated task including comments
+      if (onTaskUpdated) {
+        onTaskUpdated({
+          id: task.id,
+          title: currentTitle,
+          description: currentDescription,
+          created_at: '',
+          order: 0,
+          taskLists,
+          comments: updatedComments,
+        });
+      }
     }
   };
 
@@ -872,6 +939,7 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated, 
                             day: 'numeric',
                             hour: '2-digit',
                             minute: '2-digit',
+                            hour12: false,
                           })}
                         </span>
                       </div>
@@ -885,6 +953,7 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated, 
                         </button>
                       )}
                     </div>
+                    <div className="task-detail-modal__comment-separator"></div>
                     <div className="task-detail-modal__comment-content">
                       {comment.content}
                     </div>
