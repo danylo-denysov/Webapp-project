@@ -109,11 +109,14 @@
 }
 
 .board-color {
-  cursor: pointer;
   transition: all 0.2s ease;
 }
 
-.board-color:hover {
+.board-color--clickable {
+  cursor: pointer;
+}
+
+.board-color--clickable:hover {
   transform: scale(1.1);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }

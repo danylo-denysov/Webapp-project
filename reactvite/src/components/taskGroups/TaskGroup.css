@@ -35,17 +35,20 @@
 
 .group-name{
   display:inline-block;
-  cursor:pointer;
-  text-decoration:underline;
-  text-decoration-thickness:1px;
-  text-underline-offset:4px;
   max-width:100%;
   white-space:normal;
   word-break:break-word;
   transition: opacity 0.2s;
 }
 
-.group-name:hover {
+.group-name--editable {
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+.group-name--editable:hover {
   opacity: 0.7;
 }
 

@@ -5,9 +5,10 @@ import { ReactNode, CSSProperties } from 'react';
 interface ListSortableProps {
   listId: string;
   children: ReactNode;
+  canEdit: boolean;
 }
 
-export default function ListSortable({ listId, children }: ListSortableProps) {
+export default function ListSortable({ listId, children, canEdit }: ListSortableProps) {
   const {
     attributes,
     listeners,
@@ -21,6 +22,7 @@ export default function ListSortable({ listId, children }: ListSortableProps) {
       type: 'list',
       listId,
     },
+    disabled: !canEdit,
   });
 
   const style: CSSProperties = {
@@ -30,7 +32,7 @@ export default function ListSortable({ listId, children }: ListSortableProps) {
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+    <div ref={setNodeRef} style={style} {...attributes} {...(canEdit ? listeners : {})}>
       {children}
     </div>
   );

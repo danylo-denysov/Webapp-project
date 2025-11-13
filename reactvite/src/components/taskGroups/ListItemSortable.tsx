@@ -9,6 +9,7 @@ interface ListItemSortableProps {
   onToggle: (itemId: string, completed: boolean) => void;
   onDelete: (itemId: string) => void;
   closeEditingStates: () => void;
+  canEdit: boolean;
 }
 
 export default function ListItemSortable({
@@ -17,6 +18,7 @@ export default function ListItemSortable({
   onToggle,
   onDelete,
   closeEditingStates,
+  canEdit,
 }: ListItemSortableProps) {
   const itemRef = useRef<HTMLDivElement>(null);
   const [itemHeight, setItemHeight] = useState<number>(0);
@@ -36,6 +38,7 @@ export default function ListItemSortable({
       listId: listId,
       itemHeight: itemHeight,
     },
+    disabled: !canEdit,
   });
 
   // Measure item height
@@ -67,7 +70,7 @@ export default function ListItemSortable({
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+    <div ref={setNodeRef} style={style} {...attributes} {...(canEdit ? listeners : {})}>
       {showPlaceholder && (
         <div style={{
           height: `${draggedItemHeight}px`,
@@ -83,31 +86,35 @@ export default function ListItemSortable({
         className="task-detail-modal__list-item"
         style={{
           visibility: isDragging ? 'hidden' : 'visible',
+          cursor: canEdit ? 'grab' : 'default',
         }}
       >
         <label
-          className="task-detail-modal__checkbox-container"
-          onClick={closeEditingStates}
+          className={`task-detail-modal__checkbox-container ${canEdit ? 'task-detail-modal__checkbox-container--editable' : ''}`}
+          onClick={canEdit ? closeEditingStates : undefined}
         >
           <input
             type="checkbox"
             checked={item.completed}
-            onChange={(e) => onToggle(item.id, e.target.checked)}
+            onChange={(e) => canEdit && onToggle(item.id, e.target.checked)}
+            disabled={!canEdit}
           />
           <span className="task-detail-modal__checkbox-custom"></span>
         </label>
         <span className={`task-detail-modal__item-content ${item.completed ? 'task-detail-modal__item-content--completed' : ''}`}>
           {item.content}
         </span>
-        <button
-          className="task-detail-modal__item-delete"
-          onClick={() => {
-            closeEditingStates();
-            onDelete(item.id);
-          }}
-        >
-          <img src={closeIcon} alt="Delete" />
-        </button>
+        {canEdit && (
+          <button
+            className="task-detail-modal__item-delete"
+            onClick={() => {
+              closeEditingStates();
+              onDelete(item.id);
+            }}
+          >
+            <img src={closeIcon} alt="Delete" />
+          </button>
+        )}
       </div>
     </div>
   );

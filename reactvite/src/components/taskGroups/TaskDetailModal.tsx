@@ -10,6 +10,7 @@ import { useMoveListItem } from '../../hooks/taskGroups/useMoveListItem';
 import { useReorderTaskLists } from '../../hooks/taskGroups/useReorderTaskLists';
 import { useTaskComments } from '../../hooks/taskGroups/useTaskComments';
 import { useCurrentUser } from '../../hooks/auth/useCurrentUser';
+import { BoardUserRole } from '../../types/boardUser';
 import { safe_fetch } from '../../utils/api';
 import { handleApiError } from '../../utils/errorHandler';
 import { toastError } from '../../utils/toast';
@@ -32,9 +33,10 @@ interface TaskDetailModalProps {
     description: string;
   };
   onTaskUpdated?: (updatedTask: Task) => void;
+  userRole: string | null;
 }
 
-export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated }: TaskDetailModalProps) {
+export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated, userRole }: TaskDetailModalProps) {
   const [isEditingDescription, setIsEditingDescription] = useState(false);
   const [descriptionText, setDescriptionText] = useState(task.description || '');
   const [currentDescription, setCurrentDescription] = useState(task.description || '');
@@ -56,6 +58,7 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated }
   const [isWritingComment, setIsWritingComment] = useState(false);
 
   const { user: currentUser } = useCurrentUser();
+  const canEdit = userRole === BoardUserRole.OWNER || userRole === BoardUserRole.EDITOR;
   const { updateTask } = useUpdateTask((updatedTask) => {
     setCurrentDescription(updatedTask.description || '');
     setCurrentTitle(updatedTask.title || '');
@@ -143,6 +146,7 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated }
   }, [isOpen, task.id]);
 
   const handleDescriptionClick = () => {
+    if (!canEdit) return;
     // Close any other editing states
     setIsEditingTitle(false);
     setEditingListId(null);
@@ -235,6 +239,7 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated }
   };
 
   const handleTitleClick = () => {
+    if (!canEdit) return;
     // Close any other editing states
     setEditingListId(null);
     setIsEditingDescription(false);
@@ -263,6 +268,7 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated }
   };
 
   const handleListNameClick = (list: TaskList) => {
+    if (!canEdit) return;
     // Close any other editing states
     setIsEditingTitle(false);
     setIsEditingDescription(false);
@@ -540,32 +546,34 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated }
               </div>
             ) : (
               <h2
-                className="task-detail-modal__title"
+                className={`task-detail-modal__title ${canEdit ? 'task-detail-modal__title--editable' : ''}`}
                 onClick={handleTitleClick}
-                title="Click to edit task title"
+                title={canEdit ? "Click to edit task title" : undefined}
               >
                 {currentTitle}
               </h2>
             )}
           </div>
 
-          <div className="task-detail-modal__actions" onClick={(e) => e.stopPropagation()}>
-            <button
-              className="task-detail-modal__action-btn"
-              onClick={() => {
-                // Close any other editing states
-                setIsEditingTitle(false);
-                setIsEditingDescription(false);
-                setEditingListId(null);
-                setCreatingItemForList(null);
-                setIsWritingComment(false);
-                setNewCommentText('');
-                setIsCreatingList(true);
-              }}
-            >
-              Add List
-            </button>
-          </div>
+          {canEdit && (
+            <div className="task-detail-modal__actions" onClick={(e) => e.stopPropagation()}>
+              <button
+                className="task-detail-modal__action-btn"
+                onClick={() => {
+                  // Close any other editing states
+                  setIsEditingTitle(false);
+                  setIsEditingDescription(false);
+                  setEditingListId(null);
+                  setCreatingItemForList(null);
+                  setIsWritingComment(false);
+                  setNewCommentText('');
+                  setIsCreatingList(true);
+                }}
+              >
+                Add List
+              </button>
+            </div>
+          )}
 
           <div className="task-detail-modal__description-section" onClick={(e) => e.stopPropagation()}>
             <h3 className="task-detail-modal__section-title">Description</h3>
@@ -596,7 +604,7 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated }
               </div>
             ) : (
               <div
-                className="task-detail-modal__description-content"
+                className={`task-detail-modal__description-content ${canEdit ? 'task-detail-modal__description-content--editable' : ''}`}
                 onClick={handleDescriptionClick}
               >
                 {currentDescription || <span className="task-detail-modal__empty-state">No description yet</span>}
@@ -649,9 +657,9 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated }
                 {taskLists.map((list) => {
                   const { completed, total } = getCompletionCount(list);
                   return (
-                    <ListSortable key={list.id} listId={list.id}>
+                    <ListSortable key={list.id} listId={list.id} canEdit={canEdit}>
                       <div className="task-detail-modal__list">
-                    <div className="task-detail-modal__list-header">
+                    <div className={`task-detail-modal__list-header ${canEdit ? 'task-detail-modal__list-header--draggable' : ''}`}>
                       <div className="task-detail-modal__list-info">
                         <span className="task-detail-modal__list-progress">
                           {completed}/{total}
@@ -692,24 +700,26 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated }
                           </div>
                         ) : (
                           <h4
-                            className="task-detail-modal__list-name"
+                            className={`task-detail-modal__list-name ${canEdit ? 'task-detail-modal__list-name--editable' : ''}`}
                             onClick={() => handleListNameClick(list)}
-                            title="Click to edit list name"
+                            title={canEdit ? "Click to edit list name" : undefined}
                           >
                             {list.name}
                           </h4>
                         )}
                       </div>
-                      <button
-                        className="task-detail-modal__list-delete"
-                        onClick={() => {
-                          closeEditingStates();
-                          handleDeleteList(list.id);
-                        }}
-                        title="Delete list"
-                      >
-                        <img src={closeIcon} alt="Delete" />
-                      </button>
+                      {canEdit && (
+                        <button
+                          className="task-detail-modal__list-delete"
+                          onClick={() => {
+                            closeEditingStates();
+                            handleDeleteList(list.id);
+                          }}
+                          title="Delete list"
+                        >
+                          <img src={closeIcon} alt="Delete" />
+                        </button>
+                      )}
                     </div>
 
                     <div className="task-detail-modal__list-items">
@@ -725,6 +735,7 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated }
                             onToggle={(itemId, completed) => handleToggleItem(list.id, itemId, completed)}
                             onDelete={(itemId) => handleDeleteItem(list.id, itemId)}
                             closeEditingStates={closeEditingStates}
+                            canEdit={canEdit}
                           />
                         ))}
                         <ListItemEndZone listId={list.id} />
@@ -769,7 +780,7 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated }
                             </button>
                           </div>
                         </div>
-                      ) : (
+                      ) : canEdit ? (
                         <button
                           className="task-detail-modal__add-item-btn"
                           onClick={(e) => {
@@ -787,7 +798,7 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated }
                           <img src={plusIcon} alt="Add" />
                           Add item
                         </button>
-                      )}
+                      ) : null}
                     </div>
                   </div>
                     </ListSortable>

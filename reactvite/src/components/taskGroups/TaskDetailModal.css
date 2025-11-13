@@ -100,14 +100,17 @@
   font-weight: 600;
   color: var(--color-text);
   word-break: break-word;
+  transition: opacity 0.2s;
+}
+
+.task-detail-modal__title--editable {
   cursor: pointer;
   text-decoration: underline;
   text-decoration-thickness: 2px;
   text-underline-offset: 6px;
-  transition: opacity 0.2s;
 }
 
-.task-detail-modal__title:hover {
+.task-detail-modal__title--editable:hover {
   opacity: 0.7;
 }
 
@@ -197,11 +200,14 @@
   min-height: 120px;
   white-space: pre-wrap;
   word-break: break-word;
-  cursor: pointer;
   transition: background 0.2s ease;
 }
 
-.task-detail-modal__description-content:hover {
+.task-detail-modal__description-content--editable {
+  cursor: pointer;
+}
+
+.task-detail-modal__description-content--editable:hover {
   background: var(--color-cards-light);
   border-color: var(--color-input-border);
 }
@@ -288,10 +294,13 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 12px;
+}
+
+.task-detail-modal__list-header--draggable {
   cursor: grab;
 }
 
-.task-detail-modal__list-header:active {
+.task-detail-modal__list-header--draggable:active {
   cursor: grabbing;
 }
 
@@ -315,16 +324,19 @@
   font-size: 1.125rem;
   font-weight: 600;
   color: var(--color-text);
-  cursor: pointer;
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 4px;
   word-break: break-word;
   white-space: normal;
   transition: opacity 0.2s;
 }
 
-.task-detail-modal__list-name:hover {
+.task-detail-modal__list-name--editable {
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+.task-detail-modal__list-name--editable:hover {
   opacity: 0.7;
 }
 
@@ -406,16 +418,22 @@
   display: inline-block;
   width: 20px;
   height: 20px;
-  cursor: pointer;
   flex-shrink: 0;
+}
+
+.task-detail-modal__checkbox-container--editable {
+  cursor: pointer;
 }
 
 .task-detail-modal__checkbox-container input[type="checkbox"] {
   position: absolute;
   opacity: 0;
-  cursor: pointer;
   width: 0;
   height: 0;
+}
+
+.task-detail-modal__checkbox-container--editable input[type="checkbox"] {
+  cursor: pointer;
 }
 
 .task-detail-modal__checkbox-custom {
@@ -430,7 +448,7 @@
   transition: all 0.2s ease;
 }
 
-.task-detail-modal__checkbox-container:hover .task-detail-modal__checkbox-custom {
+.task-detail-modal__checkbox-container--editable:hover .task-detail-modal__checkbox-custom {
   border-color: var(--color-gradient-start);
 }
 

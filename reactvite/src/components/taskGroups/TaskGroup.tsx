@@ -172,7 +172,7 @@ export default function TaskGroup({ boardId, group, onTaskAdded, onTaskDeleted, 
           </div>
         ) : (
           <span
-            className="group-name"
+            className={`group-name ${canEdit ? 'group-name--editable' : ''}`}
             onClick={(e) => {
               if (canEdit) {
                 e.stopPropagation();
@@ -190,7 +190,6 @@ export default function TaskGroup({ boardId, group, onTaskAdded, onTaskDeleted, 
                 e.stopPropagation();
               }
             }}
-            style={{ cursor: canEdit ? 'pointer' : 'default' }}
             title={canEdit ? "Click to rename" : undefined}
           >
             {group.name}
@@ -263,6 +262,7 @@ export default function TaskGroup({ boardId, group, onTaskAdded, onTaskDeleted, 
           onClose={() => setTaskDetailOpen(false)}
           task={selectedTask}
           onTaskUpdated={handleTaskUpdated}
+          userRole={userRole}
         />
       )}
     </div>
