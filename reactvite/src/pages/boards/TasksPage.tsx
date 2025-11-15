@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { DndContext, closestCorners, PointerSensor, useSensor, useSensors, DragEndEvent, DragStartEvent, DragOverEvent, DragOverlay, CollisionDetection, pointerWithin } from '@dnd-kit/core';
 import { arrayMove, SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortable';
@@ -6,6 +6,7 @@ import { arrayMove, SortableContext, horizontalListSortingStrategy } from '@dnd-
 import Avatar from '../../components/common/Avatar';
 import Header from '../../components/common/Header';
 import TeamModal from '../../components/boards/TeamModal';
+import NotificationsDropdown from '../../components/notifications/NotificationsDropdown';
 import CreateTaskGroupModal from '../../components/taskGroups/CreateTaskGroupModal';
 import TaskGroupSortable from '../../components/taskGroups/TaskGroupSortable';
 import TaskCard from '../../components/taskGroups/TaskCard';
@@ -21,6 +22,7 @@ import { toastError } from '../../utils/toast';
 import teamIcon from '../../assets/team.svg';
 import listIcon from '../../assets/list.svg';
 import plusIcon from '../../assets/plus.svg';
+import notificationIcon from '../../assets/notification.svg';
 
 import './TasksPage.css';
 
@@ -106,6 +108,8 @@ export default function TasksPage() {
   const { create: createGroup } = useCreateTaskGroup(boardId, ()=>refresh());
   const [groupModalOpen,setGroupModalOpen]=useState(false);
   const [teamModalOpen, setTeamModalOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const notificationsButtonRef = useRef<HTMLButtonElement>(null);
   const [isOwner, setIsOwner] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [activeTask, setActiveTask] = useState<any>(null);
@@ -337,7 +341,7 @@ export default function TasksPage() {
     <div className="tasks-page">
       <Header
         left={
-          <h1 className="tasks-title" data-text={boardName}>
+          <h1 className="tasks-board-title" data-text={boardName}>
             {boardName}
           </h1>
         }
@@ -354,6 +358,20 @@ export default function TasksPage() {
             <button className="tasks-action-btn" onClick={() => setTeamModalOpen(true)}>
               <img src={teamIcon} alt="Team" /> Team
             </button>
+            <div style={{ position: 'relative' }}>
+              <button
+                ref={notificationsButtonRef}
+                className="tasks-action-btn"
+                onClick={() => setNotificationsOpen(!notificationsOpen)}
+              >
+                <img src={notificationIcon} alt="Notifications" /> Notifications
+              </button>
+              <NotificationsDropdown
+                isOpen={notificationsOpen}
+                onClose={() => setNotificationsOpen(false)}
+                buttonRef={notificationsButtonRef}
+              />
+            </div>
             <Link to="/boards" className="tasks-action-btn tasks-boards-link">
               <img src={listIcon} alt="Boards" /> Boards
             </Link>
