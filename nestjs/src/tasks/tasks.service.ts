@@ -10,6 +10,7 @@ import { Task } from './task.entity';
 import { TaskList } from './task-list.entity';
 import { TaskListItem } from './task-list-item.entity';
 import { TaskComment } from './task-comment.entity';
+import { MentionsService } from './mentions.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { TaskGroup } from 'src/task-groups/task-group.entity';
@@ -25,6 +26,7 @@ export class TasksService {
     @InjectRepository(TaskComment) private taskCommentsRepository: Repository<TaskComment>,
     @InjectRepository(TaskGroup) private readonly groupRepository: Repository<TaskGroup>,
     @InjectRepository(User) private readonly userRepository: Repository<User>,
+    private readonly mentionsService: MentionsService,
   ) {}
 
   async getTasks(groupId?: string): Promise<Task[]> {
@@ -114,7 +116,7 @@ export class TasksService {
     return task;
   }
 
-  async updateTask(id: string, updateTaskDto: UpdateTaskDto): Promise<Task> {
+  async updateTask(id: string, updateTaskDto: UpdateTaskDto, userId?: string): Promise<Task> {
     const task = await this.getTaskById(id);
 
     if (updateTaskDto.title !== undefined) {
@@ -122,6 +124,17 @@ export class TasksService {
     }
     if (updateTaskDto.description !== undefined) {
       task.description = updateTaskDto.description;
+
+      // Process mentions in description if userId is provided
+      if (userId) {
+        const boardId = task.taskGroup.board.id;
+        await this.mentionsService.processMentionsInTask(
+          task.id,
+          updateTaskDto.description,
+          userId,
+          boardId,
+        );
+      }
     }
 
     await this.tasksRepository.save(task);
@@ -418,7 +431,10 @@ export class TasksService {
 
   // Comment methods
   async createComment(createCommentDto: CreateCommentDto, taskId: string, userId: string): Promise<TaskComment> {
-    const task = await this.tasksRepository.findOne({ where: { id: taskId } });
+    const task = await this.tasksRepository.findOne({
+      where: { id: taskId },
+      relations: ['taskGroup', 'taskGroup.board'],
+    });
     if (!task) throw new NotFoundException('Task not found');
 
     const user = await this.userRepository.findOne({ where: { id: userId } });
@@ -430,6 +446,16 @@ export class TasksService {
       user,
     });
     await this.taskCommentsRepository.save(comment);
+
+    // Process mentions in comment
+    const boardId = task.taskGroup.board.id;
+    await this.mentionsService.processMentionsInComment(
+      comment.id,
+      createCommentDto.content,
+      userId,
+      boardId,
+    );
+
     return comment;
   }
 

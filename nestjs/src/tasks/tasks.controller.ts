@@ -78,7 +78,7 @@ export class TasksController {
   ): Promise<Task> {
     const boardId = await this.tasksService.getBoardIdFromTaskId(id);
     await this.boardAccessService.verifyWriteAccess(boardId, user.id);
-    return this.tasksService.updateTask(id, updateTaskDto);
+    return this.tasksService.updateTask(id, updateTaskDto, user.id);
   }
 
   @Delete('/:id')

@@ -2,6 +2,7 @@ import { Column, Entity, Index, ManyToOne, OneToMany, ManyToMany, JoinTable, Pri
 import { TaskGroup } from 'src/task-groups/task-group.entity';
 import { TaskList } from './task-list.entity';
 import { TaskComment } from './task-comment.entity';
+import { TaskMention } from './task-mention.entity';
 import { User } from 'src/users/user.entity';
 
 @Entity()
@@ -44,4 +45,7 @@ export class Task {
     inverseJoinColumn: { name: 'user_id', referencedColumnName: 'id' },
   })
   users: User[];
+
+  @OneToMany(() => TaskMention, (mention) => mention.task)
+  mentions: TaskMention[];
 }

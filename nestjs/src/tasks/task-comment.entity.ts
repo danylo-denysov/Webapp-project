@@ -1,5 +1,6 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Task } from './task.entity';
+import { TaskMention } from './task-mention.entity';
 import { User } from 'src/users/user.entity';
 
 @Entity()
@@ -22,4 +23,7 @@ export class TaskComment {
     eager: true,
   })
   user: User;
+
+  @OneToMany(() => TaskMention, (mention) => mention.comment)
+  mentions: TaskMention[];
 }

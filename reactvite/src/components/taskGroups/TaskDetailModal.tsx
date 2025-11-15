@@ -4,6 +4,8 @@ import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import Modal from '../common/Modal/Modal';
 import Avatar from '../common/Avatar';
 import UserAssignmentDropdown from './UserAssignmentDropdown';
+import { MentionTextarea } from '../common/MentionTextarea';
+import { MentionText } from '../common/MentionText';
 import { useUpdateTask } from '../../hooks/taskGroups/useUpdateTask';
 import { useTaskLists } from '../../hooks/taskGroups/useTaskLists';
 import { useUpdateTaskList } from '../../hooks/taskGroups/useUpdateTaskList';
@@ -701,10 +703,9 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated, 
             <h3 className="task-detail-modal__section-title">Description</h3>
             {isEditingDescription ? (
               <div className="task-detail-modal__description-edit">
-                <textarea
-                  className="task-detail-modal__description-textarea"
+                <MentionTextarea
                   value={descriptionText}
-                  onChange={(e) => setDescriptionText(e.target.value)}
+                  onChange={setDescriptionText}
                   onKeyDown={(e) => {
                     if (e.key === 'Escape') {
                       e.preventDefault();
@@ -713,7 +714,9 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated, 
                     }
                   }}
                   placeholder="Add a description..."
+                  boardUsers={boardUsers}
                   autoFocus
+                  className="task-detail-modal__description-textarea"
                 />
                 <div className="task-detail-modal__description-actions">
                   <button className="task-detail-modal__action-btn" onClick={handleDescriptionSave}>
@@ -729,7 +732,11 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated, 
                 className={`task-detail-modal__description-content ${canEdit ? 'task-detail-modal__description-content--editable' : ''}`}
                 onClick={handleDescriptionClick}
               >
-                {currentDescription || <span className="task-detail-modal__empty-state">No description yet</span>}
+                {currentDescription ? (
+                  <MentionText content={currentDescription} />
+                ) : (
+                  <span className="task-detail-modal__empty-state">No description yet</span>
+                )}
               </div>
             )}
           </div>
@@ -940,10 +947,9 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated, 
             <div className="task-detail-modal__comment-section">
               {isWritingComment ? (
                 <div className="task-detail-modal__comment-edit">
-                  <textarea
-                    className="task-detail-modal__comment-textarea"
+                  <MentionTextarea
                     value={newCommentText}
-                    onChange={(e) => setNewCommentText(e.target.value)}
+                    onChange={setNewCommentText}
                     onKeyDown={(e) => {
                       if (e.key === 'Escape') {
                         e.preventDefault();
@@ -952,7 +958,10 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated, 
                       }
                     }}
                     placeholder="Write a comment..."
+                    boardUsers={boardUsers}
                     autoFocus
+                    className="task-detail-modal__comment-textarea"
+                    dropdownPosition="bottom"
                   />
                   <div className="task-detail-modal__description-actions">
                     <button className="task-detail-modal__action-btn" onClick={handleCommentSave}>
@@ -1010,7 +1019,7 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated, 
                     </div>
                     <div className="task-detail-modal__comment-separator"></div>
                     <div className="task-detail-modal__comment-content">
-                      {comment.content}
+                      <MentionText content={comment.content} />
                     </div>
                   </div>
                 ))

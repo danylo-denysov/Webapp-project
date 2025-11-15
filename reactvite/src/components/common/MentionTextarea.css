@@ -1,0 +1,65 @@
+.mention-textarea-container {
+  position: relative;
+  width: 100%;
+}
+
+.mention-textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 14px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.mention-textarea:focus {
+  outline: none;
+  border-color: #0066cc;
+}
+
+.mention-suggestions {
+  position: absolute;
+  left: 0;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+  min-width: 200px;
+}
+
+/* Show dropdown above textarea */
+.mention-suggestions--top {
+  bottom: 100%;
+  margin-bottom: 4px;
+}
+
+/* Show dropdown below textarea */
+.mention-suggestions--bottom {
+  top: 100%;
+  margin-top: 4px;
+}
+
+.mention-suggestion-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.mention-suggestion-item:hover,
+.mention-suggestion-item.selected {
+  background-color: #f0f0f0;
+}
+
+.mention-username {
+  font-size: 14px;
+  color: #333;
+}
