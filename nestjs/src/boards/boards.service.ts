@@ -233,6 +233,18 @@ export class BoardsService {
     if (result.affected === 0) {
       throw new NotFoundException(`User with ID "${userId}" is not assigned to the board with ID "${boardId}"`);
     }
+
+    // Remove user from all task assignments on this board
+    await this.boardsRepository.manager.query(
+      `DELETE FROM task_users
+       WHERE user_id = $1
+       AND task_id IN (
+         SELECT t.id FROM task t
+         INNER JOIN task_group tg ON t."taskGroupId" = tg.id
+         WHERE tg."boardId" = $2
+       )`,
+      [userId, boardId]
+    );
   }
 
   async getBoardUsers(boardId: string): Promise<BoardUser[]> {

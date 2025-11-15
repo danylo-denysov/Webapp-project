@@ -5,12 +5,13 @@ import user from '../../assets/user.svg';
 import type { Task } from '../../types/task';
 
 export default function TaskCard({
-  task, onDelete, canEdit, onClick,
+  task, onDelete, canEdit, onClick, currentUserId,
 }: {
   task: Task;
   onDelete: (id:string)=>void;
   canEdit: boolean;
   onClick?: () => void;
+  currentUserId?: string;
 }) {
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -33,6 +34,7 @@ export default function TaskCard({
   const allCompleted = itemsCount && itemsCount.total > 0 && itemsCount.completed === itemsCount.total;
   const commentsCount = task.comments?.length || 0;
   const assignedUsersCount = task.users?.length || 0;
+  const isCurrentUserAssigned = currentUserId && task.users?.some(u => u.id === currentUserId);
 
   return (
     <div className="task-card" onClick={onClick}>
@@ -57,7 +59,11 @@ export default function TaskCard({
           )}
           {assignedUsersCount > 0 && (
             <div className="task-users-indicator">
-              <img src={user} alt="assigned users" className="task-users-indicator__icon"/>
+              <img
+                src={user}
+                alt="assigned users"
+                className={`task-users-indicator__icon ${isCurrentUserAssigned ? 'task-users-indicator__icon--assigned' : ''}`}
+              />
               <span className="task-users-indicator__count">
                 {assignedUsersCount}
               </span>

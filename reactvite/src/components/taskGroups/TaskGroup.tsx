@@ -27,9 +27,10 @@ export interface TaskGroupProps {
   onGroupDeleted?: () => void;
   userRole: string | null;
   dragHandleProps?: any;
+  currentUserId?: string;
 }
 
-export default function TaskGroup({ boardId, group, onTaskAdded, onTaskDeleted, onGroupRenamed, onGroupDeleted, userRole, dragHandleProps }: TaskGroupProps) {
+export default function TaskGroup({ boardId, group, onTaskAdded, onTaskDeleted, onGroupRenamed, onGroupDeleted, userRole, dragHandleProps, currentUserId }: TaskGroupProps) {
   const canEdit = userRole === BoardUserRole.OWNER || userRole === BoardUserRole.EDITOR;
 
   const { createTask } = useCreateTask(
@@ -221,6 +222,7 @@ export default function TaskGroup({ boardId, group, onTaskAdded, onTaskDeleted, 
               groupId={group.id}
               onClick={() => handleTaskClick(task)}
               userRole={userRole}
+              currentUserId={currentUserId}
             />
           ))}
           <TaskGroupEndZone groupId={group.id} />

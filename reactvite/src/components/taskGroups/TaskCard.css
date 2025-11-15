@@ -83,6 +83,10 @@
   flex-shrink: 0;
 }
 
+.task-users-indicator__icon--assigned {
+  filter: invert(38%) sepia(89%) saturate(1776%) hue-rotate(222deg) brightness(93%) contrast(87%);
+}
+
 .task-users-indicator__count {
   font-weight: 500;
 }

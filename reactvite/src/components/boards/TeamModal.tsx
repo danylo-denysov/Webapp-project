@@ -17,9 +17,10 @@ interface TeamModalProps {
   onClose: () => void;
   boardId: string;
   isOwner: boolean;
+  onUserRemoved?: () => void;
 }
 
-export default function TeamModal({ isOpen, onClose, boardId, isOwner }: TeamModalProps) {
+export default function TeamModal({ isOpen, onClose, boardId, isOwner, onUserRemoved }: TeamModalProps) {
   const [activeTab, setActiveTab] = useState<'team' | 'invite'>('team');
   const [searchQuery, setSearchQuery] = useState('');
   const { users: boardUsers, loading: boardUsersLoading, refresh } = useBoardUsers(boardId);
@@ -84,6 +85,7 @@ export default function TeamModal({ isOpen, onClose, boardId, isOwner }: TeamMod
 
       toastSuccess('User removed successfully');
       refresh();
+      onUserRemoved?.();
     } catch (error) {
       toastError((error as Error).message);
     }

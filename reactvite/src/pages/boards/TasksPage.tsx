@@ -397,6 +397,7 @@ export default function TasksPage() {
                       onGroupRenamed={refresh}
                       onGroupDeleted={refresh}
                       userRole={userRole}
+                      currentUserId={currentUser?.id}
                     />
                   );
                 })}
@@ -414,7 +415,7 @@ export default function TasksPage() {
               transform: 'rotate(3deg)',
               boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
             }}>
-              <TaskCard task={activeTask} onDelete={() => {}} canEdit={false} />
+              <TaskCard task={activeTask} onDelete={() => {}} canEdit={false} currentUserId={currentUser?.id} />
             </div>
           ) : activeGroup ? (
             <GroupGhost group={activeGroup} />
@@ -435,6 +436,7 @@ export default function TasksPage() {
         onClose={() => setTeamModalOpen(false)}
         boardId={boardId!}
         isOwner={isOwner}
+        onUserRemoved={refresh}
       />
 
     </div>

@@ -11,6 +11,7 @@ export default function TaskCardSortable({
   groupId,
   onClick,
   userRole,
+  currentUserId,
 }: {
   task: Task;
   onDelete: (id: string) => void;
@@ -18,6 +19,7 @@ export default function TaskCardSortable({
   groupId: string;
   onClick?: () => void;
   userRole: string | null;
+  currentUserId?: string;
 }) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [cardHeight, setCardHeight] = useState<number>(0);
@@ -86,7 +88,7 @@ export default function TaskCardSortable({
       <div ref={cardRef} style={{
         visibility: isDragging ? 'hidden' : 'visible',
       }}>
-        <TaskCard task={task} onDelete={onDelete} canEdit={canEdit} onClick={onClick} />
+        <TaskCard task={task} onDelete={onDelete} canEdit={canEdit} onClick={onClick} currentUserId={currentUserId} />
       </div>
     </div>
   );
