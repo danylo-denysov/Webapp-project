@@ -10,6 +10,7 @@ interface ListItemSortableProps {
   onDelete: (itemId: string) => void;
   closeEditingStates: () => void;
   canEdit: boolean;
+  isUserAssigned: boolean;
 }
 
 export default function ListItemSortable({
@@ -19,6 +20,7 @@ export default function ListItemSortable({
   onDelete,
   closeEditingStates,
   canEdit,
+  isUserAssigned,
 }: ListItemSortableProps) {
   const itemRef = useRef<HTMLDivElement>(null);
   const [itemHeight, setItemHeight] = useState<number>(0);
@@ -57,6 +59,9 @@ export default function ListItemSortable({
   // Show placeholder when an item is being dragged over this one
   const showPlaceholder = isOverCurrent && isItemBeingDragged && active?.id !== item.id && !isDragging;
 
+  // User can toggle checkbox if they have edit permission OR are assigned to the task
+  const canToggleCheckbox = canEdit || isUserAssigned;
+
   const style: React.CSSProperties = {
     // Disable transform completely - we'll use custom placeholder instead
     transform: 'none',
@@ -90,14 +95,14 @@ export default function ListItemSortable({
         }}
       >
         <label
-          className={`task-detail-modal__checkbox-container ${canEdit ? 'task-detail-modal__checkbox-container--editable' : ''}`}
-          onClick={canEdit ? closeEditingStates : undefined}
+          className={`task-detail-modal__checkbox-container ${canToggleCheckbox ? 'task-detail-modal__checkbox-container--editable' : ''}`}
+          onClick={canToggleCheckbox ? closeEditingStates : undefined}
         >
           <input
             type="checkbox"
             checked={item.completed}
-            onChange={(e) => canEdit && onToggle(item.id, e.target.checked)}
-            disabled={!canEdit}
+            onChange={(e) => canToggleCheckbox && onToggle(item.id, e.target.checked)}
+            disabled={!canToggleCheckbox}
           />
           <span className="task-detail-modal__checkbox-custom"></span>
         </label>

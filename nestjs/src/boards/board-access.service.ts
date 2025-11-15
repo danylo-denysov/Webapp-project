@@ -121,4 +121,13 @@ export class BoardAccessService {
     const access = await this.requireAccess(boardId, userId, 'read');
     return access.board;
   }
+
+  async hasWriteAccess(boardId: string, userId: string): Promise<boolean> {
+    try {
+      const access = await this.getBoardAccess(boardId, userId);
+      return access.canWrite;
+    } catch (error) {
+      return false;
+    }
+  }
 }

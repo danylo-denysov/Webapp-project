@@ -1,14 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { DndContext, closestCorners, PointerSensor, useSensor, useSensors, DragEndEvent, DragStartEvent, DragOverlay, CollisionDetection, pointerWithin } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import Modal from '../common/Modal/Modal';
 import Avatar from '../common/Avatar';
+import UserAssignmentDropdown from './UserAssignmentDropdown';
 import { useUpdateTask } from '../../hooks/taskGroups/useUpdateTask';
 import { useTaskLists } from '../../hooks/taskGroups/useTaskLists';
 import { useUpdateTaskList } from '../../hooks/taskGroups/useUpdateTaskList';
 import { useMoveListItem } from '../../hooks/taskGroups/useMoveListItem';
 import { useReorderTaskLists } from '../../hooks/taskGroups/useReorderTaskLists';
 import { useTaskComments } from '../../hooks/taskGroups/useTaskComments';
+import { useTaskUsers } from '../../hooks/taskGroups/useTaskUsers';
 import { useCurrentUser } from '../../hooks/auth/useCurrentUser';
 import { BoardUserRole } from '../../types/boardUser';
 import { safe_fetch } from '../../utils/api';
@@ -22,6 +24,7 @@ import ListEndZone from './ListEndZone';
 import ListGhost from './ListGhost';
 import closeIcon from '../../assets/close.svg';
 import plusIcon from '../../assets/plus.svg';
+import addUserIcon from '../../assets/add-user.svg';
 import './TaskDetailModal.css';
 
 interface TaskDetailModalProps {
@@ -56,6 +59,10 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated, 
   const [comments, setComments] = useState<TaskComment[]>([]);
   const [newCommentText, setNewCommentText] = useState('');
   const [isWritingComment, setIsWritingComment] = useState(false);
+  const [assignedUsers, setAssignedUsers] = useState<any[]>([]);
+  const [boardUsers, setBoardUsers] = useState<any[]>([]);
+  const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
+  const assignUserButtonRef = useRef<HTMLButtonElement>(null);
 
   const { user: currentUser } = useCurrentUser();
   const canEdit = userRole === BoardUserRole.OWNER || userRole === BoardUserRole.EDITOR;
@@ -70,6 +77,7 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated, 
   const { moveItem } = useMoveListItem();
   const { reorderLists } = useReorderTaskLists();
   const { createComment, deleteComment } = useTaskComments();
+  const { assignUser, removeUser } = useTaskUsers();
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -94,7 +102,6 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated, 
       return listCollisions.length > 0 ? listCollisions : [];
     }
 
-    // For list items, use closestCorners
     const allCollisions = closestCorners(args);
     return allCollisions.filter((collision) => {
       if (args.active && collision.id === args.active.id) {
@@ -104,7 +111,6 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated, 
     });
   };
 
-  // Sync state with task prop when task changes
   useEffect(() => {
     setCurrentTitle(task.title || '');
     setTitleText(task.title || '');
@@ -112,7 +118,6 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated, 
     setDescriptionText(task.description || '');
   }, [task.id, task.title, task.description]);
 
-  // Fetch full task details including lists and comments
   useEffect(() => {
     if (isOpen && task.id) {
       const fetchTaskDetails = async () => {
@@ -123,6 +128,15 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated, 
             const data = await res.json() as Task;
             setTaskLists(data.taskLists || []);
             setComments(data.comments || []);
+            setAssignedUsers(data.users || []);
+
+            if (data.taskGroup?.board?.id) {
+              const boardUsersRes = await safe_fetch(`/api/boards/${data.taskGroup.board.id}/users`);
+              if (boardUsersRes.ok) {
+                const boardUsersData = await boardUsersRes.json();
+                setBoardUsers(boardUsersData.map((bu: any) => bu.user));
+              }
+            }
           } else {
             await handleApiError(res);
           }
@@ -134,7 +148,6 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated, 
       };
       fetchTaskDetails();
     } else if (!isOpen) {
-      // Reset editing states when modal closes
       setIsEditingTitle(false);
       setIsEditingDescription(false);
       setEditingListId(null);
@@ -142,12 +155,12 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated, 
       setCreatingItemForList(null);
       setNewCommentText('');
       setIsWritingComment(false);
+      setIsUserDropdownOpen(false);
     }
   }, [isOpen, task.id]);
 
   const handleDescriptionClick = () => {
     if (!canEdit) return;
-    // Close any other editing states
     setIsEditingTitle(false);
     setEditingListId(null);
     setIsCreatingList(false);
@@ -163,7 +176,6 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated, 
       await updateTask(task.id, { description: descriptionText });
       setIsEditingDescription(false);
     } catch (error) {
-      // Error is already handled by the hook
     }
   };
 
@@ -204,7 +216,6 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated, 
       setNewItemContent('');
       setCreatingItemForList(null);
 
-      // Notify parent component with updated task including taskLists
       if (onTaskUpdated) {
         onTaskUpdated({
           id: task.id,
@@ -213,6 +224,8 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated, 
           created_at: '',
           order: 0,
           taskLists: updatedTaskLists,
+          comments: comments,
+          users: assignedUsers,
         });
       }
     }
@@ -233,7 +246,6 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated, 
       );
       setTaskLists(updatedTaskLists);
 
-      // Notify parent component with updated task including taskLists
       if (onTaskUpdated) {
         onTaskUpdated({
           id: task.id,
@@ -242,6 +254,8 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated, 
           created_at: '',
           order: 0,
           taskLists: updatedTaskLists,
+          comments: comments,
+          users: assignedUsers,
         });
       }
     }
@@ -257,7 +271,6 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated, 
       );
       setTaskLists(updatedTaskLists);
 
-      // Notify parent component with updated task including taskLists
       if (onTaskUpdated) {
         onTaskUpdated({
           id: task.id,
@@ -266,6 +279,8 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated, 
           created_at: '',
           order: 0,
           taskLists: updatedTaskLists,
+          comments: comments,
+          users: assignedUsers,
         });
       }
     }
@@ -279,7 +294,6 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated, 
 
   const handleTitleClick = () => {
     if (!canEdit) return;
-    // Close any other editing states
     setEditingListId(null);
     setIsEditingDescription(false);
     setIsCreatingList(false);
@@ -308,7 +322,6 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated, 
 
   const handleListNameClick = (list: TaskList) => {
     if (!canEdit) return;
-    // Close any other editing states
     setIsEditingTitle(false);
     setIsEditingDescription(false);
     setIsCreatingList(false);
@@ -338,7 +351,6 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated, 
   };
 
   const closeEditingStates = () => {
-    // Close all editing states
     setIsEditingTitle(false);
     setIsEditingDescription(false);
     setEditingListId(null);
@@ -353,7 +365,6 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated, 
   };
 
   const handleCommentClick = () => {
-    // Close any other editing states
     setIsEditingTitle(false);
     setIsEditingDescription(false);
     setEditingListId(null);
@@ -372,7 +383,6 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated, 
       setNewCommentText('');
       setIsWritingComment(false);
 
-      // Notify parent component with updated task including comments
       if (onTaskUpdated) {
         onTaskUpdated({
           id: task.id,
@@ -382,6 +392,7 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated, 
           order: 0,
           taskLists,
           comments: updatedComments,
+          users: assignedUsers,
         });
       }
     }
@@ -398,7 +409,6 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated, 
       const updatedComments = comments.filter(c => c.id !== commentId);
       setComments(updatedComments);
 
-      // Notify parent component with updated task including comments
       if (onTaskUpdated) {
         onTaskUpdated({
           id: task.id,
@@ -408,6 +418,52 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated, 
           order: 0,
           taskLists,
           comments: updatedComments,
+          users: assignedUsers,
+        });
+      }
+    }
+  };
+
+  const handleAssignUser = async (userId: string) => {
+    const success = await assignUser(task.id, userId);
+    if (success) {
+      const user = boardUsers.find(u => u.id === userId);
+      if (user) {
+        const updatedUsers = [...assignedUsers, user];
+        setAssignedUsers(updatedUsers);
+
+        if (onTaskUpdated) {
+          onTaskUpdated({
+            id: task.id,
+            title: currentTitle,
+            description: currentDescription,
+            created_at: '',
+            order: 0,
+            taskLists,
+            comments,
+            users: updatedUsers,
+          });
+        }
+      }
+    }
+  };
+
+  const handleRemoveUser = async (userId: string) => {
+    const success = await removeUser(task.id, userId);
+    if (success) {
+      const updatedUsers = assignedUsers.filter(u => u.id !== userId);
+      setAssignedUsers(updatedUsers);
+
+      if (onTaskUpdated) {
+        onTaskUpdated({
+          id: task.id,
+          title: currentTitle,
+          description: currentDescription,
+          created_at: '',
+          order: 0,
+          taskLists,
+          comments,
+          users: updatedUsers,
         });
       }
     }
@@ -418,7 +474,6 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated, 
     const activeData = active.data.current;
 
     if (activeData?.type === 'list-item') {
-      // Find the item being dragged
       for (const list of taskLists) {
         const item = list.items.find(i => i.id === active.id);
         if (item) {
@@ -427,7 +482,6 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated, 
         }
       }
     } else if (activeData?.type === 'list') {
-      // Find the list being dragged
       const list = taskLists.find(l => l.id === active.id);
       if (list) {
         setActiveList(list);
@@ -444,32 +498,27 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated, 
     const activeData = active.data.current;
     const overData = over.data.current;
 
-    // Handle list item dragging
     if (activeData?.type === 'list-item') {
       const itemId = active.id as string;
       const sourceListId = activeData.listId;
       let targetListId: string | undefined;
       let newOrder: number | undefined;
 
-      // Check if dropped on end zone (after all items)
       if (overData?.type === 'list-end-zone') {
         targetListId = overData.listId;
         const targetList = taskLists.find(l => l.id === targetListId);
 
         if (targetList) {
           if (sourceListId === targetListId) {
-            // Moving within same list to the end
             // After removal, length decreases by 1, so we want length - 1
             newOrder = targetList.items.length - 1;
           } else {
-            // Moving to different list - add at the end
             newOrder = targetList.items.length;
           }
         } else {
           newOrder = 0;
         }
       }
-      // Check if dropped on another item
       else if (overData?.type === 'list-item') {
         targetListId = overData.listId;
         const targetList = taskLists.find(l => l.id === targetListId);
@@ -487,7 +536,6 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated, 
                 newOrder = overItemIndex;
               }
             } else {
-              // Different list - insert at the hovered item position
               newOrder = overItemIndex;
             }
           } else {
@@ -497,46 +545,34 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated, 
       }
 
       if (targetListId !== undefined && newOrder !== undefined) {
-        // Save current state for rollback
         const previousLists = [...taskLists];
-
-        // Optimistically update UI
         const updatedLists = taskLists.map(l => ({ ...l, items: [...l.items] }));
         const sourceList = updatedLists.find(l => l.id === sourceListId);
         const targetList = updatedLists.find(l => l.id === targetListId);
 
         if (sourceList && targetList) {
-          // Remove item from source list
           const itemIndex = sourceList.items.findIndex(i => i.id === itemId);
           if (itemIndex >= 0) {
             const [movedItem] = sourceList.items.splice(itemIndex, 1);
-
-            // Add item to target list at specified position
             targetList.items.splice(newOrder, 0, movedItem);
-
-            // Update UI immediately
             setTaskLists(updatedLists);
 
-            // Send request to backend
             try {
               await moveItem(itemId, targetListId, newOrder);
             } catch (e) {
               console.error('Failed to move list item:', e);
               toastError('Failed to move list item');
-              // Rollback on error
               setTaskLists(previousLists);
             }
           }
         }
       }
     }
-    // Handle list dragging
     else if (activeData?.type === 'list') {
       const activeListId = active.id as string;
       const oldIndex = taskLists.findIndex(l => l.id === activeListId);
       let newIndex: number;
 
-      // Check if dropped on end zone
       if (overData?.type === 'list-end-zone') {
         newIndex = taskLists.length - 1;
       } else if (overData?.type === 'list') {
@@ -547,23 +583,18 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated, 
       }
 
       if (oldIndex !== newIndex) {
-        // Save current state for rollback
         const previousLists = [...taskLists];
-
-        // Reorder lists optimistically
         const reorderedLists = [...taskLists];
         const [movedList] = reorderedLists.splice(oldIndex, 1);
         reorderedLists.splice(newIndex, 0, movedList);
 
         setTaskLists(reorderedLists);
 
-        // Send request to backend
         try {
           await reorderLists(task.id, reorderedLists.map(l => l.id));
         } catch (e) {
           console.error('Failed to reorder lists:', e);
           toastError('Failed to reorder lists');
-          // Rollback on error
           setTaskLists(previousLists);
         }
       }
@@ -627,7 +658,6 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated, 
               <button
                 className="task-detail-modal__action-btn"
                 onClick={() => {
-                  // Close any other editing states
                   setIsEditingTitle(false);
                   setIsEditingDescription(false);
                   setEditingListId(null);
@@ -637,8 +667,33 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated, 
                   setIsCreatingList(true);
                 }}
               >
+                <img src={plusIcon} alt="Add" />
                 Add List
               </button>
+              <button
+                ref={assignUserButtonRef}
+                className="task-detail-modal__action-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsUserDropdownOpen(!isUserDropdownOpen);
+                }}
+                title="Assign user to task"
+              >
+                <img src={addUserIcon} alt="Assign user" />
+                Assign user
+              </button>
+            </div>
+          )}
+
+          {/* Members Section */}
+          {assignedUsers.length > 0 && (
+            <div className="task-detail-modal__members-section" onClick={(e) => e.stopPropagation()}>
+              <h3 className="task-detail-modal__section-title">Members</h3>
+              <div className="task-detail-modal__members-list">
+                {assignedUsers.map(user => (
+                  <Avatar key={user.id} size={32} profilePicture={user.profile_picture} />
+                ))}
+              </div>
             </div>
           )}
 
@@ -803,6 +858,7 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated, 
                             onDelete={(itemId) => handleDeleteItem(list.id, itemId)}
                             closeEditingStates={closeEditingStates}
                             canEdit={canEdit}
+                            isUserAssigned={currentUser ? assignedUsers.some(u => u.id === currentUser.id) : false}
                           />
                         ))}
                         <ListItemEndZone listId={list.id} />
@@ -852,7 +908,6 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated, 
                           className="task-detail-modal__add-item-btn"
                           onClick={(e) => {
                             e.stopPropagation();
-                            // Close any other editing states
                             setIsEditingTitle(false);
                             setIsEditingDescription(false);
                             setEditingListId(null);
@@ -988,7 +1043,18 @@ export default function TaskDetailModal({ isOpen, onClose, task, onTaskUpdated, 
             <ListGhost list={activeList} />
           ) : null}
         </DragOverlay>
+
       </DndContext>
+
+      <UserAssignmentDropdown
+        isOpen={isUserDropdownOpen}
+        onClose={() => setIsUserDropdownOpen(false)}
+        assignedUsers={assignedUsers}
+        availableUsers={boardUsers}
+        onAssign={handleAssignUser}
+        onRemove={handleRemoveUser}
+        buttonRef={assignUserButtonRef}
+      />
     </Modal>
   );
 }

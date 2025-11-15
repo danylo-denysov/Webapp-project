@@ -50,7 +50,7 @@ export default function TasksPage() {
     }
   }, [groupsError, groupErrorToasted]);
   const [localOrder, setLocalOrder] = useState<string[]>([]);
-  useEffect(() => {            // keep local array in sync when groups load/refresh
+  useEffect(() => {
     setLocalOrder(groups.map(g => g.id))
   }, [groups]);
   const reorderGroups = useReorderTaskGroups(boardId, refresh);
@@ -78,7 +78,6 @@ export default function TasksPage() {
       return groupCollisions.length > 0 ? groupCollisions : [];
     }
 
-    // For tasks, use closestCorners
     const allCollisions = closestCorners(args);
     const filteredCollisions = allCollisions.filter((collision) => {
       if (args.active && collision.id === args.active.id) {
@@ -94,7 +93,6 @@ export default function TasksPage() {
     });
 
     if (hasEndZone) {
-      // Remove group-container collisions if end-zone is present
       return filteredCollisions.filter((collision) => {
         const container = args.droppableContainers.find(c => c.id === collision.id);
         const overData = container?.data.current;
@@ -118,7 +116,6 @@ export default function TasksPage() {
     const activeData = active.data.current;
 
     if (activeData?.type === 'task') {
-      // Find the task being dragged
       for (const group of groups) {
         const task = group.tasks.find(t => t.id === active.id);
         if (task) {
@@ -127,7 +124,6 @@ export default function TasksPage() {
         }
       }
     } else if (activeData?.type === 'group') {
-      // Find the group being dragged
       const group = groups.find(g => g.id === active.id);
       if (group) {
         setActiveGroup(group);
@@ -141,7 +137,6 @@ export default function TasksPage() {
 
     const activeData = active.data.current;
 
-    // Only handle task dragging (not groups - groups use CSS transforms during drag)
     if (activeData?.type !== 'task') return;
   };
 
@@ -151,18 +146,15 @@ export default function TasksPage() {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
-    // Check if we are dragging a task or a group
     const activeData = active.data.current;
     const overData = over.data.current;
 
-    // Handle task dragging
     if (activeData?.type === 'task') {
       const taskId = active.id as string;
       const sourceGroupId = activeData.groupId;
       let targetGroupId: string | undefined;
       let newOrder: number | undefined;
 
-      // Check if dropped on end zone (after all tasks)
       if (overData?.type === 'end-zone') {
         targetGroupId = overData.groupId;
         const targetGroup = groups.find(g => g.id === targetGroupId);
@@ -180,25 +172,21 @@ export default function TasksPage() {
           newOrder = 0;
         }
       }
-      // Check if dropped on a group container (at the end, after all tasks)
       else if (overData?.type === 'group-container') {
         targetGroupId = overData.groupId;
         const targetGroup = groups.find(g => g.id === targetGroupId);
 
         if (targetGroup) {
           if (sourceGroupId === targetGroupId) {
-            // Moving within same group to the end
             // After removal, length decreases by 1, so we want length - 1
             newOrder = targetGroup.tasks.length - 1;
           } else {
-            // Moving to different group - add at the end
             newOrder = targetGroup.tasks.length;
           }
         } else {
           newOrder = 0;
         }
       }
-      // Check if dropped on another task
       else if (overData?.type === 'task') {
         targetGroupId = overData.groupId;
         const targetGroup = groups.find(g => g.id === targetGroupId);
@@ -207,17 +195,15 @@ export default function TasksPage() {
           const overTaskIndex = targetGroup.tasks.findIndex(t => t.id === over.id);
 
           if (overTaskIndex >= 0) {
-            // Placeholder shows before the hovered task, so we insert at that position
             if (sourceGroupId === targetGroupId) {
               const sourceTaskIndex = targetGroup.tasks.findIndex(t => t.id === taskId);
               // If dragging down (source is before target), after removal target shifts left by 1
               if (sourceTaskIndex < overTaskIndex) {
-                newOrder = overTaskIndex - 1; // Account for removal shifting indices
+                newOrder = overTaskIndex - 1;
               } else {
-                newOrder = overTaskIndex; // Insert at the target position
+                newOrder = overTaskIndex;
               }
             } else {
-              // Different group - insert at the hovered task position
               newOrder = overTaskIndex;
             }
           } else {
@@ -227,33 +213,23 @@ export default function TasksPage() {
       }
 
       if (targetGroupId !== undefined && newOrder !== undefined) {
-        // Save current state for rollback
         const previousGroups = [...groups];
-
-        // Optimistically update UI
         const updatedGroups = groups.map(g => ({ ...g, tasks: [...g.tasks] }));
         const sourceGroup = updatedGroups.find(g => g.id === sourceGroupId);
         const targetGroup = updatedGroups.find(g => g.id === targetGroupId);
 
         if (sourceGroup && targetGroup) {
-          // Remove task from source group
           const taskIndex = sourceGroup.tasks.findIndex(t => t.id === taskId);
           if (taskIndex >= 0) {
             const [movedTask] = sourceGroup.tasks.splice(taskIndex, 1);
-
-            // Add task to target group at specified position
             targetGroup.tasks.splice(newOrder, 0, movedTask);
-
-            // Update UI immediately
             setGroups(updatedGroups);
 
-            // Send request to backend
             try {
               await moveTask(taskId, targetGroupId, newOrder);
             } catch (e) {
               console.error('Failed to move task:', e);
               toastError('Failed to move task');
-              // Rollback on error
               setGroups(previousGroups);
             }
           }
@@ -262,7 +238,6 @@ export default function TasksPage() {
       return;
     }
 
-    // Handle group dragging
     if (activeData?.type === 'group') {
       const oldIndex = localOrder.indexOf(active.id as string);
       const newIndex = localOrder.indexOf(over.id as string);
@@ -275,7 +250,7 @@ export default function TasksPage() {
         } catch (error) {
           console.error('Failed to reorder groups:', error);
           toastError('Failed to reorder groups');
-          setLocalOrder(localOrder); // rollback
+          setLocalOrder(localOrder);
         }
       }
     }

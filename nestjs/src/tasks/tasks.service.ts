@@ -29,19 +29,23 @@ export class TasksService {
 
   async getTasks(groupId?: string): Promise<Task[]> {
     if (!groupId) {
-      return this.tasksRepository.find({ order: { order: 'ASC' } });
+      return this.tasksRepository.find({
+        order: { order: 'ASC' },
+        relations: ['taskLists', 'taskLists.items', 'comments', 'users'],
+      });
     }
 
     return this.tasksRepository.find({
       where: { taskGroup: { id: groupId } },
       order: { order: 'ASC' },
+      relations: ['taskLists', 'taskLists.items', 'comments', 'users'],
     });
   }
 
   async getTaskById(id: string): Promise<Task> {
     const found = await this.tasksRepository.findOne({
       where: { id },
-      relations: ['taskGroup', 'taskGroup.board', 'taskLists', 'taskLists.items', 'comments', 'comments.user'],
+      relations: ['taskGroup', 'taskGroup.board', 'taskLists', 'taskLists.items', 'comments', 'comments.user', 'users'],
     });
     if (!found) {
       throw new NotFoundException(`Task with ID "${id}" not found`);
@@ -465,5 +469,54 @@ export class TasksService {
       throw new NotFoundException(`Comment with ID "${commentId}" not found`);
     }
     return comment.task.taskGroup.board.id;
+  }
+
+  // Task user assignment methods
+  async assignUserToTask(taskId: string, userId: string): Promise<void> {
+    const task = await this.tasksRepository.findOne({
+      where: { id: taskId },
+      relations: ['users'],
+    });
+    if (!task) {
+      throw new NotFoundException(`Task with ID "${taskId}" not found`);
+    }
+
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException(`User with ID "${userId}" not found`);
+    }
+
+    // Check if user is already assigned
+    if (task.users.some(u => u.id === userId)) {
+      return; // User already assigned, do nothing
+    }
+
+    task.users.push(user);
+    await this.tasksRepository.save(task);
+  }
+
+  async removeUserFromTask(taskId: string, userId: string): Promise<void> {
+    const task = await this.tasksRepository.findOne({
+      where: { id: taskId },
+      relations: ['users'],
+    });
+    if (!task) {
+      throw new NotFoundException(`Task with ID "${taskId}" not found`);
+    }
+
+    task.users = task.users.filter(u => u.id !== userId);
+    await this.tasksRepository.save(task);
+  }
+
+  async isUserAssignedToTask(taskId: string, userId: string): Promise<boolean> {
+    const task = await this.tasksRepository.findOne({
+      where: { id: taskId },
+      relations: ['users'],
+    });
+    if (!task) {
+      throw new NotFoundException(`Task with ID "${taskId}" not found`);
+    }
+
+    return task.users.some(u => u.id === userId);
   }
 }

@@ -41,14 +41,11 @@ export default function TaskCardSortable({
     disabled: !canDrag,
   });
 
-  // Calculate total items count for dependency
   const itemsCount = task.taskLists?.reduce((sum, list) => sum + list.items.length, 0) || 0;
   const commentsCount = task.comments?.length || 0;
 
-  // Measure card height - remeasure on title, items count, or comments count change
   useEffect(() => {
     if (cardRef.current) {
-      // Use requestAnimationFrame to ensure layout is updated before measuring
       requestAnimationFrame(() => {
         if (cardRef.current) {
           setCardHeight(cardRef.current.offsetHeight);
@@ -57,24 +54,20 @@ export default function TaskCardSortable({
     }
   }, [task.title, itemsCount, commentsCount]);
 
-  // Check if another task is being dragged over this one
   const isOverCurrent = over?.id === task.id;
   const activeData = active?.data.current;
   const isTaskBeingDragged = activeData?.type === 'task';
   const draggedTaskHeight = activeData?.cardHeight || 80;
-
-  // Show placeholder when a task is being dragged over this one (but not the same task or when this is being dragged)
   const showPlaceholder = isOverCurrent && isTaskBeingDragged && active?.id !== task.id && !isDragging;
 
   const style: React.CSSProperties = {
-    // Disable transform completely - we'll use custom placeholder instead
     transform: 'none',
     transition: 'none',
     width: '100%',
     position: 'relative',
     maxHeight: isDragging ? 0 : undefined,
     overflow: isDragging ? 'hidden' : 'visible',
-    marginTop: isDragging ? '-0.5rem' : undefined, // Compensate for parent's gap (0.5rem)
+    marginTop: isDragging ? '-0.5rem' : undefined,
     cursor: canDrag ? 'grab' : 'default',
   };
 

@@ -190,7 +190,18 @@ export class TasksController {
     });
     if (!item) throw new Error('Task list item not found');
     const boardId = item.taskList.task.taskGroup.board.id;
-    await this.boardAccessService.verifyWriteAccess(boardId, user.id);
+    const taskId = item.taskList.task.id;
+
+    // Check if user has write access OR is assigned to the task
+    const hasWriteAccess = await this.boardAccessService.hasWriteAccess(boardId, user.id);
+    const isAssignedToTask = await this.tasksService.isUserAssignedToTask(taskId, user.id);
+
+    if (!hasWriteAccess && !isAssignedToTask) {
+      // User must have at least read access to the board
+      await this.boardAccessService.verifyReadAccess(boardId, user.id);
+      throw new Error('You do not have permission to update this task item');
+    }
+
     return this.tasksService.updateTaskListItem(id, dto);
   }
 
@@ -281,5 +292,30 @@ export class TasksController {
     const boardId = await this.tasksService.getBoardIdFromCommentId(commentId);
     await this.boardAccessService.verifyReadAccess(boardId, user.id);
     return this.tasksService.deleteComment(commentId, user.id);
+  }
+
+  // Task user assignment endpoints
+  @Post(':taskId/users/:userId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async assignUserToTask(
+    @Param('taskId') taskId: string,
+    @Param('userId') userId: string,
+    @GetUser() user: JwtUserPayload,
+  ): Promise<void> {
+    const boardId = await this.tasksService.getBoardIdFromTaskId(taskId);
+    await this.boardAccessService.verifyWriteAccess(boardId, user.id);
+    return this.tasksService.assignUserToTask(taskId, userId);
+  }
+
+  @Delete(':taskId/users/:userId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async removeUserFromTask(
+    @Param('taskId') taskId: string,
+    @Param('userId') userId: string,
+    @GetUser() user: JwtUserPayload,
+  ): Promise<void> {
+    const boardId = await this.tasksService.getBoardIdFromTaskId(taskId);
+    await this.boardAccessService.verifyWriteAccess(boardId, user.id);
+    return this.tasksService.removeUserFromTask(taskId, userId);
   }
 }

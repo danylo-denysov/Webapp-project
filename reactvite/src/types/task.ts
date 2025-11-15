@@ -38,6 +38,12 @@ export interface Task {
   order: number;
   taskLists?: TaskList[];
   comments?: TaskComment[];
+  users?: {
+    id: string;
+    username: string;
+    email: string;
+    profile_picture?: string | null;
+  }[];
   taskGroup?: {
     id: string;
     name: string;

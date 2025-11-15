@@ -29,22 +29,17 @@ export default function Modal({ isOpen, onClose, children, preventClose = false 
   if (!isOpen) return null;
 
   const handleOverlayMouseDown = (e: React.MouseEvent) => {
-    // Track if mousedown started on the overlay (not on modal content)
     if (e.target === e.currentTarget) {
       mouseDownOnOverlay.current = true;
     }
-    // Stop propagation to prevent triggering parent Link
     e.stopPropagation();
   };
 
   const handleOverlayClick = (e: React.MouseEvent) => {
-    // Stop propagation to prevent triggering parent Link
     e.stopPropagation();
-    // Only close if both mousedown and mouseup happened on the overlay
     if (e.target === e.currentTarget && mouseDownOnOverlay.current && !preventClose) {
       onClose();
     }
-    // Reset the flag
     mouseDownOnOverlay.current = false;
   };
 

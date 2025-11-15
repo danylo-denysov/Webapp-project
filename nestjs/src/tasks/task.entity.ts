@@ -1,7 +1,8 @@
-import { Column, Entity, Index, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, Index, ManyToOne, OneToMany, ManyToMany, JoinTable, PrimaryGeneratedColumn } from 'typeorm';
 import { TaskGroup } from 'src/task-groups/task-group.entity';
 import { TaskList } from './task-list.entity';
 import { TaskComment } from './task-comment.entity';
+import { User } from 'src/users/user.entity';
 
 @Entity()
 export class Task {
@@ -35,4 +36,12 @@ export class Task {
     cascade: true,
   })
   comments: TaskComment[];
+
+  @ManyToMany(() => User)
+  @JoinTable({
+    name: 'task_users',
+    joinColumn: { name: 'task_id', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'user_id', referencedColumnName: 'id' },
+  })
+  users: User[];
 }

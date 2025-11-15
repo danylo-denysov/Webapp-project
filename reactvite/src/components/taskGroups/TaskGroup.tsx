@@ -67,8 +67,6 @@ export default function TaskGroup({ boardId, group, onTaskAdded, onTaskDeleted, 
     setRenameOpen(false);
   };
 
-  
-  // Handle click outside to close rename
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (renameOpen && renameContainerRef.current && !renameContainerRef.current.contains(event.target as Node)) {
@@ -105,13 +103,11 @@ export default function TaskGroup({ boardId, group, onTaskAdded, onTaskDeleted, 
 
   const { active, over } = useDndContext();
 
-  // Check if a task is being dragged over this group's empty space (not over a task)
   const isOverGroup = over?.id === `group-container-${group.id}`;
   const isOverAnyTask = over?.data.current?.type === 'task';
   const activeData = active?.data.current;
   const isTaskBeingDragged = activeData?.type === 'task';
   const draggedTaskHeight = activeData?.cardHeight || 80;
-  // Only show indicator when over the group container itself, not over any task
   const showDropIndicator = isOverGroup && isTaskBeingDragged && !isOverAnyTask;
 
   const handleTaskClick = (task: Task) => {
@@ -120,13 +116,11 @@ export default function TaskGroup({ boardId, group, onTaskAdded, onTaskDeleted, 
   };
 
   const handleTaskUpdated = (updatedTask: Task) => {
-    // Update the task in the group's tasks array
     const taskIndex = group.tasks.findIndex(t => t.id === updatedTask.id);
     if (taskIndex !== -1) {
       group.tasks[taskIndex] = updatedTask;
     }
     setSelectedTask(updatedTask);
-    // Force re-render of task cards
     setUpdateKey(prev => prev + 1);
   };
 

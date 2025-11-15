@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import './BoardCard.css';
 import BoardMenu from './BoardMenu';
 import ColorPicker from './ColorPicker';
@@ -28,13 +28,11 @@ export default function BoardCard({ board, refresh, currentUserId }: BoardCardPr
   const [showColorPicker, setShowColorPicker] = useState(false)
   const [initialColorSet, setInitialColorSet] = useState(false)
   const [boardColor, setBoardColor] = useState<string>(() => {
-    // Check board color first, then localStorage, then generate and save random color
     if (board.color) return board.color
 
     const stored = getStoredColor(board.id)
     if (stored) return stored
 
-    // Generate random color and save it immediately
     const random = getRandomColor()
     setStoredColor(board.id, random)
     return random
@@ -44,12 +42,10 @@ export default function BoardCard({ board, refresh, currentUserId }: BoardCardPr
   useEffect(() => {
     if (board.color) {
       setBoardColor(board.color)
-      // Also update localStorage when board color is set from server
       setStoredColor(board.id, board.color)
     }
   }, [board.color, board.id])
 
-  // Save initial random color to database if it wasn't set
   useEffect(() => {
     const saveInitialColor = async () => {
       if (!board.color && !initialColorSet && isOwner) {
@@ -95,7 +91,6 @@ export default function BoardCard({ board, refresh, currentUserId }: BoardCardPr
     setBoardColor(color)
     setStoredColor(board.id, color)
 
-    // Call API to update board color
     try {
       const res = await fetch(`/api/boards/${board.id}/color`, {
         method: 'PATCH',
@@ -111,7 +106,6 @@ export default function BoardCard({ board, refresh, currentUserId }: BoardCardPr
       }
     } catch (error) {
       console.error('Error updating board color:', error)
-      // Keep the color in localStorage even if API call fails
     }
   }
 

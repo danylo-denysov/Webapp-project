@@ -1,6 +1,7 @@
 import './TaskCard.css';
 import cross from '../../assets/close.svg';
 import chat from '../../assets/chat.svg';
+import user from '../../assets/user.svg';
 import type { Task } from '../../types/task';
 
 export default function TaskCard({
@@ -31,11 +32,12 @@ export default function TaskCard({
   const itemsCount = getTotalItemsCount();
   const allCompleted = itemsCount && itemsCount.total > 0 && itemsCount.completed === itemsCount.total;
   const commentsCount = task.comments?.length || 0;
+  const assignedUsersCount = task.users?.length || 0;
 
   return (
     <div className="task-card" onClick={onClick}>
       <div className="task-title">{task.title}</div>
-      {(itemsCount && itemsCount.total > 0) || commentsCount > 0 ? (
+      {(itemsCount && itemsCount.total > 0) || commentsCount > 0 || assignedUsersCount > 0 ? (
         <div className="task-indicators">
           {itemsCount && itemsCount.total > 0 && (
             <div className="task-items-indicator">
@@ -50,6 +52,14 @@ export default function TaskCard({
               <img src={chat} alt="comments" className="task-comments-indicator__icon"/>
               <span className="task-comments-indicator__count">
                 {commentsCount}
+              </span>
+            </div>
+          )}
+          {assignedUsersCount > 0 && (
+            <div className="task-users-indicator">
+              <img src={user} alt="assigned users" className="task-users-indicator__icon"/>
+              <span className="task-users-indicator__count">
+                {assignedUsersCount}
               </span>
             </div>
           )}

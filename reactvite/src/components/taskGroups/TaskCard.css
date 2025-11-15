@@ -69,6 +69,24 @@
   font-weight: 500;
 }
 
+.task-users-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.875rem;
+  color: var(--color-text);
+}
+
+.task-users-indicator__icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.task-users-indicator__count {
+  font-weight: 500;
+}
+
 .task-items-indicator__checkbox {
   position: relative;
   width: 16px;

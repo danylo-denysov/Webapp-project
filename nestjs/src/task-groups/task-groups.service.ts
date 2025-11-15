@@ -30,6 +30,7 @@ export class TaskGroupsService {
       .leftJoinAndSelect('t.taskLists', 'tl')
       .leftJoinAndSelect('tl.items', 'i')
       .leftJoinAndSelect('t.comments', 'c')
+      .leftJoinAndSelect('t.users', 'u')
       .where('g.boardId = :boardId', { boardId })
       .orderBy('g.order', 'ASC')
       .addOrderBy('t.order', 'ASC')
