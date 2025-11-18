@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useLocation } from 'react-router-dom';
 import { DndContext, closestCorners, PointerSensor, useSensor, useSensors, DragEndEvent, DragStartEvent, DragOverEvent, DragOverlay, CollisionDetection, pointerWithin } from '@dnd-kit/core';
 import { arrayMove, SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortable';
 
@@ -29,7 +29,9 @@ import './TasksPage.css';
 export default function TasksPage() {
   const { boardId } = useParams<{ boardId: string }>()
   const navigate = useNavigate()
+  const location = useLocation()
   const [boardName, setBoardName] = useState('')
+  const [openTaskId, setOpenTaskId] = useState<string | null>(null)
   const { user: currentUser } = useCurrentUser();
   const { groups, setGroups, loading: groupsLoading, error: groupsError, refresh } = useTaskGroups(boardId);
   const [groupErrorToasted, setGroupErrorToasted] = useState(false);
@@ -55,6 +57,28 @@ export default function TasksPage() {
   useEffect(() => {
     setLocalOrder(groups.map(g => g.id))
   }, [groups]);
+
+  // Handle opening task from notification or email link
+  useEffect(() => {
+    // Check for taskId in location.state (from notifications tab)
+    const state = location.state as { openTaskId?: string } | null;
+    if (state?.openTaskId) {
+      setOpenTaskId(state.openTaskId);
+      // Clear the state to prevent reopening on page refresh
+      window.history.replaceState({}, document.title);
+      return;
+    }
+
+    // Check for taskId in URL query parameters (from email links)
+    const searchParams = new URLSearchParams(location.search);
+    const taskIdFromQuery = searchParams.get('taskId');
+    if (taskIdFromQuery) {
+      setOpenTaskId(taskIdFromQuery);
+      // Clear the query parameter to prevent reopening on page refresh
+      navigate(`/boards/${boardId}`, { replace: true });
+    }
+  }, [location, boardId, navigate]);
+
   const reorderGroups = useReorderTaskGroups(boardId, refresh);
   const { moveTask } = useMoveTask();
   const sensors = useSensors(
@@ -358,13 +382,17 @@ export default function TasksPage() {
             <button className="tasks-action-btn" onClick={() => setTeamModalOpen(true)}>
               <img src={teamIcon} alt="Team" /> Team
             </button>
+            <Link to="/boards" className="tasks-action-btn tasks-boards-link">
+              <img src={listIcon} alt="Boards" /> Boards
+            </Link>
             <div style={{ position: 'relative' }}>
               <button
                 ref={notificationsButtonRef}
-                className="tasks-action-btn"
+                className="notifications-icon-btn"
                 onClick={() => setNotificationsOpen(!notificationsOpen)}
+                aria-label="Notifications"
               >
-                <img src={notificationIcon} alt="Notifications" /> Notifications
+                <img src={notificationIcon} alt="Notifications" />
               </button>
               <NotificationsDropdown
                 isOpen={notificationsOpen}
@@ -372,9 +400,6 @@ export default function TasksPage() {
                 buttonRef={notificationsButtonRef}
               />
             </div>
-            <Link to="/boards" className="tasks-action-btn tasks-boards-link">
-              <img src={listIcon} alt="Boards" /> Boards
-            </Link>
             <Link to="/profile">
               <Avatar profilePicture={currentUser?.profile_picture} />
             </Link>
@@ -416,6 +441,8 @@ export default function TasksPage() {
                       onGroupDeleted={refresh}
                       userRole={userRole}
                       currentUserId={currentUser?.id}
+                      openTaskId={openTaskId}
+                      onTaskModalClose={() => setOpenTaskId(null)}
                     />
                   );
                 })}

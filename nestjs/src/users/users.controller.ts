@@ -23,8 +23,12 @@ import { JwtAuthGuard } from 'src/users/jwt-auth.guard';
 import { ChangeNicknameDto } from './dto/change-nickname.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { UpdateProfilePictureDto } from './dto/update-profile-picture.dto';
+import { UpdateNotificationPreferencesDto } from './dto/update-notification-preferences.dto';
 import { GetUser } from './get-user.decorator';
 import { JwtUserPayload, JwtRefreshPayload } from './jwt-user-payload.interface';
+import { NotificationsService } from './notifications.service';
+import { UserNotificationPreferences } from './user-notification-preferences.entity';
+import { NotificationLog } from './notification-log.entity';
 
 @Controller('users')
 export class UsersController {
@@ -34,6 +38,7 @@ export class UsersController {
   constructor(
     private usersService: UsersService,
     private configService: ConfigService,
+    private notificationsService: NotificationsService,
   ) {
     // Cookie maxAge in milliseconds (must match JWT token TTL)
     // Using getOrThrow to enforce proper .env configuration
@@ -208,5 +213,31 @@ export class UsersController {
       sameSite: 'lax',
       path: '/',
     });
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('/me/notification-preferences')
+  async getNotificationPreferences(
+    @GetUser() user: JwtUserPayload,
+  ): Promise<UserNotificationPreferences> {
+    return this.notificationsService.getPreferences(user.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('/me/notification-preferences')
+  @HttpCode(HttpStatus.OK)
+  async updateNotificationPreferences(
+    @GetUser() user: JwtUserPayload,
+    @Body() dto: UpdateNotificationPreferencesDto,
+  ): Promise<UserNotificationPreferences> {
+    return this.notificationsService.updatePreferences(user.id, dto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('/me/notifications')
+  async getMyNotifications(
+    @GetUser() user: JwtUserPayload,
+  ): Promise<NotificationLog[]> {
+    return this.notificationsService.getUserNotifications(user.id);
   }
 }

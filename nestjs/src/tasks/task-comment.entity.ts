@@ -21,6 +21,7 @@ export class TaskComment {
 
   @ManyToOne(() => User, {
     eager: true,
+    onDelete: 'CASCADE',
   })
   user: User;
 

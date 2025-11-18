@@ -9,6 +9,12 @@ import { JwtStrategy } from './jwt.strategy';
 import { JwtRefreshStrategy } from './jwt-refresh.strategy';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { JwtRefreshGuard } from './jwt-refresh.guard';
+import { UserNotificationPreferences } from './user-notification-preferences.entity';
+import { NotificationLog } from './notification-log.entity';
+import { EmailService } from './email.service';
+import { WebhookService } from './webhook.service';
+import { NotificationsService } from './notifications.service';
+import { Task } from '../tasks/task.entity';
 
 @Module({
   imports: [
@@ -16,9 +22,9 @@ import { JwtRefreshGuard } from './jwt-refresh.guard';
     JwtModule.register({
       signOptions: {},
     }),
-    TypeOrmModule.forFeature([User])],
+    TypeOrmModule.forFeature([User, UserNotificationPreferences, NotificationLog, Task])],
   controllers: [UsersController],
-  providers: [UsersService, JwtStrategy, JwtRefreshStrategy, JwtAuthGuard, JwtRefreshGuard],
-  exports: [JwtStrategy, PassportModule], // export to use in other modules
+  providers: [UsersService, JwtStrategy, JwtRefreshStrategy, JwtAuthGuard, JwtRefreshGuard, EmailService, WebhookService, NotificationsService],
+  exports: [JwtStrategy, PassportModule, NotificationsService], // export to use in other modules
 })
 export class UsersModule {}

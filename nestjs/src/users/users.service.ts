@@ -7,6 +7,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { VerifyUserDto } from './dto/verify-user.dto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
+import { EmailService } from './email.service';
 
 @Injectable()
 export class UsersService {
@@ -14,6 +15,7 @@ export class UsersService {
     @InjectRepository(User) private usersRepository: Repository<User>,
     private jwtService: JwtService,
     private configService: ConfigService,
+    private emailService: EmailService,
   ) {}
 
   async getAllUsers(): Promise<Partial<User[]>> {
@@ -48,6 +50,12 @@ export class UsersService {
     try {
       await this.usersRepository.save(user);
       const { id } = user;
+
+      // Send welcome email (don't block user creation if email fails)
+      this.emailService.sendWelcomeEmail(username, email).catch((error) => {
+        console.error('Failed to send welcome email:', error);
+      });
+
       return { id, username, email };
     } catch (error) {
       if (error.code === '23505') {

@@ -8,11 +8,13 @@ import CreateBoardButton from '../../components/boards/CreateBoardButton';
 import CreateBoardModal from '../../components/boards/CreateBoardModal';
 import SearchBar from '../../components/boards/SearchBar';
 import SortDropDown from '../../components/boards/SortDropDown';
+import NotificationsDropdown from '../../components/notifications/NotificationsDropdown';
 import { useCurrentUser } from '../../hooks/auth/useCurrentUser';
 import { useBoards } from '../../hooks/boards/useBoards';
 import { useCreateBoard } from '../../hooks/boards/useCreateBoard';
 import { toastError } from '../../utils/toast';
 
+import notificationIcon from '../../assets/notification.svg';
 import './BoardsPage.css';
 
 const cmp = <T, K extends keyof T>(a: T, b: T, key: K) => {
@@ -32,6 +34,8 @@ export default function BoardsPage() {
   const [sortBy, setSortBy] = useState<'Name' | 'Owner' | 'Date'>('Date');
   const [ascending, setAscending] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const notificationsButtonRef = useRef<HTMLButtonElement>(null);
 
   const { boards, loading, error: loadError, refresh } = useBoards();
   const { createBoard } = useCreateBoard({ onSuccess: refresh });
@@ -100,6 +104,21 @@ export default function BoardsPage() {
         right={
           <>
             <CreateBoardButton onClick={handleOpenModal} />
+            <div style={{ position: 'relative' }}>
+              <button
+                ref={notificationsButtonRef}
+                className="notifications-icon-btn"
+                onClick={() => setNotificationsOpen(!notificationsOpen)}
+                aria-label="Notifications"
+              >
+                <img src={notificationIcon} alt="Notifications" />
+              </button>
+              <NotificationsDropdown
+                isOpen={notificationsOpen}
+                onClose={() => setNotificationsOpen(false)}
+                buttonRef={notificationsButtonRef}
+              />
+            </div>
             <Link to="/profile">
               <Avatar profilePicture={currentUser?.profile_picture} />
             </Link>

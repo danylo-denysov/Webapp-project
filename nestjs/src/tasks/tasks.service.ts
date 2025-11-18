@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { CreateTaskListDto } from './dto/create-task-list.dto';
@@ -27,6 +28,7 @@ export class TasksService {
     @InjectRepository(TaskGroup) private readonly groupRepository: Repository<TaskGroup>,
     @InjectRepository(User) private readonly userRepository: Repository<User>,
     private readonly mentionsService: MentionsService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async getTasks(groupId?: string): Promise<Task[]> {
@@ -128,12 +130,25 @@ export class TasksService {
       // Process mentions in description if userId is provided
       if (userId) {
         const boardId = task.taskGroup.board.id;
-        await this.mentionsService.processMentionsInTask(
+        const boardName = task.taskGroup.board.name || 'Board';
+        const mentionedUsers = await this.mentionsService.processMentionsInTask(
           task.id,
           updateTaskDto.description,
           userId,
           boardId,
         );
+
+        // Emit notification events for each mentioned user
+        for (const mentionedUser of mentionedUsers) {
+          this.eventEmitter.emit('task.user_mentioned', {
+            mentionedUserId: mentionedUser.id,
+            mentionedByUserId: userId,
+            taskId: task.id,
+            taskTitle: task.title,
+            boardId,
+            boardName,
+          });
+        }
       }
     }
 
@@ -449,12 +464,26 @@ export class TasksService {
 
     // Process mentions in comment
     const boardId = task.taskGroup.board.id;
-    await this.mentionsService.processMentionsInComment(
+    const boardName = task.taskGroup.board.name || 'Board';
+    const mentionedUsers = await this.mentionsService.processMentionsInComment(
       comment.id,
       createCommentDto.content,
       userId,
       boardId,
     );
+
+    // Emit notification events for each mentioned user in comment
+    for (const mentionedUser of mentionedUsers) {
+      this.eventEmitter.emit('task.user_mentioned', {
+        mentionedUserId: mentionedUser.id,
+        mentionedByUserId: userId,
+        taskId: task.id,
+        taskTitle: task.title,
+        boardId,
+        boardName,
+        commentContent: createCommentDto.content,
+      });
+    }
 
     return comment;
   }
@@ -498,10 +527,10 @@ export class TasksService {
   }
 
   // Task user assignment methods
-  async assignUserToTask(taskId: string, userId: string): Promise<void> {
+  async assignUserToTask(taskId: string, userId: string, assignedByUserId?: string): Promise<void> {
     const task = await this.tasksRepository.findOne({
       where: { id: taskId },
-      relations: ['users'],
+      relations: ['users', 'taskGroup', 'taskGroup.board'],
     });
     if (!task) {
       throw new NotFoundException(`Task with ID "${taskId}" not found`);
@@ -519,6 +548,20 @@ export class TasksService {
 
     task.users.push(user);
     await this.tasksRepository.save(task);
+
+    // Emit assignment notification event if assignedByUserId is provided
+    if (assignedByUserId) {
+      const boardName = task.taskGroup.board.name || 'Board';
+      const boardId = task.taskGroup.board.id;
+      this.eventEmitter.emit('task.user_assigned', {
+        assignedUserId: userId,
+        assignedByUserId,
+        taskId: task.id,
+        taskTitle: task.title,
+        boardId,
+        boardName,
+      });
+    }
   }
 
   async removeUserFromTask(taskId: string, userId: string): Promise<void> {

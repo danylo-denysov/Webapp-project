@@ -28,9 +28,11 @@ export interface TaskGroupProps {
   userRole: string | null;
   dragHandleProps?: any;
   currentUserId?: string;
+  openTaskId?: string | null;
+  onTaskModalClose?: () => void;
 }
 
-export default function TaskGroup({ boardId, group, onTaskAdded, onTaskDeleted, onGroupRenamed, onGroupDeleted, userRole, dragHandleProps, currentUserId }: TaskGroupProps) {
+export default function TaskGroup({ boardId, group, onTaskAdded, onTaskDeleted, onGroupRenamed, onGroupDeleted, userRole, dragHandleProps, currentUserId, openTaskId, onTaskModalClose }: TaskGroupProps) {
   const canEdit = userRole === BoardUserRole.OWNER || userRole === BoardUserRole.EDITOR;
 
   const { createTask } = useCreateTask(
@@ -123,6 +125,23 @@ export default function TaskGroup({ boardId, group, onTaskAdded, onTaskDeleted, 
     }
     setSelectedTask(updatedTask);
     setUpdateKey(prev => prev + 1);
+  };
+
+  // Handle opening task from notification
+  useEffect(() => {
+    if (openTaskId) {
+      const task = group.tasks.find(t => t.id === openTaskId);
+      if (task) {
+        setSelectedTask(task);
+        setTaskDetailOpen(true);
+        onTaskModalClose?.();
+      }
+    }
+  }, [openTaskId, group.tasks, onTaskModalClose]);
+
+  const handleTaskDetailClose = () => {
+    setTaskDetailOpen(false);
+    onTaskModalClose?.();
   };
 
   return (
@@ -260,7 +279,7 @@ export default function TaskGroup({ boardId, group, onTaskAdded, onTaskDeleted, 
       {selectedTask && (
         <TaskDetailModal
           isOpen={taskDetailOpen}
-          onClose={() => setTaskDetailOpen(false)}
+          onClose={handleTaskDetailClose}
           task={selectedTask}
           onTaskUpdated={handleTaskUpdated}
           userRole={userRole}

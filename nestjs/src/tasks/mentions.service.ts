@@ -108,7 +108,16 @@ export class MentionsService {
   async getUserMentions(userId: string): Promise<TaskMention[]> {
     return this.mentionsRepository.find({
       where: { mentionedUser: { id: userId } },
-      relations: ['task', 'comment', 'mentionedBy'],
+      relations: [
+        'task',
+        'task.taskGroup',
+        'task.taskGroup.board',
+        'comment',
+        'comment.task',
+        'comment.task.taskGroup',
+        'comment.task.taskGroup.board',
+        'mentionedBy',
+      ],
       order: { created_at: 'DESC' },
     });
   }

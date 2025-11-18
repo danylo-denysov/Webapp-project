@@ -29,7 +29,7 @@
 }
 
 .tasks-action-btn {
-  line-height: 1;    
+  line-height: 1;
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -60,6 +60,26 @@
       var(--button-hover-blur)
       var(--button-hover-color);
   filter: brightness(1.02);
+}
+
+.notifications-icon-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.notifications-icon-btn img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.notifications-icon-btn:hover {
+  transform: scale(1.15);
+  transition: transform 0.2s;
 }
 
 .tasks-divider {

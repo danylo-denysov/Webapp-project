@@ -6,6 +6,8 @@ import { BoardUserRole } from '../../types/boardUser'
 
 export interface TaskGroupSortableProps extends TaskGroupProps {
   userRole: string | null;
+  openTaskId?: string | null;
+  onTaskModalClose?: () => void;
 }
 
 export default function TaskGroupSortable(props: TaskGroupSortableProps) {

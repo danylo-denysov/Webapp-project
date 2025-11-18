@@ -11,11 +11,13 @@ import { TaskMention } from './task-mention.entity';
 import { TaskGroup } from '../task-groups/task-group.entity';
 import { User } from '../users/user.entity';
 import { BoardsModule } from '../boards/boards.module';
+import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Task, TaskList, TaskListItem, TaskComment, TaskMention, TaskGroup, User]),
     BoardsModule,
+    UsersModule,
   ],
   controllers: [TasksController],
   providers: [TasksService, MentionsService],

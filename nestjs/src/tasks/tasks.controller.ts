@@ -31,6 +31,8 @@ import { JwtAuthGuard } from '../users/jwt-auth.guard';
 import { BoardAccessService } from '../boards/board-access.service';
 import { GetUser } from '../users/get-user.decorator';
 import { JwtUserPayload } from '../users/jwt-user-payload.interface';
+import { MentionsService } from './mentions.service';
+import { TaskMention } from './task-mention.entity';
 
 @UseGuards(JwtAuthGuard)
 @Controller('tasks')
@@ -38,6 +40,7 @@ export class TasksController {
   constructor(
     private tasksService: TasksService,
     private boardAccessService: BoardAccessService,
+    private mentionsService: MentionsService,
   ) {}
 
   @Get('group/:groupId')
@@ -294,6 +297,12 @@ export class TasksController {
     return this.tasksService.deleteComment(commentId, user.id);
   }
 
+  // Mentions endpoints
+  @Get('mentions/me')
+  async getMyMentions(@GetUser() user: JwtUserPayload): Promise<TaskMention[]> {
+    return this.mentionsService.getUserMentions(user.id);
+  }
+
   // Task user assignment endpoints
   @Post(':taskId/users/:userId')
   @HttpCode(HttpStatus.NO_CONTENT)
@@ -304,7 +313,7 @@ export class TasksController {
   ): Promise<void> {
     const boardId = await this.tasksService.getBoardIdFromTaskId(taskId);
     await this.boardAccessService.verifyWriteAccess(boardId, user.id);
-    return this.tasksService.assignUserToTask(taskId, userId);
+    return this.tasksService.assignUserToTask(taskId, userId, user.id);
   }
 
   @Delete(':taskId/users/:userId')
