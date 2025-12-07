@@ -24,7 +24,9 @@ export class EmailService {
   private readonly enabled: boolean;
 
   constructor(private configService: ConfigService) {
-    this.enabled = this.configService.get<boolean>('ENABLE_EMAIL_NOTIFICATIONS', true);
+    // Disable emails in test environment or if DISABLE_EMAILS is set
+    const disableEmails = process.env.DISABLE_EMAILS === 'true' || process.env.NODE_ENV === 'test';
+    this.enabled = !disableEmails && this.configService.get<boolean>('ENABLE_EMAIL_NOTIFICATIONS', true);
 
     if (this.enabled) {
       this.transporter = nodemailer.createTransport({
@@ -36,6 +38,8 @@ export class EmailService {
           pass: this.configService.get<string>('SMTP_PASSWORD'),
         },
       });
+    } else {
+      this.logger.log('Email service disabled (test environment or DISABLE_EMAILS=true)');
     }
   }
 

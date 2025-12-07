@@ -130,4 +130,13 @@ export class BoardAccessService {
       return false;
     }
   }
+
+  async isBoardMember(boardId: string, userId: string): Promise<boolean> {
+    try {
+      await this.getBoardAccess(boardId, userId);
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
 }

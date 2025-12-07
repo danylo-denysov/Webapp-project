@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
@@ -16,6 +16,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { TaskGroup } from 'src/task-groups/task-group.entity';
 import { User } from 'src/users/user.entity';
+import { BoardAccessService } from 'src/boards/board-access.service';
 
 @Injectable()
 export class TasksService {
@@ -29,6 +30,7 @@ export class TasksService {
     @InjectRepository(User) private readonly userRepository: Repository<User>,
     private readonly mentionsService: MentionsService,
     private readonly eventEmitter: EventEmitter2,
+    private readonly boardAccessService: BoardAccessService,
   ) {}
 
   async getTasks(groupId?: string): Promise<Task[]> {
@@ -539,6 +541,13 @@ export class TasksService {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) {
       throw new NotFoundException(`User with ID "${userId}" not found`);
+    }
+
+    // Check if user is a board member
+    const boardId = task.taskGroup.board.id;
+    const isMember = await this.boardAccessService.isBoardMember(boardId, userId);
+    if (!isMember) {
+      throw new ForbiddenException('Only board members can be assigned to tasks');
     }
 
     // Check if user is already assigned
